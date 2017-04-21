@@ -4,4 +4,4 @@ This repository is built for team that is consititued by Jitong Qi, Zhihao Fan a
 
 I'm glad to be there with you!
 
-
+This trial is specific for ubuntu terminal!
