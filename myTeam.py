@@ -189,37 +189,7 @@ class MCTSCaptureAgent(CaptureAgent):
     
     bestActions = (self.rootNode).getBestAction()
     return bestActions[0]
-  """
-  def Select( self ):
-    currentNode = self.rootNode
-    while True:
-      if not currentNode.isFullExpand():
-        return currentNode.RandSuccNode() 
-        break                    
-      else:
-        currentNode = currentNode.UCB1SuccNode()
-  """     
-  """            
-  def PlayOut( self, CurrentNode ):
-    iters = 0
-    while iters < self.ROLLOUT_DEPTH:
-      CurrentNode = CurrentNode.RandSuccNode()
-      print self.enemies
-      EnemyNode = ExploreNode( copy.deepcopy( CurrentNode.GameState ), self.enemies )
-      EnemyNode.RandSuccNode()
-      CurrentNode.GameState = copy.deepcopy( EnemyNode.GameState )
-      iters += 1
-      
-    return CurrentNode
-
-  def BackPropagate( self, endNode):
-    score = self.getScore( endNode.GameState )
-    currentNode = endNode
-    while currentNode is not None:
-       currentNode.totalValue += score
-       currentNode = currentNode.parent       
-  """        
-      
+ 
 
 
 
