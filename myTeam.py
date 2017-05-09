@@ -61,7 +61,6 @@ class ExploreNode:
     self.nVisit = 0
     self.parent = parent
     self.LegalActions = self.getLegalActions()
-    print len(self.LegalActions)
     self.Children_Nodes = {}
     self.FullExpand = False  
     self.C = math.sqrt(2)
@@ -85,12 +84,7 @@ class ExploreNode:
     else:
       self.FullExpand = True
   
-  def RandSuccNode( self ):
-    """
-    if self.FullNextExpand:
-      return None     
-    else:
-    """  
+  def RandSuccNode( self ): 
     self.nVisit += 1
     Rands = []
     for action in self.LegalActions:
@@ -114,7 +108,7 @@ class ExploreNode:
       SuccNode = None
       min_score = 9999
       for child_node in self.Children_Nodes.values():
-        score = child_node.totalValue + self.C * math.sqrt( math.log( self.nVisit ) / child_node.nVisit )
+        score = child_node.totalValue / float( self.nVisit ) + self.C * math.sqrt( math.log( self.nVisit ) / child_node.nVisit )
         if score < min_score:
           min_score = score
           SuccNode = child_node
@@ -127,7 +121,7 @@ class ExploreNode:
       if child_node.totalValue >= highest_score:
         highest_score = child_node.totalValue / float( child_node.nVisit )
         best_action = action
-    print highest_score    
+    #print highest_score    
     return best_action    
       
 class MCTSCaptureAgent(CaptureAgent):
@@ -146,50 +140,49 @@ class MCTSCaptureAgent(CaptureAgent):
     """ 
     we return the best a ction for current GameState. 
     we hope to return the best two action for two pacman! 
-    """    
-    def Select():
-      currentNode = self.rootNode
-      while True:
-        currentNode.isFullExpand()  
-        if not currentNode.FullExpand:
-          return currentNode.RandSuccNode() 
-        else:
-          currentNode = currentNode.UCB1SuccNode()
-          
-    def PlayOut( CurrentNode ):
-      iters = 0
-      while iters < self.ROLLOUT_DEPTH:
-        CurrentNode = CurrentNode.RandSuccNode()
-        EnemyNode = ExploreNode( CurrentNode.GameState, self.enemies )
-        EnemyNode.RandSuccNode()
-        CurrentNode.GameState = EnemyNode.GameState
-        iters += 1      
-      return CurrentNode      
-    
-    def BackPropagate( endNode ):
-      score = self.getScore( endNode.GameState )
-      print score
-      currentNode = endNode
-      while currentNode is not None:
-        currentNode.totalValue += score
-        currentNode = currentNode.parent 
-    
+    """
     start = time.time()
     self.rootNode = ExploreNode( GameState, self.allies, None)
     node = self.rootNode
     iters = 0
     running_time = 0.0
     while( running_time < 0.9 and iters < self.MCTS_ITERATION ):
-       node = Select()
-       EndNode = PlayOut( node )
-       BackPropagate( EndNode )       
+       node = self.Select()
+       EndNode = self.PlayOut( node )
+       self.BackPropagate( EndNode )       
        end = time.time()
        running_time = end - start
-       iters += 1
-    
+       iters += 1    
     bestActions = (self.rootNode).getBestAction()
     return bestActions[0]
- 
+
+  def Select( self ):
+    currentNode = self.rootNode
+    while True:
+        currentNode.isFullExpand()  
+        if not currentNode.FullExpand:
+          return currentNode.RandSuccNode() 
+        else:
+          currentNode = currentNode.UCB1SuccNode()
+          
+  def PlayOut( self, CurrentNode ):
+    iters = 0
+    while iters < self.ROLLOUT_DEPTH:
+      CurrentNode = CurrentNode.RandSuccNode()
+      EnemyNode = ExploreNode( copy.deepcopy( CurrentNode.GameState ), self.enemies )
+      EnemyNode.RandSuccNode()
+      CurrentNode.GameState = copy.deepcopy( EnemyNode.GameState )
+      iters += 1     
+    return CurrentNode
+
+  def BackPropagate( self, endNode):
+    score = self.getScore( endNode.GameState )
+    currentNode = endNode
+    while currentNode is not None:
+       currentNode.totalValue += score
+       currentNode = currentNode.parent       
+      
+      
 
 
 
