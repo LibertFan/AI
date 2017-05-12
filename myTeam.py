@@ -64,6 +64,8 @@ class ExploreNode:
     self.Children_Nodes = {}
     self.FullExpand = False  
     self.C = math.sqrt(2)
+    self.novel = True
+    self.cacheMemory = None
   
   def getLegalActions( self ):
     IndexActions = []  
@@ -111,7 +113,55 @@ class ExploreNode:
     if self.Children_Nodes.get(actions) is None:
       self.AddChildNode(actions, SuccNode)
     return SuccNode
-    
+
+  def generateTuples(self, node):
+    # get all features representation
+    features_list = []
+    atoms_tuples = set()
+    for i in range(1,len(features_list)+1):
+      atoms_tuples = atoms_tuples | set(itertools.combinations(features_list, i))
+    return atoms_tuples
+
+  def computeNovelty(self,tuples_set,all_tuples_set):
+    diff = tuples_set - all_tuples_set
+    novelty = min([len(each) for each in diff])
+    return len(diff)
+
+  def NoveltyTestSuccessors(self):
+    threshold = 1
+    node = self
+    if not node.FullExpand:
+      print "this node is not fully expanded"
+      return None
+    else:
+      all_atoms_tuples = set()
+      this_atoms_tuples = self.generateTuples(node)
+      all_atoms_tuples = all_atoms_tuples | this_atoms_tuples
+
+      for each_succ in node.Children_Nodes.values():
+        succ_atoms_tuples = self.generateTuples(each_succ)
+        novelty = self.computeNovelty(succ_atoms_tuples, all_atoms_tuples)
+        if novelty > threshold:
+          each_succ.novel = False
+        else:
+          p = each_succ.parent
+          while p is not None:
+            parent_atoms_tuples = p.cacheMemory
+            novelty = self.computeNovelty(succ_atoms_tuples, parent_atoms_tuples)
+            if novelty > threshold:
+              each_succ.novel = False
+              break
+            p = p.parent
+        all_atoms_tuples = all_atoms_tuples | succ_atoms_tuples
+
+      num_novelty = 0
+      for succ in node.Children_Nodes.values():
+        succ.cacheMemory = all_atoms_tuples
+        if not succ.novel:
+          num_novelty += 1
+      if num_novelty == len(node.Children_Nodes):
+        node.novel = False
+
   def UCB1SuccNode( self ):  
     if not self.FullExpand:  
       return None
@@ -120,10 +170,11 @@ class ExploreNode:
       SuccNode = None
       min_score = 9999
       for child_node in self.Children_Nodes.values():
-        score = child_node.totalValue / float( self.nVisit ) + self.C * math.sqrt( math.log( self.nVisit ) / child_node.nVisit )
-        if score < min_score:
-          min_score = score
-          SuccNode = child_node
+        if child_node.novel == True:
+          score = child_node.totalValue / float( self.nVisit ) + self.C * math.sqrt( math.log( self.nVisit ) / child_node.nVisit )
+          if score < min_score:
+            min_score = score
+            SuccNode = child_node
       return SuccNode
 
   def getBestAction( self ):
@@ -152,7 +203,11 @@ class MCTSCaptureAgent(CaptureAgent):
     """ 
     we return the best a ction for current GameState. 
     we hope to return the best two action for two pacman! 
-    """    
+    """
+
+    #if a higher score, store it
+    #only horizontal or vertical
+
     def Select():
       currentNode = self.rootNode
       while True:
@@ -160,6 +215,7 @@ class MCTSCaptureAgent(CaptureAgent):
         if not currentNode.FullExpand:
           return currentNode.RandSuccNode() 
         else:
+          currentNode.NoveltyTestSuccessors()
           currentNode = currentNode.UCB1SuccNode()
           
     def PlayOut( CurrentNode ):
@@ -196,4 +252,3 @@ class MCTSCaptureAgent(CaptureAgent):
     return bestActions[0]
 
       
-    
