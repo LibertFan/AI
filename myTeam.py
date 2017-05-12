@@ -196,23 +196,4 @@ class MCTSCaptureAgent(CaptureAgent):
     return bestActions[0]
 
       
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
