@@ -61,7 +61,6 @@ class ExploreNode:
     self.nVisit = 0
     self.parent = parent
     self.LegalActions = self.getLegalActions()
-    print len(self.LegalActions)
     self.Children_Nodes = {}
     self.FullExpand = False  
     self.C = math.sqrt(2)
@@ -85,12 +84,7 @@ class ExploreNode:
     else:
       self.FullExpand = True
   
-  def RandSuccNode( self ):
-    """
-    if self.FullNextExpand:
-      return None     
-    else:
-    """  
+  def RandSuccNode( self ): 
     self.nVisit += 1
     Rands = []
     for action in self.LegalActions:
@@ -126,7 +120,7 @@ class ExploreNode:
       SuccNode = None
       min_score = 9999
       for child_node in self.Children_Nodes.values():
-        score = child_node.totalValue + self.C * math.sqrt( math.log( self.nVisit ) / child_node.nVisit )
+        score = child_node.totalValue / float( self.nVisit ) + self.C * math.sqrt( math.log( self.nVisit ) / child_node.nVisit )
         if score < min_score:
           min_score = score
           SuccNode = child_node
@@ -139,7 +133,7 @@ class ExploreNode:
       if child_node.totalValue >= highest_score:
         highest_score = child_node.totalValue / float( child_node.nVisit )
         best_action = action
-    print highest_score    
+    #print highest_score    
     return best_action    
       
 class MCTSCaptureAgent(CaptureAgent):
@@ -185,23 +179,24 @@ class MCTSCaptureAgent(CaptureAgent):
       while currentNode is not None:
         currentNode.totalValue += score
         currentNode = currentNode.parent 
-    
+
     start = time.time()
     self.rootNode = ExploreNode( GameState, self.allies, None)
     node = self.rootNode
     iters = 0
     running_time = 0.0
     while( running_time < 0.9 and iters < self.MCTS_ITERATION ):
-       node = Select()
-       EndNode = PlayOut( node )
-       BackPropagate( EndNode )       
+       node = self.Select()
+       EndNode = self.PlayOut( node )
+       self.BackPropagate( EndNode )       
        end = time.time()
        running_time = end - start
-       iters += 1
-    
+       iters += 1    
     bestActions = (self.rootNode).getBestAction()
     return bestActions[0]
- 
+
+      
+      
 
 
 
