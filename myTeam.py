@@ -67,7 +67,7 @@ class ExploreNode:
   
   def getLegalActions( self ):
     IndexActions = []  
-    for index in self.cooperators_index:  
+    for index in self.cooperators_index:
       actions = (self.GameState).getLegalActions( index )
       IndexActions.append( actions )
     return tuple( itertools.product( IndexActions[0], IndexActions[1] ) ) 
@@ -98,6 +98,18 @@ class ExploreNode:
     SuccNode = ExploreNode( newGameState, self.cooperators_index, self )
     self.AddChildNode( actions, SuccNode)
     
+    return SuccNode
+
+  def RandALLSuccNode(self):
+    self.nVisit += 1
+    actions = random.choice(self.LegalActions)
+    newGameState = copy.deepcopy(self.GameState)
+    for index, action in zip(self.cooperators_index, actions):
+      newGameState = newGameState.generateSuccessor(index, action)
+
+    SuccNode = ExploreNode(newGameState, self.cooperators_index, self)
+    if self.Children_Nodes.get(actions) is None:
+      self.AddChildNode(actions, SuccNode)
     return SuccNode
     
   def UCB1SuccNode( self ):  
@@ -140,7 +152,34 @@ class MCTSCaptureAgent(CaptureAgent):
     """ 
     we return the best a ction for current GameState. 
     we hope to return the best two action for two pacman! 
-    """
+    """    
+    def Select():
+      currentNode = self.rootNode
+      while True:
+        currentNode.isFullExpand()  
+        if not currentNode.FullExpand:
+          return currentNode.RandSuccNode() 
+        else:
+          currentNode = currentNode.UCB1SuccNode()
+          
+    def PlayOut( CurrentNode ):
+      iters = 0
+      while iters < self.ROLLOUT_DEPTH:
+        CurrentNode = CurrentNode.RandALLSuccNode()
+        EnemyNode = ExploreNode( CurrentNode.GameState, self.enemies )
+        EnemyNode.RandALLSuccNode()
+        CurrentNode.GameState = EnemyNode.GameState
+        iters += 1      
+      return CurrentNode      
+    
+    def BackPropagate( endNode ):
+      score = self.getScore( endNode.GameState )
+      print score
+      currentNode = endNode
+      while currentNode is not None:
+        currentNode.totalValue += score
+        currentNode = currentNode.parent 
+
     start = time.time()
     self.rootNode = ExploreNode( GameState, self.allies, None)
     node = self.rootNode
