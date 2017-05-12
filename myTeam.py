@@ -127,6 +127,12 @@ class ExploreNode:
     novelty = min([len(each) for each in diff])
     return len(diff)
 
+  def getScore(self, node):
+    if node.isRed:
+      return node.gameState.getScore()
+    else:
+      return node.gameState.getScore() * -1
+
   def NoveltyTestSuccessors(self):
     threshold = 1
     node = self
@@ -153,6 +159,10 @@ class ExploreNode:
               break
             p = p.parent
         all_atoms_tuples = all_atoms_tuples | succ_atoms_tuples
+
+      for succ in node.Children_Nodes.values():
+        if self.getScore(succ) > self.getScore(node):
+          succ.novel = True
 
       num_novelty = 0
       for succ in node.Children_Nodes.values():
