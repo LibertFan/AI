@@ -68,7 +68,7 @@ class ExploreNode:
   
   def getLegalActions( self ):
     IndexActions = []  
-    for index in self.cooperators_index:  
+    for index in self.cooperators_index:
       actions = (self.GameState).getLegalActions( index )
       IndexActions.append( actions )
     return tuple( itertools.product( IndexActions[0], IndexActions[1] ) ) 
@@ -104,6 +104,18 @@ class ExploreNode:
     SuccNode = ExploreNode( newGameState, self.cooperators_index, self )
     self.AddChildNode( actions, SuccNode)
     
+    return SuccNode
+
+  def RandALLSuccNode(self):
+    self.nVisit += 1
+    actions = random.choice(self.LegalActions)
+    newGameState = copy.deepcopy(self.GameState)
+    for index, action in zip(self.cooperators_index, actions):
+      newGameState = newGameState.generateSuccessor(index, action)
+
+    SuccNode = ExploreNode(newGameState, self.cooperators_index, self)
+    if self.Children_Nodes.get(actions) is None:
+      self.AddChildNode(actions, SuccNode)
     return SuccNode
     
   def UCB1SuccNode( self ):  
@@ -159,9 +171,9 @@ class MCTSCaptureAgent(CaptureAgent):
     def PlayOut( CurrentNode ):
       iters = 0
       while iters < self.ROLLOUT_DEPTH:
-        CurrentNode = CurrentNode.RandSuccNode()
+        CurrentNode = CurrentNode.RandALLSuccNode()
         EnemyNode = ExploreNode( CurrentNode.GameState, self.enemies )
-        EnemyNode.RandSuccNode()
+        EnemyNode.RandALLSuccNode()
         CurrentNode.GameState = EnemyNode.GameState
         iters += 1      
       return CurrentNode      
