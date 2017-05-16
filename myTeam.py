@@ -86,7 +86,7 @@ class ExploreNode:
     else:
       self.FullExpand = True
   
-  def RandSuccNode( self ): 
+  def RandSuccNode( self ):
     self.nVisit += 1
     Rands = []
     for action in self.LegalActions:
@@ -109,12 +109,15 @@ class ExploreNode:
     for index, action in zip(self.cooperators_index, actions):
       newGameState = newGameState.generateSuccessor(index, action)
 
-    SuccNode = ExploreNode(newGameState, self.cooperators_index, self)
     if self.Children_Nodes.get(actions) is None:
+      SuccNode = ExploreNode(newGameState, self.cooperators_index, self)
       self.AddChildNode(actions, SuccNode)
-    return SuccNode
+      return SuccNode
+    else:
+      SuccNode = self.Children_Nodes.get(actions)
+      return SuccNode
 
-  def generateTuples(self, node):
+  def generateTuples(self):
     # get all features representation
     features_list = []
     atoms_tuples = set()
@@ -127,25 +130,24 @@ class ExploreNode:
     novelty = min([len(each) for each in diff])
     return len(diff)
 
-  def getScore(self, node):
-    if node.isRed:
-      return node.gameState.getScore()
+  def getScore(self):
+    if self.isRed:
+      return self.gameState.getScore()
     else:
-      return node.gameState.getScore() * -1
+      return self.gameState.getScore() * -1
 
   def NoveltyTestSuccessors(self):
     threshold = 1
-    node = self
-    if not node.FullExpand:
+    if not self.FullExpand:
       print "this node is not fully expanded"
       return None
     else:
       all_atoms_tuples = set()
-      this_atoms_tuples = self.generateTuples(node)
+      this_atoms_tuples = self.generateTuples()
       all_atoms_tuples = all_atoms_tuples | this_atoms_tuples
 
-      for each_succ in node.Children_Nodes.values():
-        succ_atoms_tuples = self.generateTuples(each_succ)
+      for each_succ in self.Children_Nodes.values():
+        succ_atoms_tuples = each_succ.generateTuples()
         novelty = self.computeNovelty(succ_atoms_tuples, all_atoms_tuples)
         if novelty > threshold:
           each_succ.novel = False
@@ -160,17 +162,17 @@ class ExploreNode:
             p = p.parent
         all_atoms_tuples = all_atoms_tuples | succ_atoms_tuples
 
-      for succ in node.Children_Nodes.values():
-        if self.getScore(succ) > self.getScore(node):
+      for succ in self.Children_Nodes.values():
+        if succ.getScore() > self.getScore():
           succ.novel = True
 
       num_novelty = 0
-      for succ in node.Children_Nodes.values():
+      for succ in self.Children_Nodes.values():
         succ.cacheMemory = all_atoms_tuples
         if not succ.novel:
           num_novelty += 1
-      if num_novelty == len(node.Children_Nodes):
-        node.novel = False
+      if num_novelty == len(self.Children_Nodes):
+        self.novel = False
 
   def UCB1SuccNode( self ):  
     if not self.FullExpand:  
@@ -221,13 +223,13 @@ class MCTSCaptureAgent(CaptureAgent):
     def Select():
       currentNode = self.rootNode
       while True:
-        currentNode.isFullExpand()  
+        currentNode.isFullExpand()
         if not currentNode.FullExpand:
-          return currentNode.RandSuccNode() 
+          return currentNode.RandSuccNode()
         else:
-          currentNode.NoveltyTestSuccessors()
+          #currentNode.NoveltyTestSuccessors()
           currentNode = currentNode.UCB1SuccNode()
-          
+
     def PlayOut( CurrentNode ):
       iters = 0
       while iters < self.ROLLOUT_DEPTH:
@@ -235,16 +237,16 @@ class MCTSCaptureAgent(CaptureAgent):
         EnemyNode = ExploreNode( CurrentNode.GameState, self.enemies )
         EnemyNode.RandALLSuccNode()
         CurrentNode.GameState = EnemyNode.GameState
-        iters += 1      
-      return CurrentNode      
-    
+        iters += 1
+      return CurrentNode
+
     def BackPropagate( endNode ):
       score = self.getScore( endNode.GameState )
       print score
       currentNode = endNode
       while currentNode is not None:
         currentNode.totalValue += score
-        currentNode = currentNode.parent 
+        currentNode = currentNode.parent
 
     start = time.time()
     self.rootNode = ExploreNode( GameState, self.allies, None)
@@ -252,9 +254,9 @@ class MCTSCaptureAgent(CaptureAgent):
     iters = 0
     running_time = 0.0
     while( running_time < 0.9 and iters < self.MCTS_ITERATION ):
-       node = self.Select()
-       EndNode = self.PlayOut( node )
-       self.BackPropagate( EndNode )       
+       node = Select()
+       EndNode = PlayOut( node )
+       BackPropagate( EndNode )
        end = time.time()
        running_time = end - start
        iters += 1    
