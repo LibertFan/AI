@@ -52,9 +52,8 @@ def createTeam(firstIndex, secondIndex, isRed,
 
 
 class BasicNode:
-	def __init__( self , AlliesActions = None, OpponetActions = None ):
-        
-		return 0
+    def __init__( self , AlliesActions = None, OpponetActions = None ):
+        return 0
 
 class StateNode( BasicNode):
 	def __init__( self, allies = None, enemies = None, GameState = None, AlliesActions = dict(), OpponentsActions = dict(), AlliesActionParent = None, OpponentsActionParent = None, StateParent = None, getDistancer = None, getDistanceDict = None ):      	        
@@ -72,31 +71,31 @@ class StateNode( BasicNode):
         3. 
         ```
         """
-		try:
+        try:
             self.LastActions = dict( AlliesActions, **OpponentsActions )
-		except:
-			raise Exception( " the format of AlliesActions and OpponentsAction go wrong!" )	
+        except:
+            raise Exception( " the format of AlliesActions and OpponentsAction go wrong!" )	
         self.StateParent = StateParent
-		self.AlliesActionParent = AlliesActionParent
-		self.OpponentsActionParent = OpponentsActionParent   
+        self.AlliesActionParent = AlliesActionParent
+        self.OpponentsActionParent = OpponentsActionParent   
         if StateParent is None:     
-			if getDistancer is None or allies is None or enemies is None:
-				raise Exception( "the function of getDistancer or allies or enemies missing!")
+            if getDistancer is None or allies is None or enemies is None:
+                raise Exception( "the function of getDistancer or allies or enemies missing!")
             self.GameState = GameState
-			self.getDistancer = getDistancer
-			self.Bound = self.getBound()
+	    self.getDistancer = getDistancer
+	    self.Bound = self.getBound()
             self.allies = allies
             self.enemies = enemies
         elif GameState is None:
-			self.StateParent = StateParent
+	    self.StateParent = StateParent
             self.allies = self.StateParent.allies
             self.enemies = self.StateParent.enemies 
-			self.getDistancer = self.StateParent.getDistancer
-			self.Bound = self.StateParent.Bound
+	    self.getDistancer = self.StateParent.getDistancer
+	    self.Bound = self.StateParent.Bound
             self.Bound = self.getBound()
             CurrentGameState = copy.deepcopy( self.StateParent.GameState ) 
             for index, action in self.LaseActions.items():
-				CurrentGameState = CurrentGameState.generateSuccessor( index, action )
+		CurrentGameState = CurrentGameState.generateSuccessor( index, action )
             self.GameState = CurrentGameState        
         # self.LegalIndexActions is an auxiliary variables that store a dict which key is the agent index 
         # and the value is its corresponding legal actions  
@@ -111,8 +110,8 @@ class StateNode( BasicNode):
         # self.LegalActions = self.LegalAlliesActions + self.LegalEnemiesActions
         # the following attributes 
         self.AlliesSuccActionsNode = dict()
-  		self.EnemiesSuccActionsNode = dict()
-		self.SuccStateNode = dict()	
+  	self.EnemiesSuccActionsNode = dict()
+	self.SuccStateNode = dict()	
         self.nVisit = 0.0
         self.totalValue = 0.0
         self.C1 = math.sqrt( 2 )
@@ -120,48 +119,58 @@ class StateNode( BasicNode):
         self.novel = True
         self.cacheMemory = set()
 
-	def getBestActions( self ):
-		return 0        	 
+    def getBestActions( self ):
+	return 0        	 
 
     def isPruned( self ):
         """
         isPrune is related to the self.AlliesActionParent and self.OpponentsActionParent, 
         the return value is True or False.
         """
-		if AlliesActionParent
-		return True	       
+	if AlliesActionParent
+	    return True	       
 
     def isFullExpand( self ):
 		return 0
 
-    def RandChooseActions( self ): 
-        for alliesAction in self.LegalAlliesActions:
-			if self.AlliesActionNodeDict[]
-            AllyActionNode = ActionNode()
-			
-  		for 
+    def RandGenerateActions( self ):
+        if self.isFullExpand():
+            raise Exception( " This Node has been full Expanded, you should choose UCB1" )
+        else:
+            PreparedAlliesAcitons = []
+            for alliesAction in self.LegalAlliesActions:
+                if self.AlliesSuccActionsNode.get( alliesAction ) is None:
+                    PrepareAlliesActions.append( alliesAction ) 
+            ChosedAction = random.choice( PreparedAlliesActions )
+            AlliesActionNode = ActionNode( )
+            self.
 
-		return 0   
+            PreparedEnemoesActions = []
+            for enemiesAction in self.LegalEnemiesActions:
+                if self.EnemiesSuccActionsNode.get( enemoesAction ) is None:
+                    PrepareEnemiesActions.append( enemiesAction )
+
+        
 
     def UCB1ChooseSuccNode( self ):
-		return 0  
+	return 0  
    
     # GenerateSuccActionNode is used in 
     def GenerateSuccActionNode( self , actions ):
-		return 0
+	return 0
     
     """
     RandGenerateSuccStateNode function is used in the condition when the node is not fully Expand, which means some certain action is still not be 
     taken that the corresponding child node has not been built. 
     """
     def RandGenerateSuccStateNode( self ):
-		return 0
+	return 0
     
     """
     RandChooseSuccNode is used in the course of MCTS's playout,  
     """
     def RandChooseSuccNode( self ):
-		return 0
+	return 0
 
     """
     The following method is used to compute the in the process of 
@@ -172,71 +181,68 @@ class StateNode( BasicNode):
     getLatentScore is used to 
     """
     def getBound( self ): 
-		return 0
+	return 0
 
     def getFetures( self ):
-		return 0
+	return 0
 
     def getWeights( self ):
-		return 0
+	return 0
 
     def getLatentScore( self ):
-		return 0    
+	return 0    
 
     """
 	The following functions are used to compute the novelty of an StateNode
     """
     def getScore( self ): 
-		return 0
+	return 0
 
-	def getNoveltyFeatures( self ):
-		return 0
+    def getNoveltyFeatures( self ):
+	return 0
 
-	def generateTuples( self ):
-		return 0
+    def generateTuples( self ):
+	return 0
 
-	def computeNovelty( self, tuples_set, all_tuples_set):
-		return 0
+    def computeNovelty( self, tuples_set, all_tuples_set):
+	return 0
 
-	def NoveltyTestSuccessors( self ):
-		return 0
+    def NoveltyTestSuccessors( self ):
+	return 0
 
 class ActionNode( BasicNode, ):
-	def __init__( self, Actions, StateParent): 
-		self.StateParent = StateParent
-		self.allies = 
-		self.enemies = 
+    def __init__( self,allies, enemies, Actions, StateParent ): 
+	self.StateParent = StateParent
+	self.allies = allies
+	self.enemies = enemies
         self.LastActions  = Actions
         self.GameState = self.StateParent.GameState.
-		self.getDistancer = getDistancer
-		self.Bound = self.getBound()
-        self.allies = allies
-        self.enemies = enemies
-		self.novel = True
+	self.getDistancer = self.StateParent.getDistancer
+	self.novel = True
         self.cacheMemory = set()
-	"""
-	The following method is used to novelty computation in order to prune 
     """
-	def isPrune( self ):
-		return 0
+    The following method is used to novelty computation in order to prune 
+    """
+    def isPrune( self ):
+        return 0
 
-	"""
-	The following functions are used to compute the novelty of an StateNode
+    """
+    The following functions are used to compute the novelty of an StateNode
     """
     def getScore( self ): 
-		return 0
+	return 0
 
-	def getNoveltyFeatures( self ):
-		return 0
+    def getNoveltyFeatures( self ):
+	return 0
 
-	def generateTuples( self ):
-		return 0
+    def generateTuples( self ):
+	return 0
 
-	def computeNovelty( self, tuples_set, all_tuples_set):
-		return 0
+    def computeNovelty( self, tuples_set, all_tuples_set):
+	return 0
 
-	def NoveltyTestSuccessors( self ):
-		return 0
+    def NoveltyTestSuccessors( self ):
+	return 0
 
 
 class SimulateAgent:
