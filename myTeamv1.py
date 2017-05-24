@@ -53,7 +53,7 @@ def createTeam(firstIndex, secondIndex, isRed,
 
 class BasicNode:
     def __init__( self , AlliesActions = None, OpponetActions = None ):
-        return 0 
+        return None 
  
     def getScore( self ):
         if self.red:
@@ -142,7 +142,8 @@ class StateNode( BasicNode ):
         self.IndexPositions = dict()
         for index in self.allies + self.enemies:
             self.LegalIndexActions[ index ] = self.GameState.getLegalActions( index )
-            self.IndexPositions[ index ] = self.GameState.getAgentState( index ).getPosition()
+            self.IndexStates[ index ] = self.GameState.getAgentState( index )
+            self.IndexPositions[ index ] = self.IndexStates[ index ].getPosition()
         # combine different actions for different indexes
         self.LegalAlliesActions = tuple( itertools.product( self.LegalIndexActions(self.allies[0]), self.LegalIndexActions(self.allies[1]) ) )    
         self.LegalEnemiesActions = tuple( itertools.product( self.LegalIndexActions(self.enemies[0]), self.LegalIndexActions(self.enemies[1]) ) ) 
@@ -157,9 +158,12 @@ class StateNode( BasicNode ):
         self.C1 = math.sqrt( 2 )
         self.red = self.GameState.isOnRedTeam( self.allies[0] )
         self.novel = True
-        self.cacheMemory = None
+        self.cacheMemory = [ None, ] * 2
 
+    
+    ### How to set the best action ?
     def getBestActions( self ):
+
         return 0
 
     """
@@ -180,7 +184,7 @@ class StateNode( BasicNode ):
             self.FullExpand = True
 	return self.FullExpand
 
-    # RandChooseLeftActions is applied in MCTS select
+    ### RandChooseLeftActions is applied in MCTS select
     def RandChooseLeftActions( self ):
         if self.isFullExpand():
             raise Exception( " This Node has been full Expanded, you should choose UCB1ChooseActions!" )
@@ -209,7 +213,7 @@ class StateNode( BasicNode ):
             self.SuccStateNodeDict[ ChosedActions ] = SuccStateNode
             return SuccStateNode     
         
-    # UCB1ChooseSuccNode is applied in MCTS select    
+    ### UCB1ChooseSuccNode is applied in MCTS select    
     def UCB1ChooseSuccNode( self ):
         if not self.isFullExpand():
             raise Exception( "This Node has not been full expanded, you should choose RandChooseLeftActions!")
@@ -238,7 +242,7 @@ class StateNode( BasicNode ):
              SuccStateNode = self.SuccStateNodeDict[ ChosedAction ]  
              return SuccStateNode       
     
-    # RandChooseSuccNode is used in the course of MCTS's playout      
+    ### RandChooseSuccNode is used in the course of MCTS's playout      
     def ChooseSuccNode( self, actions = None ):
         if actions is None:
             ChosedActions = random.choice( self.LegalActions )
@@ -272,22 +276,100 @@ class StateNode( BasicNode ):
     getLatentScore is used to 
     """
 
-    def getBound( self ): 
-	return 0
+    def getLatentScore( self ):
+        weights = self.getWeights()
+        features = self.getFeatures( enemies, distancer_layout, getMazeDistance )
+        return ( features * weights - self.Bound[0] ) * 0.5 / ( self.Bound[1] - self.Bound[0] )
 
-    def getFetures( self ):
-	return 0
+    def getBound( self ):
+        weights = self.getWeights()
+        features1 = util.Counter()
+        for index in self.allies:
+            features1['onDefense' + str(index)] = 1 
+         
+        features2 = util.Counter()
+        red = self.GameState.isOnRedTeam(self.cooperators_index[0])
+        if red:
+            foodList = self.GameState.getBlueFood().asList()
+        else:
+            foodList = self.GameState.getRedFood().asList()
+            features2['successorScore'] = len(foodList)
+
+        for index in self.cooperators_index:
+            features2['onDefense' + str( index )] = 2
+            features2['distanceToFood' + str(index) ] = 50
+            features2['invaderDistance' + str(index) ] = 50
+
+        features2["numInvaders"] = 2
+
+        return [features2 * weights, features1 * weights]
+
 
     def getWeights( self ):
-	return 0
+    """
+        Features we used here are:
+        1. successorScore
+        2. distanceToFood1 and distanceToFood2
+        3. onDefense1 and onDefense2
+        4. numInvaders
+        5. invaderDistance1 and invaderDistance2 ( minimum distance to invaders )
+        the score to invaderDistance should be positive.abs           
+        Only when the pacmac is in their own field, they can compute this score.
+        6. When the pacman in the opposite field, there is no effective computation 
+        method to measure its behavior.
+        
+       The weights for various feature should be reset!
+        """
+        weights = {'successorScore': -2, 'numInvaders': -20 }
 
-    def getLatentScore( self ):
-	return 0    
+        for index in self.cooperators_index:
+            weights['onDefense' + str( index )] = 20
+            weights['distanceToFood' + str( index )] = -5
+            weights['invaderDistance' + str( index )] = -5
+
+        return weights
+
+    def getFeatures( self ):
+        features = util.Counter()
+
+        if self.red:
+            foodList = self.GameState.getBlueFood().asList()
+        else:
+            foodList = self.GameState.getRedFood().asList()
+        features['successorScore'] = len(foodList)
+
+        if len(foodList) > 0: # This should always be True,  but better safe than sorry
+            for index in self.allies:
+                myPos = self.IndexPositions[ index ]
+
+            minDistance = min([ getDistancer(myPos, food) for food in foodList] )
+            features['distanceToFood' + str(index)] = minDistance
+
+        enemiesStates = [ self.IndexStates.get( index ) for index in self.enemies ]
+        invaders = [ index for a, index in zip( enemiesStates, self.enemies ) if a.isPacman ]
+        features['numInvaders'] = len( invaders )
+
+        for index in self.allies:
+            myState = self.IndexStates.get( index )
+            myPos = self.IndexPositions.get( index )
+            if myState.isPacman:
+                features['onDefense'+ str(index)] = 1
+            if len(invaders) > 0:
+                invaders_positions = [ self.IndexPositions.get( a ) for a in invaders ]
+                mindist = min([getMazeDistance(myPos, a) for a in invaders_positions])
+                features['invaderDistance' + str(index)] = mindist
+
+        self.features = features
 
     """
-	The following functions are used to compute the novelty of an StateNode
+    The following functions are used to compute the novelty of an StateNode
     """
+    ### the cachyMemory of the successive ActionNode should be set in the following function !
+    def getSuccessorNovel( self ):
+        for character in ( 0, 1):
+             
 
+                
     def NoveltyTestSuccessors(self, character):
         ###character : allies or enemies
         # 0 is allies
@@ -300,11 +382,13 @@ class StateNode( BasicNode ):
             all_atoms_tuples = set()
             this_atoms_tuples = self.generateTuples(character)
             all_atoms_tuples = all_atoms_tuples | this_atoms_tuples
-            if self.StateParent is None and self.cacheMemory is None:
-                self.cacheMemory = this_atoms_tuples
+            
+            ### cacheMemory is a list consist of set
+            if self.StateParent is None and self.cacheMemory[ character ] is None:
+                self.cacheMemory[ character ] = this_atoms_tuples
 
             if character == 0:
-                ChildrenNone = self.AlliesSuccActionsNodeDcit
+                ChildrenNone = self.AlliesSuccActionsNodeDict
             else:
                 ChildrenNone = self.EnemiesSuccActionsNodeDict
                 
@@ -334,13 +418,17 @@ class StateNode( BasicNode ):
                         p = p.StateParent
                 all_atoms_tuples = all_atoms_tuples | succ_atoms_tuples
 
+            ### The original iteration used to modify the succ.novel has been deleted
+            """
             for succ in ChildrenNone.values():
                 if succ.getScore() > self.getScore():
                     succ.novel = True
-
+            """
             ### saved in succStateNode
-            #for succ in ChildrenNone.values():
-                #succ.cacheMemory = all_atoms_tuples
+            """
+            for succ in ChildrenNone.values():
+                succ.cacheMemory = all_atoms_tuples
+            """    
             return all_atoms_tuples
 
 class ActionNode( BasicNode, ):
@@ -360,32 +448,126 @@ class ActionNode( BasicNode, ):
         self.red = self.GameState.isOnRedTeam(self.allies[0])
 
     """
-	The following method is used to novelty computation in order to prune 
+    The following method is used to novelty computation in order to prune 
     """
     def isPrune( self ):
         return 0
 
 class SimulateAgent:
-    def __init__( self ):
-        return 0
+    """
+    In BaselineTeam, the agents are divided into Defensive Agent and Offensive Agent, there we shoul allocate an "Defensive" or "Offensive" 
+    state for our agent　here.
+    For simplification, here if the Agent in its own field, then we consider it as Defensive state, else we consider it as Offensive State.
+    Obviouly, this method is quite bad! 
+    We should reset the their State !
+    """
+    def __init__(self, index, allies, enemies, GameState, getMazeDistancer, getDistanceDict = None ):
+        self.index = index
+        self.allies = allies
+        self.enemies = enemies
+        self.GameState = GameState
+        self.getDistancer = getDistancer
+        self.getDistanceDict = getDistanceDict
+        self.startPosition = gameState.getAgentPosition( self.index )
+        self.isPacman = gameState.getAgentState( self.index ).isPacman
+        self.red = self.GameState.isOnRedTeam( self.index )
 
     def chooseAction(self, gameState):
-        return 0
+        """
+        Picks among the actions with the highest Q(s,a).
+        """
+        actions = gameState.getLegalActions( self.index )    
 
-    def getSuccessor(self, gameState, action):
-        return 0
+        values = [self.evaluate(gameState, a) for a in actions]
+        maxValue = max(values)
+        bestActions = [a for a, v in zip(actions, values) if v == maxValue]
+        foodLeft = len( gameState.data.food.asList() )
+     
+        if foodLeft <= 2:
+            bestDist = 9999
+        for action in actions:
+            successor = self.getSuccessor(gameState, action)
+            pos2 = successor.getAgentPosition(self.index)
+            dist = self.getMazeDistance(self.start,pos2)
+            if dist < bestDist:
+                bestAction = action
+                bestDist = dist
+            return bestAction
+      
+        return random.choice(bestActions)
 
-    def evaluate(self, gameState, action):
-        return 0
+  def getSuccessor(self, gameState, action):
+      """
+      Finds the next successor which is a grid position (location tuple).
+      """
+      successor = gameState.generateSuccessor( self.index, action)
+      pos = successor.getAgentState( self.index ).getPosition()
+      if pos != nearestPoint(pos):
+          # Only half a grid position was covered
+          return successor.generateSuccessor( self.index, action)
+      else:
+          return successor
 
-    def getOffensiveFeatures(self, gameState, action):
-        return 0
+  def evaluate(self, gameState, action):
+      if self.isPacman:
+          features = self.getDefensiveFeatures( gameState, action )
+      else:
+          features = self.getOffensiveFeatures( gameState, action )
+      weights = self.getWeights( gameState, action )
+      return features * weights
 
-    def getDefensiveFeatures(self, gameState, action):
-        return 0
+  def getOffensiveFeatures(self, gameState, action):
+      features = util.Counter()
+      successor = self.getSuccessor(gameState, action)
+      
+      if self.red:
+          foodList = self.GameState.getBlueFood().asList()
+      else:
+          foodList = self.GameState.getRedFood().asList()
+      features['successorScore'] = -len(foodList)
 
-    def getWeights(self, gameState, action):
-        return 0
+      # Compute distance to the nearest food
+
+      if len(foodList) > 0: # This should always be True,  but better safe than sorry
+          myPos = successor.getAgentState( self.index ).getPosition()
+      minDistance = min([self.getDistancer(myPos, food) for food in foodList])
+      features['distanceToFood'] = minDistance
+
+      return features
+
+  def getDefensiveFeatures(self, gameState, action):
+      features = util.Counter()
+      successor = self.getSuccessor(gameState, action)
+
+      myState = successor.getAgentState(self.index)
+      myPos = myState.getPosition()
+
+      # Computes whether we're on defense (1) or offense (0)
+      features['onDefense'] = 1
+      if myState.isPacman: features['onDefense'] = 0
+
+      # Computes distance to invaders we can see
+      enemies = [successor.getAgentState(i) for i in self.enemies]
+      invaders = [a for a in enemies if a.isPacman and a.getPosition() != None]
+      features['numInvaders'] = len(invaders)
+      if len(invaders) > 0:
+          invader_positions = [ a.getPosition() for a in invaders ]
+          mindist = self.getDistancer( myPos, invaders_positions )
+          dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders_positions]
+          features['invaderDistance'] = mindist
+
+      if action == Directions.STOP: features['stop'] = 1
+      rev = Directions.REVERSE[gameState.getAgentState(self.index).configuration.direction]
+      if action == rev: features['reverse'] = 1
+
+      return features
+   
+  def getWeights(self, gameState, action):
+      """
+      Normally, weights do not depend on the gamestate.  They can be either
+      a counter or a dictionary.
+      """
+      return {'successorScore': 100, 'distanceToFood': -1, 'numInvaders': -1000, 'onDefense': 100, 'invaderDistance': -10, 'stop': -100, 'reverse': -2}
 
 class Distancer:
     def __init__( self ):
@@ -421,9 +603,7 @@ class MCTSCaptureAgent(CaptureAgent):
        end = time.time()
        running_time = end - start
        iters += 1
-    """
 
-    """
     return bestActions[0]
 
   def select( self ):
