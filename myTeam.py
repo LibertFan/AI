@@ -64,9 +64,9 @@ class ExploreNode:
     self.Children_Nodes = {}
     self.last_action = last_action
     self.Bound = self.getBound()
-    self.C = math.sqrt(2)
+    self.C = math.sqrt(2)/10
     self.novel = True
-    self.cacheMemory = set()
+    self.cacheMemory = None
     self.red = self.GameState.isOnRedTeam( self.cooperators_index[0] )
     self.positions = []
     for index in self.cooperators_index:
@@ -156,6 +156,7 @@ class ExploreNode:
       self.nVisit += 1
       SuccNode = None
       max_score = 0
+      un_novel_num = 0
       for child_node in self.Children_Nodes.values():
         #print child_node.novel  
         if child_node.novel:
@@ -163,6 +164,11 @@ class ExploreNode:
           if score >= max_score:
             max_score = score
             SuccNode = child_node
+        else:
+          un_novel_num += 1
+      if un_novel_num == len(self.Children_Nodes):
+          self.novel = False
+      '''
       if SuccNode is None:
         print "*"*50
         for actions, child_node in self.Children_Nodes.items():
@@ -178,6 +184,7 @@ class ExploreNode:
         print "*"*50
         
         raise Exception("All succNode is not novel!")  
+      '''
       return SuccNode
 
   def getBestAction( self ):
@@ -186,12 +193,13 @@ class ExploreNode:
     """
     highest_score = 0
     best_action = None
-    for action, child_node in self.Children_Nodes.items():  
-      score = child_node.totalValue / child_node.nVisit  
-      if score >= highest_score:
-        highest_score = score       
-        best_action = action
-    #print highest_score    
+    for action, child_node in self.Children_Nodes.items():
+      if child_node.novel:
+          score = child_node.totalValue / child_node.nVisit
+          if score >= highest_score:
+            highest_score = score
+            best_action = action
+        #print highest_score
     return best_action    
 
   def getSupScore( self, enemies, distancer_layout, getMazeDistance ):
@@ -322,7 +330,7 @@ class ExploreNode:
     why 1~3?
     """
     #for i in range(1,len(features_list)+1):
-    for i in range(1,2):
+    for i in range(1,3):
       atoms_tuples = atoms_tuples | set(itertools.combinations(features_list, i))
     #self.cacheMemory = self.cacheMemory | atoms_tuples  
     return atoms_tuples
@@ -342,7 +350,7 @@ class ExploreNode:
       return self.GameState.getScore() * -1
 
   def NoveltyTestSuccessors(self):
-    threshold = 1
+    threshold = 2
     if not self.isFullExpand():
       raise Exception("this node is not fully expanded that is not support Novelty computation!")
       #return None
@@ -355,8 +363,16 @@ class ExploreNode:
       """
       if self.parent is None and self.cacheMemory is None:
         self.cacheMemory = this_atoms_tuples
-             
-      for each_succ in self.Children_Nodes.values():
+
+      sorted_childNones = []
+      for succ in self.Children_Nodes.values():
+        succ_atoms_tuples = succ.generateTuples()
+        diff = len(succ_atoms_tuples - all_atoms_tuples)
+        sorted_childNones.append((succ, diff))
+      sorted_childNones = sorted(sorted_childNones, lambda x, y: -cmp(x[1], y[1]))
+
+      for each_pair in sorted_childNones:
+        each_succ = each_pair[0]
         succ_atoms_tuples = each_succ.generateTuples()
         novelty = self.computeNovelty(succ_atoms_tuples, all_atoms_tuples)
         if novelty > threshold:
@@ -609,6 +625,8 @@ class MCTSCaptureAgent(CaptureAgent):
     running_time = 0.0
     while( running_time < 10 and iters < self.MCTS_ITERATION ):
        node = self.Select()
+       if node is None:
+           continue
        EndNode = self.PlayOut( node )
        self.BackPropagate( EndNode )       
        end = time.time()
@@ -616,7 +634,8 @@ class MCTSCaptureAgent(CaptureAgent):
        iters += 1
 
     for action, succNode in self.rootNode.Children_Nodes.items(): 
-      print action, succNode.nVisit, succNode.totalValue / succNode.nVisit 
+      print action, succNode.nVisit, succNode.novel, succNode.totalValue / succNode.nVisit
+
       #print succNode.novel, succNode.cacheMemory
       print succNode.Children_Nodes.keys()
       print "-"*50
@@ -635,6 +654,8 @@ class MCTSCaptureAgent(CaptureAgent):
         else:
           currentNode.NoveltyTestSuccessors()
           currentNode = currentNode.UCB1SuccNode()
+          if currentNode is None:
+              return None
 
   """
   gameState was transformed to Enenmy after modified by allies, thus 
@@ -688,11 +709,4 @@ class MCTSCaptureAgent(CaptureAgent):
        currentNode = currentNode.parent       
       
       
-
-
-
-
-
-
-
 
