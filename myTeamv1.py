@@ -94,7 +94,7 @@ class StateNode( BasicNode):
 	    self.Bound = self.StateParent.Bound
             self.Bound = self.getBound()
             CurrentGameState = copy.deepcopy( self.StateParent.GameState ) 
-            for index, action in self.LaseActions.items():
+            for index, action in self.LastActions.items():
 		CurrentGameState = CurrentGameState.generateSuccessor( index, action )
             self.GameState = CurrentGameState        
         # self.LegalIndexActions is an auxiliary variables that store a dict which key is the agent index 
@@ -137,14 +137,18 @@ class StateNode( BasicNode):
         if self.isFullExpand():
             raise Exception( " This Node has been full Expanded, you should choose UCB1" )
         else:
-            PreparedAlliesAcitons = []
-            for alliesAction in self.LegalAlliesActions:
-                if self.AlliesSuccActionsNode.get( alliesAction ) is None:
-                    PrepareAlliesActions.append( alliesAction ) 
-            ChosedAction = random.choice( PreparedAlliesActions )
-            AlliesActionNode = ActionNode( )
-            self.
-
+            if len( self.LegalAlliesActions ) == len( self.AlliesSuccActionsNode.keys() ):
+                ChosedAlliesAction = radom.choice( self.LegalAlliesActions )
+            else:    
+                PreparedAlliesAcitons = []
+                for alliesAction in self.LegalAlliesActions:
+                   if self.AlliesSuccActionsNode.get( alliesAction ) is None:
+                       PrepareAlliesActions.append( alliesAction ) 
+                ChosedAlliesAction = random.choice( PreparedAlliesActions )
+                AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAction, self )
+                self.AlliesSuccActions is 
+              
+            if self.  
             PreparedEnemoesActions = []
             for enemiesAction in self.LegalEnemiesActions:
                 if self.EnemiesSuccActionsNode.get( enemoesAction ) is None:
@@ -211,11 +215,15 @@ class StateNode( BasicNode):
 	return 0
 
 class ActionNode( BasicNode, ):
-    def __init__( self,allies, enemies, Actions, StateParent ): 
+    def __init__( self, allies, enemies, Actions, StateParent ): 
 	self.StateParent = StateParent
 	self.allies = allies
 	self.enemies = enemies
         self.LastActions  = Actions
+        CurrentGameState = copy.deepcopy( StateParent.GameState )
+        for index, action in zip( self.allies, self.LastActions):
+             CurrentGameState = CurrentGameState.generateSuccessor( index, action )
+        self.GameState = CurrentGameState    
         self.GameState = self.StateParent.GameState.
 	self.getDistancer = self.StateParent.getDistancer
 	self.novel = True
