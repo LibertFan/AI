@@ -53,9 +53,46 @@ def createTeam(firstIndex, secondIndex, isRed,
 
 class BasicNode:
     def __init__( self , AlliesActions = None, OpponetActions = None ):
-        return 0
+        return 0 
+ 
+    def getScore( self ):
+        if self.red:
+            return self.GameState.getScore()
+        else:
+            return self.GameState.getScore() * -1
 
-class StateNode( BasicNode):
+    def getNoveltyFeatures( self, character ):
+        gameState = self.GameState
+        features = []
+        if character == 0:
+            for i in self.allies:
+                features.append(('agent', gameState.getAgentState(i).getPosition()))
+        else:
+            for i in self.enemies:
+                features.append(('agent', gameState.getAgentState(i).getPosition()))
+        for j, position in enumerate(gameState.data.capsules):
+            features.append(('capsule' + str(j), position))
+        food = gameState.data.food.asList()
+        for position in food:
+            features.append(('food', position))
+        return features
+
+    def generateTuples(self, character):
+        features_list = self.getNoveltyFeatures(character)
+        atoms_tuples = set()
+        for i in range( 1, 3 ):
+            atoms_tuples = atoms_tuples | set(itertools.combinations(features_list, i))
+        return atoms_tuples
+
+    def computeNovelty(self, tuples_set, all_tuples_set):
+        diff = tuples_set - all_tuples_set
+        if len(diff) > 0:
+            novelty = min([len(each) for each in diff])
+            return novelty
+        else:
+            return 9999
+
+class StateNode( BasicNode ):
     def __init__( self, allies = None, enemies = None, GameState = None, AlliesActions = dict(),\
                       EnemiesActions = dict(), AlliesActionNodeParent = None, EnemiesActionNodeParent = None,\
                       StateParent = None, getDistancer = None, getDistanceDict = None ):      	        
@@ -251,43 +288,6 @@ class StateNode( BasicNode):
 	The following functions are used to compute the novelty of an StateNode
     """
 
-    def getScore(self):
-        if self.red:
-            return self.GameState.getScore()
-        else:
-            return self.GameState.getScore() * -1
-
-    def getNoveltyFeatures(self, character):
-        gameState = self.GameState
-        features = []
-        if character == 0:
-            for i in self.allies:
-                features.append(('agent', gameState.getAgentState(i).getPosition()))
-        else:
-            for i in self.enemies:
-                features.append(('agent', gameState.getAgentState(i).getPosition()))
-        for j, position in enumerate(gameState.data.capsules):
-            features.append(('capsule' + str(j), position))
-        food = gameState.data.food.asList()
-        for position in food:
-            features.append(('food', position))
-        return features
-
-    def generateTuples(self, character):
-        features_list = self.getNoveltyFeatures(character)
-        atoms_tuples = set()
-        for i in range(1, 3):
-            atoms_tuples = atoms_tuples | set(itertools.combinations(features_list, i))
-        return atoms_tuples
-
-    def computeNovelty(self, tuples_set, all_tuples_set):
-        diff = tuples_set - all_tuples_set
-        if len(diff) > 0:
-            novelty = min([len(each) for each in diff])
-            return novelty
-        else:
-            return 9999
-
     def NoveltyTestSuccessors(self, character):
         ###character : allies or enemies
         # 0 is allies
@@ -304,9 +304,10 @@ class StateNode( BasicNode):
                 self.cacheMemory = this_atoms_tuples
 
             if character == 0:
-                ChildrenNone = self.AlliesSuccActionsNode
+                ChildrenNone = self.AlliesSuccActionsNodeDcit
             else:
-                ChildrenNone = self.EnemiesSuccActionsNode
+                ChildrenNone = self.EnemiesSuccActionsNodeDict
+                
             sorted_childNones = []
             for succ in ChildrenNone.values():
                 succ_atoms_tuples = succ.generateTuples()
@@ -343,6 +344,7 @@ class StateNode( BasicNode):
             return all_atoms_tuples
 
 class ActionNode( BasicNode, ):
+
     def __init__(self, allies, enemies, Actions, StateParent):
         self.StateParent = StateParent
         self.allies = allies
@@ -362,48 +364,6 @@ class ActionNode( BasicNode, ):
     """
     def isPrune( self ):
         return 0
-
-    """
-    The following functions are used to compute the novelty of an StateNode
-    """
-    def getScore(self):
-        if self.red:
-            return self.GameState.getScore()
-        else:
-            return self.GameState.getScore() * -1
-
-	def getNoveltyFeatures(self,character):
-        gameState = self.GameState
-        features = []
-        if character == 0:
-            for i in self.allies:
-                features.append(('agent', gameState.getAgentState(i).getPosition()))
-        else:
-            for i in self.enemies:
-                features.append(('agent', gameState.getAgentState(i).getPosition()))
-        for j, position in enumerate(gameState.data.capsules):
-            features.append(('capsule' + str(j), position))
-        food = gameState.data.food.asList()
-        for position in food:
-            features.append(('food', position))
-        return features
-
-    def generateTuples( self,character):
-        features_list = self.getNoveltyFeatures(character)
-        atoms_tuples = set()
-        for i in range(1, 3):
-            atoms_tuples = atoms_tuples | set(itertools.combinations(features_list, i))
-        return atoms_tuples
-
-    def computeNovelty(self, tuples_set, all_tuples_set):
-        diff = tuples_set - all_tuples_set
-        if len(diff) > 0:
-          novelty = min([len(each) for each in diff])
-          return novelty
-        else:
-          return 9999
-
-
 
 class SimulateAgent:
     def __init__( self ):
