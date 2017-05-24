@@ -283,7 +283,6 @@ class GameState:
 
     for enemy in otherTeam:
       seen = True
-      # seen = True
       enemyPos = state.getAgentPosition(enemy)
       for teammate in team:
         if util.manhattanDistance(enemyPos, state.getAgentPosition(teammate)) <= SIGHT_RANGE:
