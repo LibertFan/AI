@@ -27,24 +27,24 @@ import copy
 
 def createTeam(firstIndex, secondIndex, isRed,
                first = 'MCTSCaptureAgent', second = 'MCTSCaptureAgent'):
-  """
-  This function should return a list of two agents that will form the
-  team, initialized using firstIndex and secondIndex as their agent
-  index numbers.  isRed is True if the red team is being created, and
-  will be False if the blue team is being created.
+    """
+    This function should return a list of two agents that will form the
+    team, initialized using firstIndex and secondIndex as their agent
+    index numbers.  isRed is True if the red team is being created, and
+    will be False if the blue team is being created.
+  
+    As a potentially helpful development aid, this function can take
+    additional string-valued keyword arguments ("first" and "second" are
+    such arguments in the case of this function), which will come from
+    the --redOpts and --blueOpts command-line arguments to capture.py.
+    For the nightly contest, however, your team will be created without
+    any extra arguments, so you should make sure that the default
+    behavior is what you want for the nightly contest.
+    """
 
-  As a potentially helpful development aid, this function can take
-  additional string-valued keyword arguments ("first" and "second" are
-  such arguments in the case of this function), which will come from
-  the --redOpts and --blueOpts command-line arguments to capture.py.
-  For the nightly contest, however, your team will be created without
-  any extra arguments, so you should make sure that the default
-  behavior is what you want for the nightly contest.
-  """
-
-  # The following line is an example only; feel free to change it.
-  #return [eval(first)(firstIndex), eval(second)(secondIndex)]
-  return [eval(first)( firstIndex ), eval(second)( secondIndex ) ]
+    # The following line is an example only; feel free to change it.
+    #return [eval(first)(firstIndex), eval(second)(secondIndex)]
+    return [eval(first)( firstIndex ), eval(second)( secondIndex ) ]
 
 ##########
 # Agents #
@@ -52,116 +52,112 @@ def createTeam(firstIndex, secondIndex, isRed,
 
 
 class BasicNode:
-	def __init__( self , AlliesActions = None, OpponetActions = None ):
-        
-		return 0
+    def __init__( self , AlliesActions = None, OpponetActions = None ):
+        return 0
 
 class StateNode( BasicNode):
-	def __init__( self, allies = None, enemies = None, GameState = None, AlliesActions = dict(), OpponentsActions = dict(), AlliesActionParent = None, OpponentsActionParent = None, StateParent = None, getDistancer = None, getDistanceDict = None ):      	        
+    def __init__( self, allies = None, enemies = None, GameState = None, AlliesActions = dict(), OpponentsActions = dict(), AlliesActionParent = None, OpponentsActionParent = None, StateParent = None, getDistancer = None, getDistanceDict = None ):
         # check the format of input data!
         if StateParent is None and GameState is None:
-			raise Exception( "GameState and StateParent can not be 'None' at the same time!" )
+            raise Exception( "GameState and StateParent can not be 'None' at the same time!" )
         elif StateParent is not None and GameState is not None:
-			raise Exception( "GameState and StateParent can not have value at the same time!" ) 
+            raise Exception( "GameState and StateParent can not have value at the same time!" )
         """
-        Generate attributions:
-        ```
-        Attention:
-        1. The format of Actions is dictionary
-        2. The function getDistancer can inherent from StateParent or get from __init__( )
-        3. 
-        ```
+          Generate attributions:
+          ```
+          Attention:
+          1. The format of Actions is dictionary
+          2. The function getDistancer can inherent from StateParent or get from __init__( )
+          3. 
+          ```
         """
-		try:
+        try:
             self.LastActions = dict( AlliesActions, **OpponentsActions )
-		except:
-			raise Exception( " the format of AlliesActions and OpponentsAction go wrong!" )	
+        except:
+            raise Exception( " the format of AlliesActions and OpponentsAction go wrong!" )
         self.StateParent = StateParent
-		self.AlliesActionParent = AlliesActionParent
-		self.OpponentsActionParent = OpponentsActionParent   
-        if StateParent is None:     
-			if getDistancer is None or allies is None or enemies is None:
-				raise Exception( "the function of getDistancer or allies or enemies missing!")
+        self.AlliesActionParent = AlliesActionParent
+        self.OpponentsActionParent = OpponentsActionParent
+        if StateParent is None:
+            if getDistancer is None or allies is None or enemies is None:
+                raise Exception( "the function of getDistancer or allies or enemies missing!")
             self.GameState = GameState
-			self.getDistancer = getDistancer
-			self.Bound = self.getBound()
+            self.getDistancer = getDistancer
+            self.Bound = self.getBound()
             self.allies = allies
             self.enemies = enemies
         elif GameState is None:
-			self.StateParent = StateParent
+            self.StateParent = StateParent
             self.allies = self.StateParent.allies
-            self.enemies = self.StateParent.enemies 
-			self.getDistancer = self.StateParent.getDistancer
-			self.Bound = self.StateParent.Bound
+            self.enemies = self.StateParent.enemies
+            self.getDistancer = self.StateParent.getDistancer
+            self.Bound = self.StateParent.Bound
             self.Bound = self.getBound()
-            CurrentGameState = copy.deepcopy( self.StateParent.GameState ) 
+            CurrentGameState = copy.deepcopy( self.StateParent.GameState )
             for index, action in self.LaseActions.items():
-				CurrentGameState = CurrentGameState.generateSuccessor( index, action )
-            self.GameState = CurrentGameState        
-        # self.LegalIndexActions is an auxiliary variables that store a dict which key is the agent index 
-        # and the value is its corresponding legal actions  
+                CurrentGameState = CurrentGameState.generateSuccessor( index, action )
+            self.GameState = CurrentGameState
+        # self.LegalIndexActions is an auxiliary variables that store a dict which key is the agent index
+        # and the value is its corresponding legal actions
         self.LegalIndexActions = dict()
         self.IndexPositions = dict()
         for index in self.allies + self.enemies:
             self.LegalIndexActions[ index ] = self.GameState.getLegalActions( index )
-            self.IndexPositions[ index ] = self.GameState.getAgentState( index ).getPosition() 
+            self.IndexPositions[ index ] = self.GameState.getAgentState( index ).getPosition()
         # combine different actions for different indexes
-        self.LegalAlliesActions = tuple( itertools.product( self.LegalIndexActions(self.allies[0]), self.LegalIndexActions(self.allies[1]) ) )    
-        self.LegalEnemiesActions = tuple(itertools.product( self.LegalIndexActions(self.enemies[0]), self.LegalIndexActions(self.enemies[1]) ) ) 
+        self.LegalAlliesActions = tuple( itertools.product( self.LegalIndexActions(self.allies[0]), self.LegalIndexActions(self.allies[1]) ) )
+        self.LegalEnemiesActions = tuple(itertools.product( self.LegalIndexActions(self.enemies[0]), self.LegalIndexActions(self.enemies[1]) ) )
         # self.LegalActions = self.LegalAlliesActions + self.LegalEnemiesActions
-        # the following attributes 
+        # the following attributes
         self.AlliesSuccActionsNode = dict()
-  		self.EnemiesSuccActionsNode = dict()
-		self.SuccStateNode = dict()	
+        self.EnemiesSuccActionsNode = dict()
+        self.SuccStateNode = dict()
         self.nVisit = 0.0
         self.totalValue = 0.0
         self.C1 = math.sqrt( 2 )
-        self.red = self.GameState.isOnRedTeam( self.allies[0] )  
+        self.red = self.GameState.isOnRedTeam( self.allies[0] )
         self.novel = True
-        self.cacheMemory = set()
+        self.cacheMemory = None
 
-	def getBestActions( self ):
-		return 0        	 
+    def getBestActions( self ):
+        return 0
 
     def isPruned( self ):
         """
-        isPrune is related to the self.AlliesActionParent and self.OpponentsActionParent, 
-        the return value is True or False.
+          isPrune is related to the self.AlliesActionParent and self.OpponentsActionParent, 
+          the return value is True or False.
         """
-		if AlliesActionParent
-		return True	       
+        return True
 
     def isFullExpand( self ):
-		return 0
+        if len(self.SuccStateNode) < len(self.LegalAlliesActions)*len(self.LegalEnemiesActions):
+            self.FullExpand = False
+        else:
+            self.FullExpand = True
+        return self.FullExpand
 
-    def RandChooseActions( self ): 
-        for alliesAction in self.LegalAlliesActions:
-			if self.AlliesActionNodeDict[]
-            AllyActionNode = ActionNode()
-			
-  		for 
-
-		return 0   
+    def RandChooseActions( self ):
+        return 0
 
     def UCB1ChooseSuccNode( self ):
-		return 0  
-   
+        return 0
+
     # GenerateSuccActionNode is used in 
     def GenerateSuccActionNode( self , actions ):
-		return 0
-    
+        return 0
+
     """
     RandGenerateSuccStateNode function is used in the condition when the node is not fully Expand, which means some certain action is still not be 
     taken that the corresponding child node has not been built. 
     """
     def RandGenerateSuccStateNode( self ):
-		return 0
-    
+        return 0
+
     """
     RandChooseSuccNode is used in the course of MCTS's playout,  
     """
     def RandChooseSuccNode( self ):
-		return 0
+        return 0
 
     """
     The following method is used to compute the in the process of 
@@ -171,77 +167,179 @@ class StateNode( BasicNode):
     getWeights returns a dictionary that record the different features and their corresponding weight
     getLatentScore is used to 
     """
-    def getBound( self ): 
-		return 0
+    def getBound( self ):
+        return 0
 
     def getFetures( self ):
-		return 0
+        return 0
 
     def getWeights( self ):
-		return 0
+        return 0
 
     def getLatentScore( self ):
-		return 0    
+        return 0
 
     """
 	The following functions are used to compute the novelty of an StateNode
     """
-    def getScore( self ): 
-		return 0
 
-	def getNoveltyFeatures( self ):
-		return 0
+    def getScore(self):
+        if self.red:
+            return self.GameState.getScore()
+        else:
+            return self.GameState.getScore() * -1
 
-	def generateTuples( self ):
-		return 0
+    def getNoveltyFeatures(self, character):
+        gameState = self.GameState
+        features = []
+        if character == 0:
+            for i in self.allies:
+                features.append(('agent', gameState.getAgentState(i).getPosition()))
+        else:
+            for i in self.enemies:
+                features.append(('agent', gameState.getAgentState(i).getPosition()))
+        for j, position in enumerate(gameState.data.capsules):
+            features.append(('capsule' + str(j), position))
+        food = gameState.data.food.asList()
+        for position in food:
+            features.append(('food', position))
+        return features
 
-	def computeNovelty( self, tuples_set, all_tuples_set):
-		return 0
+    def generateTuples(self, character):
+        features_list = self.getNoveltyFeatures(character)
+        atoms_tuples = set()
+        for i in range(1, 3):
+            atoms_tuples = atoms_tuples | set(itertools.combinations(features_list, i))
+        return atoms_tuples
 
-	def NoveltyTestSuccessors( self ):
-		return 0
+    def computeNovelty(self, tuples_set, all_tuples_set):
+        diff = tuples_set - all_tuples_set
+        if len(diff) > 0:
+            novelty = min([len(each) for each in diff])
+            return novelty
+        else:
+            return 9999
+
+    def NoveltyTestSuccessors(self, character):
+        ###character : allies or enemies
+        # 0 is allies
+        # 1 is enemies
+        ########
+        threshold = 2
+        if not self.isFullExpand():
+            raise Exception("this node is not fully expanded that is not support Novelty computation!")
+        else:
+            all_atoms_tuples = set()
+            this_atoms_tuples = self.generateTuples(character)
+            all_atoms_tuples = all_atoms_tuples | this_atoms_tuples
+            if self.StateParent is None and self.cacheMemory is None:
+                self.cacheMemory = this_atoms_tuples
+
+            if character == 0:
+                ChildrenNone = self.AlliesSuccActionsNode
+            else:
+                ChildrenNone = self.EnemiesSuccActionsNode
+            sorted_childNones = []
+            for succ in ChildrenNone.values():
+                succ_atoms_tuples = succ.generateTuples()
+                diff = len(succ_atoms_tuples - all_atoms_tuples)
+                sorted_childNones.append((succ, diff))
+            sorted_childNones = sorted(sorted_childNones, lambda x, y: -cmp(x[1], y[1]))
+
+            for each_pair in sorted_childNones:
+                each_succ = each_pair[0]
+                succ_atoms_tuples = each_succ.generateTuples(character)
+                novelty = self.computeNovelty(succ_atoms_tuples, all_atoms_tuples)
+                if novelty > threshold:
+                    each_succ.novel = False
+                else:
+                    p = each_succ.StateParent
+                    while p is not None:
+                        parent_atoms_tuples = p.cacheMemory[character]
+                        if parent_atoms_tuples is None:
+                            raise Exception("parent_atom_tuple is None, which goes wrong!")
+                        novelty = self.computeNovelty(succ_atoms_tuples, parent_atoms_tuples)
+                        if novelty > threshold:
+                            each_succ.novel = False
+                            break
+                        p = p.StateParent
+                all_atoms_tuples = all_atoms_tuples | succ_atoms_tuples
+
+            for succ in ChildrenNone.values():
+                if succ.getScore() > self.getScore():
+                    succ.novel = True
+
+            ### saved in succStateNode
+            #for succ in ChildrenNone.values():
+                #succ.cacheMemory = all_atoms_tuples
+            return all_atoms_tuples
 
 class ActionNode( BasicNode, ):
-	def __init__( self, Actions, StateParent): 
-		self.StateParent = StateParent
-		self.allies = 
-		self.enemies = 
-        self.LastActions  = Actions
-        self.GameState = self.StateParent.GameState.
-		self.getDistancer = getDistancer
-		self.Bound = self.getBound()
+    def __init__(self, allies, enemies, Actions, StateParent):
+        self.StateParent = StateParent
         self.allies = allies
         self.enemies = enemies
-		self.novel = True
-        self.cacheMemory = set()
-	"""
+        self.LastActions = Actions
+        CurrentGameState = copy.deepcopy(StateParent.GameState)
+        for index, action in zip(self.allies, self.LastActions):
+            CurrentGameState = CurrentGameState.generateSuccessor(index, action)
+        self.GameState = CurrentGameState
+        self.getDistancer = self.StateParent.getDistancer
+        self.novel = True
+        self.cacheMemory = None
+        self.red = self.GameState.isOnRedTeam(self.allies[0])
+
+    """
 	The following method is used to novelty computation in order to prune 
     """
-	def isPrune( self ):
-		return 0
+    def isPrune( self ):
+
 
 	"""
 	The following functions are used to compute the novelty of an StateNode
     """
-    def getScore( self ): 
-		return 0
+    def getScore(self):
+        if self.red:
+            return self.GameState.getScore()
+        else:
+            return self.GameState.getScore() * -1
 
-	def getNoveltyFeatures( self ):
-		return 0
+	def getNoveltyFeatures(self,character):
+        gameState = self.GameState
+        features = []
+        if character == 0:
+            for i in self.allies:
+                features.append(('agent', gameState.getAgentState(i).getPosition()))
+        else:
+            for i in self.enemies:
+                features.append(('agent', gameState.getAgentState(i).getPosition()))
+        for j, position in enumerate(gameState.data.capsules):
+            features.append(('capsule' + str(j), position))
+        food = gameState.data.food.asList()
+        for position in food:
+            features.append(('food', position))
+        return features
 
-	def generateTuples( self ):
-		return 0
+    def generateTuples( self,character):
+        features_list = self.getNoveltyFeatures(character)
+        atoms_tuples = set()
+        for i in range(1, 3):
+            atoms_tuples = atoms_tuples | set(itertools.combinations(features_list, i))
+        return atoms_tuples
 
-	def computeNovelty( self, tuples_set, all_tuples_set):
-		return 0
+    def computeNovelty(self, tuples_set, all_tuples_set):
+        diff = tuples_set - all_tuples_set
+        if len(diff) > 0:
+          novelty = min([len(each) for each in diff])
+          return novelty
+        else:
+          return 9999
 
-	def NoveltyTestSuccessors( self ):
-		return 0
 
 
 class SimulateAgent:
 	def __init__( self ):
-    	return 0 
+    	return 0
 
 	def chooseAction(self, gameState):
 		return 0
@@ -266,12 +364,12 @@ class Distancer:
 		return 0
 
 class MCTSCaptureAgent(CaptureAgent):
-        
-  def registerInitialState(self, gameState): 
-    CaptureAgent.registerInitialState(self, gameState)   
+
+  def registerInitialState(self, gameState):
+    CaptureAgent.registerInitialState(self, gameState)
     self.allies = self.getTeam( gameState )
     if self.allies[0] != self.index:
-       self.allies = self.allies[::-1]   
+       self.allies = self.allies[::-1]
     self.enemies = self.getOpponents( gameState )
     self.MCTS_ITERATION = 10000
     self.ROLLOUT_DEPTH = 10
@@ -280,7 +378,7 @@ class MCTSCaptureAgent(CaptureAgent):
     """ 
     we return the best a ction for current GameState. 
     we hope to return the best two action for two pacman! 
-    """    
+    """
     start = time.time()
     self.rootNode = ExploreNode( GameState, self.allies, None)
     node = self.rootNode
@@ -289,7 +387,7 @@ class MCTSCaptureAgent(CaptureAgent):
     while( running_time < 10 and iters < self.MCTS_ITERATION ):
        node = self.select()
        EndNode = self.playOut( node )
-       self.BackPropagate( EndNode )       
+       self.BackPropagate( EndNode )
        end = time.time()
        running_time = end - start
        iters += 1
@@ -302,7 +400,7 @@ class MCTSCaptureAgent(CaptureAgent):
     currentNode = self.rootNode
     while True:
         if not currentNode.isFullExpand():
-          return currentNode.RandGenerateSuccNode() 
+          return currentNode.RandGenerateSuccNode()
         else:
           currentNode.NoveltyTestSuccessors()
           currentNode = currentNode.UCB1SuccNode()
@@ -316,22 +414,22 @@ class MCTSCaptureAgent(CaptureAgent):
       """
       In SingleExporeNode, Func self.distancer_layout is used
       """
-      n1 = SingleExploreNode( self.allies[0], self.enemies, CurrentNode.GameState, self.getMazeDistance ) 
+      n1 = SingleExploreNode( self.allies[0], self.enemies, CurrentNode.GameState, self.getMazeDistance )
       a1 = n1.chooseAction( CurrentNode.GameState )
       n2 = SingleExploreNode( self.allies[1], self.enemies, CurrentNode.GameState, self.getMazeDistance )
       a2 = n2.chooseAction( CurrentNode.GameState )
-      CurrentNode = CurrentNode.ChooseSuccNode( (a1,a2) ) 
+      CurrentNode = CurrentNode.ChooseSuccNode( (a1,a2) )
 
       EnemyNode = ExploreNode( CurrentNode.GameState, self.enemies )
-      n1 = SingleExploreNode( self.enemies[0], self.allies, CurrentNode.GameState, self.getMazeDistance ) 
+      n1 = SingleExploreNode( self.enemies[0], self.allies, CurrentNode.GameState, self.getMazeDistance )
       a1 = n1.chooseAction( CurrentNode.GameState )
       n2 = SingleExploreNode( self.enemies[1], self.allies, CurrentNode.GameState, self.getMazeDistance )
       a2 = n2.chooseAction( CurrentNode.GameState )
       NextNode = EnemyNode.ChooseSuccNode( (a1,a2) )
       CurrentNode.GameState = NextNode.GameState
-      iters += 1      
-    return CurrentNode 
- 
+      iters += 1
+    return CurrentNode
+
   def PlayOut1( self, CurrentNode ):
     iters = 0
     while iters < self.ROLLOUT_DEPTH:
@@ -339,8 +437,8 @@ class MCTSCaptureAgent(CaptureAgent):
       EnemyNode = ExploreNode( CurrentNode.GameState, self.enemies )
       NextNode = EnemyNode.RandChooseSuccNode()
       CurrentNode.GameState = NextNode.GameState
-      iters += 1      
-    return CurrentNode 
+      iters += 1
+    return CurrentNode
 
   def BackPropagate( self, endNode):
     """
@@ -351,11 +449,11 @@ class MCTSCaptureAgent(CaptureAgent):
       supscore = endNode.getSupScore( self.enemies, self.distancer_layout, self.getMazeDistance )
       score += supscore
     else:
-      print "Oh My God", score  
+      print "Oh My God", score
     currentNode = endNode
     while currentNode is not None:
        currentNode.totalValue += score
-       currentNode = currentNode.parent   
+       currentNode = currentNode.parent
 
 
 
