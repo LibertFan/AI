@@ -130,15 +130,19 @@ class ExploreNode:
             self.nVisit += 1
             SuccNode = None
             min_score = 9999
-            print 'self',self.novel
+            ## to do: jump out of loop when all children are non_novel
+            un_novel_num = 0
             for i,child_node in enumerate(self.Children_Nodes.values()):
-                print i,child_node.novel
                 if child_node.novel:
                     score = child_node.totalValue / float(child_node.nVisit) + self.C * math.sqrt(
                         math.log(self.nVisit) / child_node.nVisit)
                     if score < min_score:
                         min_score = score
                         SuccNode = child_node
+                else:
+                    un_novel_num += 1
+            if un_novel_num == len(self.Children_Nodes):
+                self.novel = False
             return SuccNode
 
     def getBestAction(self):
@@ -293,7 +297,15 @@ class ExploreNode:
             if self.parent is None and self.cacheMemory is None:
                 self.cacheMemory = this_atoms_tuples
 
-            for each_succ in self.Children_Nodes.values():
+            sorted_childNones = []
+            for succ in self.Children_Nodes.values():
+                succ_atoms_tuples = succ.generateTuples()
+                diff = len(succ_atoms_tuples - all_atoms_tuples)
+                sorted_childNones.append((succ, diff))
+            sorted_childNones = sorted(sorted_childNones, lambda x, y: -cmp(x[1], y[1]))
+
+            for each_pair in sorted_childNones:
+                each_succ = each_pair[0]
                 succ_atoms_tuples = each_succ.generateTuples()
                 novelty = self.computeNovelty(succ_atoms_tuples, all_atoms_tuples)
                 if novelty > threshold:
@@ -341,6 +353,8 @@ class MCTSCaptureAgent(CaptureAgent):
         running_time = 0.0
         while (running_time < 0.9 and iters < self.MCTS_ITERATION):
             node = self.Select()
+            if node is None:
+                continue
             EndNode = self.PlayOut(node)
             self.BackPropagate(EndNode)
             end = time.time()
@@ -359,6 +373,8 @@ class MCTSCaptureAgent(CaptureAgent):
             else:
                 currentNode.NoveltyTestSuccessors()
                 currentNode = currentNode.UCB1SuccNode()
+                if currentNode is None:
+                    return None
 
     def PlayOut(self, CurrentNode):
         iters = 0
