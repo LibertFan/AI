@@ -208,7 +208,7 @@ class StateNode( BasicNode ):
     def RandChooseLeftActions( self ):
         self.nVisit += 1
         if self.isFullExpand():
-            raise Exception( " This Node has been full Expanded, you should choose UCB1ChooseActions!" )
+            raise Exception( "This Node has been full Expanded, you should choose UCB1ChooseActions!" )
         else:
             # Choose the action that has not been taken
             PreparedActions =  []
