@@ -166,14 +166,14 @@ class StateNode( BasicNode ):
         HighestScore = 0
         BestAlliesAction = None
         for AlliesAction in self.LegalAlliesActions.values():
-            SuccAlliesActionsNode = AlliesSuccActionsNodeDict.get( AlliesAction )
+            SuccAlliesActionsNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
             if SuccAlliesActionsNode.novel:
                 nVisit = 0.0
                 totalValue = 0.0
                 for EnemiesAction in self.LegalEnemiesActions.values():
-                    SuccEnemiesActionNode = EnemiesSuccActionNodeDict.get( EnemiesAction )
+                    SuccEnemiesActionNode = self.EnemiesSuccActionNodeDict.get( EnemiesAction )
                     if SuccEnemiesActionNode.novel:    
-                        SuccStateNode = SuccStateNodeDict.get((AlliesAction,EmemiesAction))
+                        SuccStateNode = self.SuccStateNodeDict.get((AlliesAction,EnemiesAction))
                         nVisit += SuccStateNode.nVisit
                         totalValue += SuccStateNode.totalValue
                 score = totalValue / float( nVisit )
@@ -244,6 +244,7 @@ class StateNode( BasicNode ):
             ChosedAlliesAction = None
             un_novel_num = 0
             for AlliesAction in self.LegalAlliesActions:
+                print AlliesAction
                 AlliesSuccActionNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
                 if AlliesSuccActionNode.novel:
                     score = AlliesSuccActionNode.totalValue / float( AlliesSuccActionNode.nVisit ) + \
@@ -393,7 +394,7 @@ class StateNode( BasicNode ):
                 features['onDefense'+ str(index)] = 1
             if len(invaders) > 0:
                 invaders_positions = [ self.IndexPositions.get( a ) for a in invaders ]
-                mindist = min([getMazeDistance(myPos, a) for a in invaders_positions])
+                mindist = min([self.getDistancer(myPos, a) for a in invaders_positions])
                 features['invaderDistance' + str(index)] = mindist
 
         self.features = features
@@ -584,7 +585,7 @@ class SimulateAgent:
         features['numInvaders'] = len(invaders)
         if len(invaders) > 0:
             invader_positions = [ a.getPosition() for a in invaders ]
-            mindist = self.getDistancer( myPos, invaders_positions )
+            mindist = self.getDistancer( myPos, invader_positions )
             features['invaderDistance'] = mindist
 
         if action == Directions.STOP: features['stop'] = 1
@@ -634,7 +635,8 @@ class MCTSCaptureAgent(CaptureAgent):
             end = time.time()
             running_time = end - start
             iters += 1
-
+       
+        bestActions = self.rootNode.getBestActions()
         return bestActions[0]
 
     def Select(self):
@@ -668,10 +670,7 @@ class MCTSCaptureAgent(CaptureAgent):
     def PlayOut1( self, CurrentNode ):
         iters = 0
         while iters < self.ROLLOUT_DEPTH:
-            CurrentNode = CurrentNode.RandChooseSuccNode()
-            EnemyNode = ExploreNode( CurrentNode.GameState, self.enemies )
-            NextNode = EnemyNode.RandChooseSuccNode()
-            CurrentNode.GameState = NextNode.GameState
+            CurrentNode = CurrentNode.ChooseSuccNode()
             iters += 1
         return CurrentNode
 
