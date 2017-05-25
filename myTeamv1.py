@@ -262,12 +262,16 @@ class StateNode( BasicNode ):
             if un_novel_num == len(self.LegalAlliesActions):
                 self.novel = False
                 return None
-
+           
             HighestScore = 0
             ChosedEnemiesAction = None
             EnemiesUnnovelNum = 0
+            print self.LegalEnemiesActions
+            print self.EnemiesSuccActionsNodeDict
+            print "="*50
             for EnemiesAction in self.LegalEnemiesActions:
-                EnemiesSuccActionNode = self.EnemiesSuccActionNodeDict.get( EnemiesAction )
+                EnemiesSuccActionNode = self.EnemiesSuccActionsNodeDict.get( EnemiesAction )
+
                 if EnemiesSuccActionNode.novel:
                     score = - EnemiesSuccActionNode .totalValue / float( EnemiesSuccActionNode.nVisit ) + \
                             self.C1 * math.sqrt( math.log( self.nVisit) / EnemiesSuccActionNode.nVisit )
@@ -280,7 +284,7 @@ class StateNode( BasicNode ):
                 self.novel = False
                 return None
             else:
-                ChosedAction = tuple( ChosedAlliesAction, ChosedEnemiesAction )
+                ChosedAction = ( ChosedAlliesAction, ChosedEnemiesAction )
                 SuccStateNode = self.SuccStateNodeDict[ ChosedAction ]
                 return SuccStateNode
     
@@ -294,7 +298,6 @@ class StateNode( BasicNode ):
         # Get the corresponding AlliesActionNode and EnemiesActionNode
         if self.SuccStateNodeDict.get( ChosedActions ) is None:
             ChosedAlliesAction, ChosedEnemiesAction = ChosedActions
-            print ChosedAlliesAction, ChosedEnemiesAction
             AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesAction )            
             if AlliesActionNode is None:
                 AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAlliesAction, self )
@@ -441,7 +444,7 @@ class StateNode( BasicNode ):
                 
             sorted_childNones = []
             for succ in ChildrenNone.values():
-                succ_atoms_tuples = succ.generateTuples()
+                succ_atoms_tuples = succ.generateTuples(character)
                 diff = len(succ_atoms_tuples - all_atoms_tuples)
                 sorted_childNones.append((succ, diff))
             sorted_childNones = sorted(sorted_childNones, lambda x, y: -cmp(x[1], y[1]))
@@ -493,6 +496,8 @@ class ActionNode( BasicNode, ):
         self.novel = True
         self.cacheMemory = None
         self.red = self.GameState.isOnRedTeam(self.allies[0])
+        self.nVisit = 1
+        self.totalValue = 0.0
 
 class SimulateAgent:
     """
@@ -638,6 +643,7 @@ class MCTSCaptureAgent(CaptureAgent):
             node = self.Select()
             if node is None:
                 continue
+            print "playout"
             EndNode = self.PlayOut( node )
             self.BackPropagate( EndNode )
             end = time.time()
@@ -692,11 +698,14 @@ class MCTSCaptureAgent(CaptureAgent):
             score += LatentScore
         else:
             print "Oh My God", score
-            currentNode = endNode
-            while currentNode is not None:
-                currentNode.totalValue += score
-                currentNode = currentNode.parent
-
+        currentNode = endNode
+        while currentNode is not None:
+            if currentNode.AlliesActionParent is not None:
+                currentNode.AlliesActionParent.totalValue += score            
+                currentNode.EnemiesActionParent.totalValue += score 
+            currentNode.totalValue += score
+            currentNode = currentNode.StateParent
+            
 
 
 
