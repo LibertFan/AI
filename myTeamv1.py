@@ -206,10 +206,10 @@ class StateNode( BasicNode ):
 
     ### RandChooseLeftActions is applied in MCTS select
     def RandChooseLeftActions( self ):
-        self.nVisit += 1
         if self.isFullExpand():
             raise Exception( " This Node has been full Expanded, you should choose UCB1ChooseActions!" )
         else:
+            self.nVisit += 1
             # Choose the action that has not been taken
             PreparedActions =  []
             for Action in self.LegalActions:
@@ -221,9 +221,11 @@ class StateNode( BasicNode ):
             AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesActions )
             if AlliesActionNode is None:
                 AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAlliesActions, self )
-            EnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( ChosedEnemiesActions )
+                self.AlliesSuccActionsNodeDict[ ChosedAlliesActions ] = AlliesActionNode
+            EnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( ChosedAlliesActions )
             if EnemiesActionNode is None:
                 EnemiesActionNode = ActionNode( self.enemies, self.allies, ChosedEnemiesActions, self )
+                self.EnemiesSuccActionsNodeDict[ ChosedEnemiesActions ] = EnemiesActionNode
             """
             The format of AlliesActionNode and EnenmiesAcrionNode should be dict instead of list!
             """
@@ -239,6 +241,9 @@ class StateNode( BasicNode ):
         if not self.isFullExpand():
             raise Exception( "This Node has not been full expanded, you should choose RandChooseLeftActions!")
         else:
+            print self.AlliesSuccActionsNodeDict
+            print self.EnemiesSuccActionsNodeDict
+            print self.SuccStateNodeDict
             self.nVisit += 1
             HighestScore = 0
             ChosedAlliesAction = None
@@ -289,12 +294,15 @@ class StateNode( BasicNode ):
         # Get the corresponding AlliesActionNode and EnemiesActionNode
         if self.SuccStateNodeDict.get( ChosedActions ) is None:
             ChosedAlliesAction, ChosedEnemiesAction = ChosedActions
+            print ChosedAlliesAction, ChosedEnemiesAction
             AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesAction )            
             if AlliesActionNode is None:
                 AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAlliesAction, self )
+                self.AlliesSuccActionsNodeDict[ ChosedAlliesAction ] = AlliesActionNode
             EnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( ChosedEnemiesAction )
             if EnemiesActionNode is None:
                 EnemiesActionNode = ActionNode( self.enemies, self.allies, ChosedEnemiesAction, self )
+                self.EnemiesSuccActionsNodeDict[ ChosedEnemiesAction ] = EnemiesActionNode 
             ### The format of AlliesActionNode and EnenmiesAcrionNode should be dict instead of list!
             AlliesActions = dict( zip( self.allies, ChosedAlliesAction ) )
             EnemiesActions = dict( zip( self.enemies, ChosedEnemiesAction ) )
@@ -626,7 +634,7 @@ class MCTSCaptureAgent(CaptureAgent):
         self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
         iters = 0
         running_time = 0.0
-        while( running_time < 10 and iters < self.MCTS_ITERATION ):
+        while( running_time < 20 and iters < self.MCTS_ITERATION ):
             node = self.Select()
             if node is None:
                 continue
@@ -635,7 +643,7 @@ class MCTSCaptureAgent(CaptureAgent):
             end = time.time()
             running_time = end - start
             iters += 1
-       
+        print iters 
         bestActions = self.rootNode.getBestActions()
         return bestActions[0]
 
