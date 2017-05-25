@@ -153,9 +153,9 @@ class StateNode( BasicNode ):
         self.AlliesSuccActionsNodeDict = dict()
         self.EnemiesSuccActionsNodeDict = dict()
         self.SuccStateNodeDict = dict()
-        self.nVisit = 0.0
+        self.nVisit = 1.0
         self.totalValue = 0.0
-        self.C1 = math.sqrt( 2 )
+        self.C1 = math.sqrt( 2 )/10
         self.red = self.GameState.isOnRedTeam( self.allies[0] )
         self.novel = True
         self.cacheMemory = [ None, ] * 2
@@ -186,6 +186,7 @@ class StateNode( BasicNode ):
 
     ### RandChooseLeftActions is applied in MCTS select
     def RandChooseLeftActions( self ):
+        self.nVisit += 1
         if self.isFullExpand():
             raise Exception( " This Node has been full Expanded, you should choose UCB1ChooseActions!" )
         else:
@@ -197,12 +198,12 @@ class StateNode( BasicNode ):
             ChosedActions = random.choice( PreparedActions )
             # Get the corresponding AlliesActionNode and EnemiesActionNode
             ChosedAlliesActions, ChosedEnemiesActions = ChosedActions
-            AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesAction )            
+            AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesActions )
             if AlliesActionNode is None:
-                AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAlliesAction, self )
-            EnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( ChosedEnemiesAction )
+                AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAlliesActions, self )
+            EnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( ChosedEnemiesActions )
             if EnemiesActionNode is None:
-                EnemiesActionNode = ActionNode( self.enemies, self.allies, ChosedEnemiesAction, self )
+                EnemiesActionNode = ActionNode( self.enemies, self.allies, ChosedEnemiesActions, self )
             """
             The format of AlliesActionNode and EnenmiesAcrionNode should be dict instead of list!
             """
@@ -218,32 +219,48 @@ class StateNode( BasicNode ):
         if not self.isFullExpand():
             raise Exception( "This Node has not been full expanded, you should choose RandChooseLeftActions!")
         else:
+            self.nVisit += 1
             HighestScore = 0
             ChosedAlliesAction = None
+            un_novel_num = 0
             for AlliesAction in self.LegalAlliesActions:
                 AlliesSuccActionNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
-                score = AlliesSuccActionNode.totalValue / float( AlliesSuccActionNode.nVisit ) + \
-                        self.C1 * math.sqrt( math.log( self.nVisit ) / AlliesSuccActionNode.nVisit )
-                if score >= HighestScore:
-                    HighestScore = score
-                    ChosedAlliesAction = AlliesAction
+                if AlliesSuccActionNode.novel:
+                    score = AlliesSuccActionNode.totalValue / float( AlliesSuccActionNode.nVisit ) + \
+                            self.C1 * math.sqrt( math.log( self.nVisit ) / AlliesSuccActionNode.nVisit )
+                    if score >= HighestScore:
+                        HighestScore = score
+                        ChosedAlliesAction = AlliesAction
+                else:
+                    un_novel_num += 1
+            if un_novel_num == len(self.LegalAlliesActions):
+                self.novel = False
+                return None
 
             HighestScore = 0
-            ChosedEnemiesAction = None           
+            ChosedEnemiesAction = None
+            EnemiesUnnovelNum = 0
             for EnemiesAction in self.LegalEnemiesActions:
                 EnemiesSuccActionNode = self.EnemiesSuccActionNodeDict.get( EnemiesAction )
-                score = - EnemiesSuccActionNode .totalValue / float( EnemiesSuccActionNode.nVisit ) + \
-                        self.C1 * math.sqrt( math.log( self.nVisit) / EnemiesSuccActionNode.nVisit )
-                if score >= HighestScore:
-                    HighestScore = score
-                    ChosedEnemiesAction = EnemiesAction
-
-             ChosedAction = tuple( ChosedAlliesAction, ChosedEnemiesAction )
-             SuccStateNode = self.SuccStateNodeDict[ ChosedAction ]  
-             return SuccStateNode       
+                if EnemiesSuccActionNode.novel:
+                    score = - EnemiesSuccActionNode .totalValue / float( EnemiesSuccActionNode.nVisit ) + \
+                            self.C1 * math.sqrt( math.log( self.nVisit) / EnemiesSuccActionNode.nVisit )
+                    if score >= HighestScore:
+                        HighestScore = score
+                        ChosedEnemiesAction = EnemiesAction
+                else:
+                    EnemiesUnnovelNum += 1
+            if EnemiesUnnovelNum == len(self.LegalEnemiesActions):
+                self.novel = False
+                return None
+            else:
+                ChosedAction = tuple( ChosedAlliesAction, ChosedEnemiesAction )
+                SuccStateNode = self.SuccStateNodeDict[ ChosedAction ]
+                return SuccStateNode
     
     ### RandChooseSuccNode is used in the course of MCTS's playout      
     def ChooseSuccNode( self, actions = None ):
+        self.nVisit += 1
         if actions is None:
             ChosedActions = random.choice( self.LegalActions )
         else:
@@ -365,10 +382,11 @@ class StateNode( BasicNode ):
     The following functions are used to compute the novelty of an StateNode
     """
     ### the cachyMemory of the successive ActionNode should be set in the following function !
-    def getSuccessorNovel( self ):
-        for character in ( 0, 1):
-             
-
+    ### And also update the novel of the SuccStateNodes
+    def getSuccessorNovel(self,cacheMemory):
+        for eachStateSucc in self.SuccStateNodeDict:
+            eachStateSucc.cacheMemory = cacheMemory
+            eachStateSucc.isNovel()
                 
     def NoveltyTestSuccessors(self, character):
         ###character : allies or enemies
@@ -446,12 +464,6 @@ class ActionNode( BasicNode, ):
         self.novel = True
         self.cacheMemory = None
         self.red = self.GameState.isOnRedTeam(self.allies[0])
-
-    """
-    The following method is used to novelty computation in order to prune 
-    """
-    def isPrune( self ):
-        return 0
 
 class SimulateAgent:
     """
@@ -591,14 +603,14 @@ class MCTSCaptureAgent(CaptureAgent):
     we hope to return the best two action for two pacman! 
     """
     start = time.time()
-    self.rootNode = ExploreNode( GameState, self.allies, None, allies = self.allies, enemies = self.enemies, GameState = GameState, \
-                                 getDistancer = self.getMazeDistance, getDistanceDict = None )
-    node = self.rootNode
+    self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
     iters = 0
     running_time = 0.0
     while( running_time < 10 and iters < self.MCTS_ITERATION ):
        node = self.select()
-       EndNode = self.playOut( node )
+       if node is None:
+           continue
+       EndNode = self.PlayOut( node )
        self.BackPropagate( EndNode )
        end = time.time()
        running_time = end - start
@@ -606,14 +618,18 @@ class MCTSCaptureAgent(CaptureAgent):
 
     return bestActions[0]
 
-  def select( self ):
+  def select(self):
     currentNode = self.rootNode
     while True:
         if not currentNode.isFullExpand():
-          return currentNode.RandGenerateSuccNode()
+            return currentNode.RandChooseLeftActions()
         else:
-          currentNode.NoveltyTestSuccessors()
-          currentNode = currentNode.UCB1SuccNode()
+            cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
+            currentNode.getSuccessorNovel(cacheMemory)
+            currentNode = currentNode.UCB1SuccNode()
+            if currentNode is None:
+                return None
+
   """
   gameState was transformed to Enenmy after modified by allies, thus 
   enemies knowns allies movement!
