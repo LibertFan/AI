@@ -171,7 +171,7 @@ class StateNode( BasicNode ):
                 nVisit = 0.0
                 totalValue = 0.0
                 for EnemiesAction in self.LegalEnemiesActions.values():
-                    SuccEnemiesActionNode = self.EnemiesSuccActionNodeDict.get( EnemiesAction )
+                    SuccEnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( EnemiesAction )
                     if SuccEnemiesActionNode.novel:    
                         SuccStateNode = self.SuccStateNodeDict.get((AlliesAction,EnemiesAction))
                         nVisit += SuccStateNode.nVisit
@@ -241,15 +241,11 @@ class StateNode( BasicNode ):
         if not self.isFullExpand():
             raise Exception( "This Node has not been full expanded, you should choose RandChooseLeftActions!")
         else:
-            print self.AlliesSuccActionsNodeDict
-            print self.EnemiesSuccActionsNodeDict
-            print self.SuccStateNodeDict
             self.nVisit += 1
             HighestScore = 0
             ChosedAlliesAction = None
             un_novel_num = 0
             for AlliesAction in self.LegalAlliesActions:
-                print AlliesAction
                 AlliesSuccActionNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
                 if AlliesSuccActionNode.novel:
                     score = AlliesSuccActionNode.totalValue / float( AlliesSuccActionNode.nVisit ) + \
@@ -267,9 +263,9 @@ class StateNode( BasicNode ):
             ChosedEnemiesAction = None
             EnemiesUnnovelNum = 0
             for EnemiesAction in self.LegalEnemiesActions:
-                EnemiesSuccActionNode = self.EnemiesSuccActionNodeDict.get( EnemiesAction )
+                EnemiesSuccActionNode = self.EnemiesSuccActionsNodeDict.get( EnemiesAction )
                 if EnemiesSuccActionNode.novel:
-                    score = - EnemiesSuccActionNode .totalValue / float( EnemiesSuccActionNode.nVisit ) + \
+                    score = - EnemiesSuccActionNode.totalValue / float( EnemiesSuccActionNode.nVisit ) + \
                             self.C1 * math.sqrt( math.log( self.nVisit) / EnemiesSuccActionNode.nVisit )
                     if score >= HighestScore:
                         HighestScore = score
@@ -294,8 +290,7 @@ class StateNode( BasicNode ):
         # Get the corresponding AlliesActionNode and EnemiesActionNode
         if self.SuccStateNodeDict.get( ChosedActions ) is None:
             ChosedAlliesAction, ChosedEnemiesAction = ChosedActions
-            print ChosedAlliesAction, ChosedEnemiesAction
-            AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesAction )            
+            AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesAction )
             if AlliesActionNode is None:
                 AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAlliesAction, self )
                 self.AlliesSuccActionsNodeDict[ ChosedAlliesAction ] = AlliesActionNode
@@ -441,7 +436,7 @@ class StateNode( BasicNode ):
                 
             sorted_childNones = []
             for succ in ChildrenNone.values():
-                succ_atoms_tuples = succ.generateTuples()
+                succ_atoms_tuples = succ.generateTuples(character)
                 diff = len(succ_atoms_tuples - all_atoms_tuples)
                 sorted_childNones.append((succ, diff))
             sorted_childNones = sorted(sorted_childNones, lambda x, y: -cmp(x[1], y[1]))
@@ -649,10 +644,15 @@ class MCTSCaptureAgent(CaptureAgent):
 
     def Select(self):
         currentNode = self.rootNode
+        #time = 1
         while True:
+            #print time
+            #time += 1
             if not currentNode.isFullExpand():
+                #print 'random'
                 return currentNode.RandChooseLeftActions()
             else:
+                #print
                 cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
                 currentNode.getSuccessorNovel(cacheMemory)
                 currentNode = currentNode.UCB1ChooseSuccNode()
@@ -692,10 +692,10 @@ class MCTSCaptureAgent(CaptureAgent):
             score += LatentScore
         else:
             print "Oh My God", score
-            currentNode = endNode
-            while currentNode is not None:
-                currentNode.totalValue += score
-                currentNode = currentNode.parent
+        currentNode = endNode
+        while currentNode is not None:
+            currentNode.totalValue += score
+            currentNode = currentNode.StateParent
 
 
 

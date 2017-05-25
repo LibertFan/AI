@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6fcc4672-e85a-415d-ab24-6991f0799893" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/myTeamv1.py" afterPath="$PROJECT_DIR$/myTeamv1.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -39,8 +40,8 @@
       <file leaf-file-name="myTeamv1.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/myTeamv1.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="231">
-              <caret line="210" column="30" lean-forward="false" selection-start-line="210" selection-start-column="30" selection-end-line="210" selection-end-column="30" />
+            <state relative-caret-position="-73">
+              <caret line="256" column="32" lean-forward="false" selection-start-line="256" selection-start-column="20" selection-end-line="256" selection-end-column="32" />
               <folding />
             </state>
           </provider>
@@ -60,15 +61,12 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>generateTuples</find>
-      <find>isRed</find>
       <find>getAgentPosition</find>
       <find>layout</find>
       <find>data</find>
       <find>agentPositions</find>
       <find>NoveltyTestSuccessors</find>
       <find>computeNovelty</find>
-      <find>print</find>
       <find>UCB1SuccNode</find>
       <find>UCB</find>
       <find>getScore</find>
@@ -90,6 +88,9 @@
       <find>UCB1</find>
       <find>nVisit</find>
       <find>getMa</find>
+      <find>totalValue</find>
+      <find>print</find>
+      <find>EnemiesSuccActionNodeDict</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -599,8 +600,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/myTeamv1.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="231">
-          <caret line="210" column="30" lean-forward="false" selection-start-line="210" selection-start-column="30" selection-end-line="210" selection-end-column="30" />
+        <state relative-caret-position="-73">
+          <caret line="256" column="32" lean-forward="false" selection-start-line="256" selection-start-column="20" selection-end-line="256" selection-end-column="32" />
           <folding />
         </state>
       </provider>
