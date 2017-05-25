@@ -258,10 +258,13 @@ class StateNode( BasicNode ):
             if un_novel_num == len(self.LegalAlliesActions):
                 self.novel = False
                 return None
-
+           
             HighestScore = 0
             ChosedEnemiesAction = None
             EnemiesUnnovelNum = 0
+            print self.LegalEnemiesActions
+            print self.EnemiesSuccActionsNodeDict
+            print "="*50
             for EnemiesAction in self.LegalEnemiesActions:
                 EnemiesSuccActionNode = self.EnemiesSuccActionsNodeDict.get( EnemiesAction )
                 if EnemiesSuccActionNode.novel:
@@ -276,7 +279,7 @@ class StateNode( BasicNode ):
                 self.novel = False
                 return None
             else:
-                ChosedAction = tuple( ChosedAlliesAction, ChosedEnemiesAction )
+                ChosedAction = ( ChosedAlliesAction, ChosedEnemiesAction )
                 SuccStateNode = self.SuccStateNodeDict[ ChosedAction ]
                 return SuccStateNode
     
@@ -290,7 +293,7 @@ class StateNode( BasicNode ):
         # Get the corresponding AlliesActionNode and EnemiesActionNode
         if self.SuccStateNodeDict.get( ChosedActions ) is None:
             ChosedAlliesAction, ChosedEnemiesAction = ChosedActions
-            AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesAction )
+            AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesAction )            
             if AlliesActionNode is None:
                 AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAlliesAction, self )
                 self.AlliesSuccActionsNodeDict[ ChosedAlliesAction ] = AlliesActionNode
@@ -488,6 +491,8 @@ class ActionNode( BasicNode, ):
         self.novel = True
         self.cacheMemory = None
         self.red = self.GameState.isOnRedTeam(self.allies[0])
+        self.nVisit = 1
+        self.totalValue = 0.0
 
 class SimulateAgent:
     """
@@ -633,6 +638,7 @@ class MCTSCaptureAgent(CaptureAgent):
             node = self.Select()
             if node is None:
                 continue
+            print "playout"
             EndNode = self.PlayOut( node )
             self.BackPropagate( EndNode )
             end = time.time()
@@ -693,10 +699,13 @@ class MCTSCaptureAgent(CaptureAgent):
         else:
             print "Oh My God", score
         currentNode = endNode
-        while currentNode is not None:
+        while currentNode is not None
+            if currentNode.AlliesActionParent is not None:
+                currentNode.AlliesActionParent.totalValue += score            
+                currentNode.EnemiesActionParent.totalValue += score 
             currentNode.totalValue += score
             currentNode = currentNode.StateParent
-
+            
 
 
 
