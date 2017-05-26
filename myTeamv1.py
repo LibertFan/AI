@@ -173,11 +173,7 @@ class StateNode( BasicNode ):
             if SuccAlliesActionsNode.novel:
                 nVisit = 0.0
                 totalValue = 0.0
-<<<<<<< HEAD
                 for EnemiesAction in self.LegalEnemiesActions:
-=======
-                for EnemiesAction in self.LegalEnemiesActions.values():
->>>>>>> 7b4b21b4946bc82e9e38d9f8df9a9f61e9a60ae8
                     SuccEnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( EnemiesAction )
                     if SuccEnemiesActionNode.novel:    
                         SuccStateNode = self.SuccStateNodeDict.get((AlliesAction,EnemiesAction))
@@ -211,18 +207,6 @@ class StateNode( BasicNode ):
         else:
             if len( self.LegalAlliesActions ) > len( self.AlliesSuccActionsNodeDict.keys() ) \
             or len( self.LegalEnemiesActions ) > len( self.EnemiesSuccActionsNodeDict.keys() ):
-                for alliesAction in self.LegalAlliesActions:
-                    for enemiesAction in self.LegalEnemiesActions:
-                        stateNode = self.SuccStateNodeDict.get((alliesAction,enemiesAction))
-                        if stateNode is None:
-                            print ( alliesAction, enemiesAction)
-                    print "kkk"
-                print len( self.LegalAlliesActions ), len( self.AlliesSuccActionsNodeDict.keys() )
-                print len( self.LegalEnemiesActions ) ,  len( self.EnemiesSuccActionsNodeDict.keys() )
-                print len( self.LegalActions ), len( self.SuccStateNodeDict.keys() )
-                print self.AlliesSuccActionsNodeDict
-                print self.EnemiesSuccActionsNodeDict
-                print self.SuccStateNodeDict   
                 raise Exception( " This StateNode should not be determined as 'FullExpand' " )
             self.FullExpand = True
 	return self.FullExpand
@@ -262,10 +246,6 @@ class StateNode( BasicNode ):
         if not self.isFullExpand():
             raise Exception( "This Node has not been full expanded, you should choose RandChooseLeftActions!")
         else:
-<<<<<<< HEAD
-=======
-            self.nVisit += 1
->>>>>>> 7b4b21b4946bc82e9e38d9f8df9a9f61e9a60ae8
             HighestScore = 0
             ChosedAlliesAction = None
             un_novel_num = 0
@@ -339,7 +319,8 @@ class StateNode( BasicNode ):
     getBound is used to scale the features value to interval [ 0, 0.5 ], and we name the final score as LatentScore!
     getFeatures is used to compute the features in 
     getWeights returns a dictionary that record the different features and their corresponding weight
-    getLatentScore is used to 
+    getLatentScore is used to
+
     """
 
     def getLatentScore( self ):
@@ -369,7 +350,6 @@ class StateNode( BasicNode ):
         features2["numInvaders"] = 2
 
         return [features2 * weights, features1 * weights]
-
 
     def getWeights( self ):
         """
@@ -669,7 +649,7 @@ class MCTSCaptureAgent(CaptureAgent):
             iters += 1
         print iters 
         for actions, succNode in self.rootNode.AlliesSuccActionsNodeDict.items():
-            print actions, succNode.novel, succNode.nVisit,
+            print actions, succNode.novel, succNode.nVisit, succNode.PScore
             print "-"*50
         bestActions = self.rootNode.getBestActions()
         print self.allies, bestActions 
@@ -728,7 +708,7 @@ class MCTSCaptureAgent(CaptureAgent):
         else:
             print "Oh My God", score
         currentNode = endNode
-        while currentNode is not None
+        while currentNode is not None:
             if currentNode.AlliesActionParent is not None:
                 currentNode.AlliesActionParent.totalValue += score            
                 currentNode.AlliesActionParent.nVisit += 1
