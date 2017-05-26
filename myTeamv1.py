@@ -113,7 +113,8 @@ class StateNode( BasicNode ):
         try:
             self.LastActions = dict( AlliesActions, **EnemiesActions )
         except:
-            raise Exception( " the format of AlliesActions and OpponentsAction go wrong!" )	
+            raise Exception( " the format of AlliesActions and OpponentsAction go wrong!" )
+
         self.StateParent = StateParent
         self.AlliesActionParent = AlliesActionNodeParent
         self.EnemiesActionParent = EnemiesActionNodeParent
@@ -121,20 +122,20 @@ class StateNode( BasicNode ):
             if getDistancer is None or allies is None or enemies is None:
                 raise Exception( "the function of getDistancer or allies or enemies missing!")
             self.GameState = copy.deepcopy( GameState )
-	    self.getDistancer = getDistancer
+            self.getDistancer = getDistancer
             self.allies = allies
             self.enemies = enemies
-	    self.Bound = self.getBound()
+            self.Bound = self.getBound()
         elif GameState is None:
-	    self.StateParent = StateParent
+            self.GameState = GameState
             self.allies = self.StateParent.allies
-            self.enemies = self.StateParent.enemies 
-	    self.getDistancer = self.StateParent.getDistancer
-	    self.Bound = self.StateParent.Bound
-            CurrentGameState = copy.deepcopy( self.StateParent.GameState ) 
+            self.enemies = self.StateParent.enemies
+            self.getDistancer = self.StateParent.getDistancer
+            self.Bound = self.StateParent.Bound
+            CurrentGameState = copy.deepcopy(self.StateParent.GameState )
             for index, action in self.LastActions.items():
-		CurrentGameState = CurrentGameState.generateSuccessor( index, action )
-            self.GameState = CurrentGameState        
+                CurrentGameState = CurrentGameState.generateSuccessor( index, action )
+            self.GameState = CurrentGameState
         # self.LegalIndexActions is an auxiliary variables that store a dict which key is the agent index 
         # and the value is its corresponding legal actions  
         self.LegalIndexActions = dict()
@@ -268,6 +269,15 @@ class StateNode( BasicNode ):
             EnemiesUnnovelNum = 0
             for EnemiesAction in self.LegalEnemiesActions:
                 EnemiesSuccActionNode = self.EnemiesSuccActionsNodeDict.get( EnemiesAction )
+                try:
+                    a = EnemiesSuccActionNode.novel
+                except:
+                    print self.EnemiesSuccActionsNodeDict
+                    print self.LegalEnemiesActions
+                    print self.LegalAlliesActions
+                    print self.SuccStateNodeDict
+                    print len(self.SuccStateNodeDict)
+                    raise Exception
                 if EnemiesSuccActionNode.novel:
                     score = - EnemiesSuccActionNode.totalValue / float( EnemiesSuccActionNode.nVisit ) + \
                             self.C1 * math.sqrt( math.log( self.nVisit) / EnemiesSuccActionNode.nVisit )
@@ -343,7 +353,7 @@ class StateNode( BasicNode ):
             features2['successorScore'] = len(foodList)
 
         for index in self.allies:
-            features2['onDefense' + str( index )] = 2
+            features2['onDefens' + str( index )] = 2
             features2['distanceToFood' + str(index) ] = 50
             features2['invaderDistance' + str(index) ] = 50
 
@@ -647,7 +657,8 @@ class MCTSCaptureAgent(CaptureAgent):
             end = time.time()
             running_time = end - start
             iters += 1
-        print iters 
+
+        print iters
         for actions, succNode in self.rootNode.AlliesSuccActionsNodeDict.items():
             print actions, succNode.novel, succNode.nVisit, succNode.PScore
             print "-"*50
