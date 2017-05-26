@@ -173,7 +173,11 @@ class StateNode( BasicNode ):
             if SuccAlliesActionsNode.novel:
                 nVisit = 0.0
                 totalValue = 0.0
+<<<<<<< HEAD
                 for EnemiesAction in self.LegalEnemiesActions:
+=======
+                for EnemiesAction in self.LegalEnemiesActions.values():
+>>>>>>> 7b4b21b4946bc82e9e38d9f8df9a9f61e9a60ae8
                     SuccEnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( EnemiesAction )
                     if SuccEnemiesActionNode.novel:    
                         SuccStateNode = self.SuccStateNodeDict.get((AlliesAction,EnemiesAction))
@@ -226,7 +230,7 @@ class StateNode( BasicNode ):
     ### RandChooseLeftActions is applied in MCTS select
     def RandChooseLeftActions( self ):
         if self.isFullExpand():
-            raise Exception( " This Node has been full Expanded, you should choose UCB1ChooseActions!" )
+            raise Exception( "This Node has been full Expanded, you should choose UCB1ChooseActions!" )
         else:
             # Choose the action that has not been taken
             PreparedActions =  []
@@ -258,6 +262,10 @@ class StateNode( BasicNode ):
         if not self.isFullExpand():
             raise Exception( "This Node has not been full expanded, you should choose RandChooseLeftActions!")
         else:
+<<<<<<< HEAD
+=======
+            self.nVisit += 1
+>>>>>>> 7b4b21b4946bc82e9e38d9f8df9a9f61e9a60ae8
             HighestScore = 0
             ChosedAlliesAction = None
             un_novel_num = 0
@@ -670,10 +678,15 @@ class MCTSCaptureAgent(CaptureAgent):
 
     def Select(self):
         currentNode = self.rootNode
+        #time = 1
         while True:
+            #print time
+            #time += 1
             if not currentNode.isFullExpand():
+                #print 'random'
                 return currentNode.RandChooseLeftActions()
             else:
+                #print
                 cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
                 currentNode.getSuccessorNovel(cacheMemory)
                 currentNode = currentNode.UCB1ChooseSuccNode()
@@ -715,7 +728,7 @@ class MCTSCaptureAgent(CaptureAgent):
         else:
             print "Oh My God", score
         currentNode = endNode
-        while currentNode is not None:
+        while currentNode is not None
             if currentNode.AlliesActionParent is not None:
                 currentNode.AlliesActionParent.totalValue += score            
                 currentNode.AlliesActionParent.nVisit += 1
