@@ -121,7 +121,7 @@ class StateNode( BasicNode ):
         if StateParent is None:     
             if getDistancer is None or allies is None or enemies is None:
                 raise Exception( "the function of getDistancer or allies or enemies missing!")
-            self.GameState = GameState
+            self.GameState = copy.deepcopy( GameState )
             self.getDistancer = getDistancer
             self.allies = allies
             self.enemies = enemies
@@ -149,14 +149,17 @@ class StateNode( BasicNode ):
         self.LegalAlliesActions = tuple( itertools.product( self.LegalIndexActions.get(self.allies[0]), self.LegalIndexActions.get(self.allies[1]) ) )    
         self.LegalEnemiesActions = tuple( itertools.product( self.LegalIndexActions.get(self.enemies[0]), self.LegalIndexActions.get(self.enemies[1]) ) ) 
         self.LegalActions = tuple( itertools.product( self.LegalAlliesActions, self.LegalEnemiesActions ) )
+        if len( self.LegalActions ) != len( self.LegalAlliesActions ) * len( self.LegalEnemiesActions ):
+            raise Exception( "The pair action of allies and enemies are unappropriate" )
+
         # self.LegalActions = self.LegalAlliesActions + self.LegalEnemiesActions
         # the following attributes 
         self.AlliesSuccActionsNodeDict = dict()
         self.EnemiesSuccActionsNodeDict = dict()
         self.SuccStateNodeDict = dict()
-        self.nVisit = 1.0
+        self.nVisit = 0.0
         self.totalValue = 0.0
-        self.C1 = math.sqrt( 2 )/10
+        self.C1 = math.sqrt( 2 ) / 10
         self.red = self.GameState.isOnRedTeam( self.allies[0] )
         self.novel = True
         self.cacheMemory = [ None, ] * 2
@@ -178,7 +181,8 @@ class StateNode( BasicNode ):
                         nVisit += SuccStateNode.nVisit
                         totalValue += SuccStateNode.totalValue
                 score = totalValue / float( nVisit )
-                if score >= HighestScore:
+                SuccAlliesActionsNode.PScore = score
+                if score > HighestScore:
                     HighestScore = score
                     BestAlliesAction = AlliesAction
         if BestAlliesAction is None:
@@ -199,9 +203,24 @@ class StateNode( BasicNode ):
         return self.novel	       
 
     def isFullExpand( self ):
-        if len( self.SuccStateNodeDict ) < len( self.LegalActions ):
+        if len( self.SuccStateNodeDict.keys() ) < len( self.LegalActions ):
             self.FullExpand = False
         else:
+            if len( self.LegalAlliesActions ) > len( self.AlliesSuccActionsNodeDict.keys() ) \
+            or len( self.LegalEnemiesActions ) > len( self.EnemiesSuccActionsNodeDict.keys() ):
+                for alliesAction in self.LegalAlliesActions:
+                    for enemiesAction in self.LegalEnemiesActions:
+                        stateNode = self.SuccStateNodeDict.get((alliesAction,enemiesAction))
+                        if stateNode is None:
+                            print ( alliesAction, enemiesAction)
+                    print "kkk"
+                print len( self.LegalAlliesActions ), len( self.AlliesSuccActionsNodeDict.keys() )
+                print len( self.LegalEnemiesActions ) ,  len( self.EnemiesSuccActionsNodeDict.keys() )
+                print len( self.LegalActions ), len( self.SuccStateNodeDict.keys() )
+                print self.AlliesSuccActionsNodeDict
+                print self.EnemiesSuccActionsNodeDict
+                print self.SuccStateNodeDict   
+                raise Exception( " This StateNode should not be determined as 'FullExpand' " )
             self.FullExpand = True
 	return self.FullExpand
 
@@ -210,7 +229,6 @@ class StateNode( BasicNode ):
         if self.isFullExpand():
             raise Exception( "This Node has been full Expanded, you should choose UCB1ChooseActions!" )
         else:
-            self.nVisit += 1
             # Choose the action that has not been taken
             PreparedActions =  []
             for Action in self.LegalActions:
@@ -218,26 +236,25 @@ class StateNode( BasicNode ):
                     PreparedActions.append( Action )
             ChosedActions = random.choice( PreparedActions )
             # Get the corresponding AlliesActionNode and EnemiesActionNode
-            ChosedAlliesActions, ChosedEnemiesActions = ChosedActions
-            AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesActions )
+            ChosedAlliesAction, ChosedEnemiesAction = ChosedActions
+            AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesAction )
             if AlliesActionNode is None:
-                AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAlliesActions, self )
-                self.AlliesSuccActionsNodeDict[ ChosedAlliesActions ] = AlliesActionNode
-            EnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( ChosedAlliesActions )
+                AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAlliesAction, self )
+                self.AlliesSuccActionsNodeDict[ ChosedAlliesAction ] = AlliesActionNode
+            EnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( ChosedEnemiesAction )
             if EnemiesActionNode is None:
-                EnemiesActionNode = ActionNode( self.enemies, self.allies, ChosedEnemiesActions, self )
-                self.EnemiesSuccActionsNodeDict[ ChosedEnemiesActions ] = EnemiesActionNode
-            """
-            The format of AlliesActionNode and EnenmiesAcrionNode should be dict instead of list!
-            """
-            AlliesActions = dict( zip( self.allies, ChosedAlliesActions ) )
-            EnemiesActions = dict( zip( self.enemies, ChosedEnemiesActions ) )
+                EnemiesActionNode = ActionNode( self.enemies, self.allies, ChosedEnemiesAction, self )
+                self.EnemiesSuccActionsNodeDict[ ChosedEnemiesAction ] = EnemiesActionNode
+            ###  The format of AlliesActionNode and EnenmiesAcrionNode should be dict instead of list!
+            AlliesActions = dict( zip( self.allies, ChosedAlliesAction ) )
+            EnemiesActions = dict( zip( self.enemies, ChosedEnemiesAction ) )
             SuccStateNode = StateNode( AlliesActions = AlliesActions, EnemiesActions = EnemiesActions,\
                             AlliesActionNodeParent = AlliesActionNode, EnemiesActionNodeParent = EnemiesActionNode, StateParent = self )
             self.SuccStateNodeDict[ ChosedActions ] = SuccStateNode
             return SuccStateNode     
         
-    ### UCB1ChooseSuccNode is applied in MCTS select    
+    ### UCB1ChooseSuccNode is applied in MCTS select
+    ### Do ActionNode call on here need add 1 to their nVisit ?
     def UCB1ChooseSuccNode( self ):
         if not self.isFullExpand():
             raise Exception( "This Node has not been full expanded, you should choose RandChooseLeftActions!")
@@ -292,7 +309,6 @@ class StateNode( BasicNode ):
     
     ### RandChooseSuccNode is used in the course of MCTS's playout      
     def ChooseSuccNode( self, actions = None ):
-        self.nVisit += 1
         if actions is None:
             ChosedActions = random.choice( self.LegalActions )
         else:
@@ -300,6 +316,8 @@ class StateNode( BasicNode ):
         # Get the corresponding AlliesActionNode and EnemiesActionNode
         if self.SuccStateNodeDict.get( ChosedActions ) is None:
             ChosedAlliesAction, ChosedEnemiesAction = ChosedActions
+            if ChosedAlliesAction is None or ChosedEnemiesAction is None:
+                print ChosedAlliesAction, ChosedEnemiesAction 
             AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesAction )            
             if AlliesActionNode is None:
                 AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAlliesAction, self )
@@ -318,7 +336,7 @@ class StateNode( BasicNode ):
             SuccStateNode = self.SuccStateNodeDict.get( ChosedActions )
 	return SuccStateNode
 
-    """
+    """ 
     The following method is used to compute the LatentScore the process of playout when the final score has no change with the original one!
  
     getBound is used to scale the features value to interval [ 0, 0.5 ], and we name the final score as LatentScore!
@@ -426,7 +444,7 @@ class StateNode( BasicNode ):
         # 0 is allies
         # 1 is enemies
         ########
-        threshold = 2
+        threshold = 1
         if not self.isFullExpand():
             raise Exception("this node is not fully expanded that is not support Novelty computation!")
         else:
@@ -489,7 +507,7 @@ class ActionNode( BasicNode, ):
         self.allies = allies
         self.enemies = enemies
         self.LastActions = Actions
-        CurrentGameState = copy.deepcopy(StateParent.GameState)
+        CurrentGameState = copy.deepcopy( StateParent.GameState )
         for index, action in zip(self.allies, self.LastActions):
             CurrentGameState = CurrentGameState.generateSuccessor(index, action)
         self.GameState = CurrentGameState
@@ -497,7 +515,7 @@ class ActionNode( BasicNode, ):
         self.novel = True
         self.cacheMemory = None
         self.red = self.GameState.isOnRedTeam(self.allies[0])
-        self.nVisit = 1
+        self.nVisit = 0
         self.totalValue = 0.0
 
 class SimulateAgent:
@@ -519,10 +537,11 @@ class SimulateAgent:
         self.isPacman = self.GameState.getAgentState( self.index ).isPacman
         self.red = self.GameState.isOnRedTeam( self.index )
 
-    def chooseAction(self, gameState):
+    def chooseAction(self, GameState):
         """
         Picks among the actions with the highest Q(s,a).
         """
+        gameState = copy.deepcopy( GameState )
         actions = gameState.getLegalActions( self.index )    
 
         values = [self.evaluate(gameState, a) for a in actions]
@@ -560,7 +579,7 @@ class SimulateAgent:
             features = self.getDefensiveFeatures( gameState, action )
         else:
             features = self.getOffensiveFeatures( gameState, action )
-        weights = self.getWeights( gameState, action )
+        weights = self.getWeights( )
         return features * weights
 
     def getOffensiveFeatures(self, gameState, action):
@@ -608,7 +627,7 @@ class SimulateAgent:
 
         return features
    
-    def getWeights(self, gameState, action):
+    def getWeights( self ):
         """
         Normally, weights do not depend on the gamestate.  They can be either
         a counter or a dictionary.
@@ -628,6 +647,7 @@ class MCTSCaptureAgent(CaptureAgent):
         if self.allies[0] != self.index:
             self.allies = self.allies[::-1]
         self.enemies = self.getOpponents( gameState )
+        print self.allies, self.enemies
         self.MCTS_ITERATION = 10000
         self.ROLLOUT_DEPTH = 10
 
@@ -649,15 +669,14 @@ class MCTSCaptureAgent(CaptureAgent):
             end = time.time()
             running_time = end - start
             iters += 1
-        print iters
-        print self.rootNode.IndexPositions
-        for each_action,each_score in self.rootNode.SuccStateNodeDict.items():
-            print each_action
-            print each_score.getLatentScore()
-        bestActions = self.rootNode.getBestActions()
-        print '&'*100
-        print bestActions
 
+        print iters
+        for actions, succNode in self.rootNode.AlliesSuccActionsNodeDict.items():
+            print actions, succNode.novel, succNode.nVisit,
+            print "-"*50
+        bestActions = self.rootNode.getBestActions()
+        print self.allies, bestActions 
+        print "&" * 50
         return bestActions[0]
 
     def Select(self):
@@ -675,6 +694,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 currentNode.getSuccessorNovel(cacheMemory)
                 currentNode = currentNode.UCB1ChooseSuccNode()
                 if currentNode is None:
+                    raise Exception( "No StateNode in tree is novel!")
                     return None
 
     def PlayOut( self, CurrentNode ):
@@ -714,8 +734,11 @@ class MCTSCaptureAgent(CaptureAgent):
         while currentNode is not None:
             if currentNode.AlliesActionParent is not None:
                 currentNode.AlliesActionParent.totalValue += score            
+                currentNode.AlliesActionParent.nVisit += 1
                 currentNode.EnemiesActionParent.totalValue += score 
+                currentNode.EnemiesActionParent.nVisit += 1
             currentNode.totalValue += score
+            currentNode.nVisit += 1
             currentNode = currentNode.StateParent
             
 
