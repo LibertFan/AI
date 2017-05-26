@@ -64,12 +64,12 @@ class BasicNode:
     def getNoveltyFeatures( self, character ):
         gameState = self.GameState
         features = []
-        if character == 0:
-            for i in self.allies:
-                features.append(('agent', gameState.getAgentState(i).getPosition()))
-        else:
+        for i in self.allies:
+            features.append(('agent'+str(i), gameState.getAgentState(i).getPosition()))
+        if character != 0:
+            #stateNode
             for i in self.enemies:
-                features.append(('agent', gameState.getAgentState(i).getPosition()))
+                features.append(('agent'+str(i), gameState.getAgentState(i).getPosition()))
         for j, position in enumerate(gameState.data.capsules):
             features.append(('capsule' + str(j), position))
         food = gameState.data.food.asList()
@@ -77,10 +77,10 @@ class BasicNode:
             features.append(('food', position))
         return features
 
-    def generateTuples(self, character):
+    def generateTuples(self, character=0):
         features_list = self.getNoveltyFeatures(character)
         atoms_tuples = set()
-        for i in range( 1, 3 ):
+        for i in range( 1, 2 ):
             atoms_tuples = atoms_tuples | set(itertools.combinations(features_list, i))
         return atoms_tuples
 
@@ -439,7 +439,7 @@ class StateNode( BasicNode ):
             all_atoms_tuples = set()
             this_atoms_tuples = self.generateTuples(character)
             all_atoms_tuples = all_atoms_tuples | this_atoms_tuples
-            
+
             ### cacheMemory is a list consist of set
             if self.StateParent is None and self.cacheMemory[ character ] is None:
                 self.cacheMemory[ character ] = this_atoms_tuples
@@ -451,14 +451,14 @@ class StateNode( BasicNode ):
                 
             sorted_childNones = []
             for succ in ChildrenNone.values():
-                succ_atoms_tuples = succ.generateTuples(character)
+                succ_atoms_tuples = succ.generateTuples()
                 diff = len(succ_atoms_tuples - all_atoms_tuples)
-                sorted_childNones.append((succ, diff))
+                sorted_childNones.append((succ, diff, succ_atoms_tuples))
             sorted_childNones = sorted(sorted_childNones, lambda x, y: -cmp(x[1], y[1]))
 
             for each_pair in sorted_childNones:
                 each_succ = each_pair[0]
-                succ_atoms_tuples = each_succ.generateTuples(character)
+                succ_atoms_tuples = each_pair[2]
                 novelty = self.computeNovelty(succ_atoms_tuples, all_atoms_tuples)
                 if novelty > threshold:
                     each_succ.novel = False
@@ -648,7 +648,7 @@ class MCTSCaptureAgent(CaptureAgent):
         self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
         iters = 0
         running_time = 0.0
-        while( running_time < 20 and iters < self.MCTS_ITERATION ):
+        while( running_time < 30 and iters < self.MCTS_ITERATION ):
             node = self.Select()
             if node is None:
                 continue
