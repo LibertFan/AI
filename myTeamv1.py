@@ -203,11 +203,11 @@ class StateNode( BasicNode ):
         return self.novel	       
 
     def isFullExpand( self ):
-        if len( self.SuccStateNodeDict.keys() ) < len( self.LegalActions ):
+        if len( self.SuccStateNodeDict.keys() ) != len( self.LegalActions ):
             self.FullExpand = False
         else:
-            if len( self.LegalAlliesActions ) > len( self.AlliesSuccActionsNodeDict.keys() ) \
-            or len( self.LegalEnemiesActions ) > len( self.EnemiesSuccActionsNodeDict.keys() ):
+            if len( self.LegalAlliesActions ) != len( self.AlliesSuccActionsNodeDict.keys() ) \
+            or len( self.LegalEnemiesActions ) != len( self.EnemiesSuccActionsNodeDict.keys() ):
                 raise Exception( " This StateNode should not be determined as 'FullExpand' " )
             self.FullExpand = True
 	return self.FullExpand
@@ -660,8 +660,10 @@ class MCTSCaptureAgent(CaptureAgent):
 
         print iters
         for actions, succNode in self.rootNode.AlliesSuccActionsNodeDict.items():
-            print actions, succNode.novel, succNode.nVisit, succNode.PScore
+            print actions, succNode.novel, succNode.nVisit
             print "-"*50
+        print len(self.rootNode.AlliesSuccActionsNodeDict), len(self.rootNode.EnemiesSuccActionsNodeDict)
+        print len(self.rootNode.SuccStateNodeDict)
         bestActions = self.rootNode.getBestActions()
         print self.allies, bestActions 
         print "&" * 50
