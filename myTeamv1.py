@@ -666,6 +666,12 @@ class MCTSCaptureAgent(CaptureAgent):
         print len(self.rootNode.SuccStateNodeDict)
         bestActions = self.rootNode.getBestActions()
         print self.allies, bestActions 
+        print "="* 50   
+        bestAction = bestActions[0]
+        rev = Directions.REVERSE[GameState.getAgentState(self.index).configuration.direction]
+        if rev == bestActions:
+           while rootNode. 
+
         print "&" * 50
         return bestActions[0]
 
