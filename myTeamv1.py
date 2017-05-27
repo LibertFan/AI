@@ -354,7 +354,7 @@ class StateNode( BasicNode ):
 
         for index in self.allies:
             features2['onDefens' + str( index )] = 2
-            features2['distanceToFood' + str(index) ] = 50
+            features2['distanceToFood' + str(index) ] = 20
             features2['invaderDistance' + str(index) ] = 50
 
         features2["numInvaders"] = 2
@@ -376,12 +376,12 @@ class StateNode( BasicNode ):
         
         The weights for various feature should be reset!
         """
-        weights = {'successorScore': -2, 'numInvaders': -20 }
+        weights = {'successorScore': 0, 'numInvaders': 0 }
 
         for index in self.allies:
-            weights['onDefense' + str( index )] = 20
-            weights['distanceToFood' + str( index )] = -5
-            weights['invaderDistance' + str( index )] = -5
+            weights['onDefense' + str( index )] = 0
+            weights['distanceToFood' + str( index )] = -100
+            weights['invaderDistance' + str( index )] = 0
 
         return weights
 
@@ -648,7 +648,7 @@ class MCTSCaptureAgent(CaptureAgent):
         self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
         iters = 0
         running_time = 0.0
-        while( running_time < 30 and iters < self.MCTS_ITERATION ):
+        while( running_time < 20 and iters < self.MCTS_ITERATION ):
             node = self.Select()
             if node is None:
                 continue
