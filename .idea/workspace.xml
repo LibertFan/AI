@@ -2,11 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6fcc4672-e85a-415d-ab24-6991f0799893" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/layouts/testCapture.lay" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/layouts/tinyCapture.lay" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/myTeamv2.py" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/score" afterPath="$PROJECT_DIR$/score" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/myTeamv1.py" afterPath="$PROJECT_DIR$/myTeamv1.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/myTeamv2.py" afterPath="$PROJECT_DIR$/myTeamv2.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -40,11 +38,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="myTeamv1.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="myTeamv1.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/myTeamv1.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="129">
-              <caret line="515" column="0" lean-forward="false" selection-start-line="515" selection-start-column="0" selection-end-line="516" selection-end-column="0" />
+            <state relative-caret-position="146">
+              <caret line="710" column="42" lean-forward="false" selection-start-line="710" selection-start-column="35" selection-end-line="710" selection-end-column="42" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="myTeamv2.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/myTeamv2.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="20">
+              <caret line="164" column="25" lean-forward="true" selection-start-line="164" selection-start-column="25" selection-end-line="164" selection-end-column="25" />
               <folding />
             </state>
           </provider>
@@ -74,8 +82,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>generate</find>
-      <find>capsules</find>
       <find>AgentSta</find>
       <find>newGame</find>
       <find>cacheMemory</find>
@@ -99,11 +105,13 @@
       <find>total</find>
       <find>sorted_childNones</find>
       <find>Rai</find>
-      <find>&lt;&lt;&lt;</find>
-      <find>getSuccess</find>
       <find>chooseAction</find>
       <find>multi</find>
       <find>multiprocessing</find>
+      <find>&lt;&lt;&lt;</find>
+      <find>getSuccess</find>
+      <find>novelTe</find>
+      <find>novelTest</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -116,8 +124,8 @@
         <option value="$PROJECT_DIR$/../myTeam_2.py" />
         <option value="$PROJECT_DIR$/capture.py" />
         <option value="$PROJECT_DIR$/myTeam.py" />
-        <option value="$PROJECT_DIR$/myTeamv1.py" />
         <option value="$PROJECT_DIR$/myTeamv2.py" />
+        <option value="$PROJECT_DIR$/myTeamv1.py" />
       </list>
     </option>
   </component>
@@ -349,7 +357,7 @@
     <frame x="-7" y="0" width="1378" height="735" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2124031" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1875969" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -746,18 +754,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/myTeamv2.py">
+    <entry file="file://$PROJECT_DIR$/myTeamv1.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="730" column="25" lean-forward="true" selection-start-line="730" selection-start-column="25" selection-end-line="730" selection-end-column="25" />
+        <state relative-caret-position="146">
+          <caret line="710" column="42" lean-forward="false" selection-start-line="710" selection-start-column="35" selection-end-line="710" selection-end-column="42" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/myTeamv1.py">
+    <entry file="file://$PROJECT_DIR$/myTeamv2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="129">
-          <caret line="515" column="0" lean-forward="false" selection-start-line="515" selection-start-column="0" selection-end-line="516" selection-end-column="0" />
+        <state relative-caret-position="20">
+          <caret line="164" column="25" lean-forward="true" selection-start-line="164" selection-start-column="25" selection-end-line="164" selection-end-column="25" />
           <folding />
         </state>
       </provider>
