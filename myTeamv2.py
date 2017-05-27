@@ -176,6 +176,9 @@ class StateNode( BasicNode ):
     def getBestActions( self ):
         HighestScore = 0
         BestAlliesAction = None
+        print len(self.LegalAlliesActions), len( self.AlliesSuccActionsNodeDict)
+        print len( self.LegalEnemiesActions), len(self.EnemiesSuccActionsNodeDict)
+        print len(self.LegalActions), len(self.SuccStateNodeDict)
         for AlliesAction in self.LegalAlliesActions:
             SuccAlliesActionsNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
             if SuccAlliesActionsNode.novel:
@@ -305,6 +308,7 @@ class StateNode( BasicNode ):
     def ChooseSuccNode( self, actions = None ):
         if actions is None:
             ChosedActions = random.choice( self.LegalActions )
+            print "Random Choose"
         else:
             ChosedActions = actions
         # Get the corresponding AlliesActionNode and EnemiesActionNode
@@ -327,7 +331,7 @@ class StateNode( BasicNode ):
                             AlliesActionNodeParent = AlliesActionNode, EnemiesActionNodeParent = EnemiesActionNode, StateParent = self )
             self.SuccStateNodeDict[ ChosedActions ] = SuccStateNode
         else:
-            SuccStateNode = self.SuccStateNodeDict.get( ChosedActions )
+            SuccStateNode = self.SuccStateNodeDict.get( ChosedActions )    
         return SuccStateNode
 
     """ 
@@ -430,11 +434,11 @@ class StateNode( BasicNode ):
     ### the cachyMemory of the successive ActionNode should be set in the following function !
     ### And also update the novel of the SuccStateNodes
     def getSuccessorNovel(self,cacheMemory):
+        self.novelTest = True
         for eachStateSucc in self.SuccStateNodeDict.values():
             eachStateSucc.cacheMemory = cacheMemory
             eachStateSucc.isNovel()
 
-    '''     
     def NoveltyTestSuccessors(self, character):
         ###character : allies or enemies
         # 0 is allies
@@ -493,7 +497,6 @@ class StateNode( BasicNode ):
                 succ.cacheMemory = all_atoms_tuples
             """    
             return all_atoms_tuples
-    '''
 
     def updateCacheMemory(self, allMemory, addMemory):
         for component in range(len(addMemory)):
@@ -506,9 +509,14 @@ class StateNode( BasicNode ):
         # 1 is enemies
         ########
         this_atoms_tuples = self.generateTuples(character)
+        print this_atoms_tuples
 
         ### cacheMemory is a list consist of set
+        print self.StateParent
+        print self.cacheMemory[character]
+        print '*'*80
         if self.StateParent is None and self.cacheMemory[character] is None:
+            print 'hello'
             self.cacheMemory[character] = this_atoms_tuples
 
         if character == 0:
@@ -519,6 +527,7 @@ class StateNode( BasicNode ):
         all_memory = [set(),]*5
         p = self
         parent_atoms_tuples = p.cacheMemory[character]
+        print parent_atoms_tuples
         self.updateCacheMemory(all_memory, parent_atoms_tuples)
         for succ in ChildrenNone.values():
             succ_atoms_tuples = succ.generateTuples()
@@ -731,6 +740,7 @@ class MCTSCaptureAgent(CaptureAgent):
         self.MCTS_ITERATION = 10000
         self.ROLLOUT_DEPTH = 10
         self.cores = mp.cpu_count() - 2
+        print self.cores
         self.pool = mp.ProcessingPool( processes = self.cores )
 
     """ 
@@ -795,7 +805,7 @@ class MCTSCaptureAgent(CaptureAgent):
         iters = 0
         running_time = 0.0
         while( running_time < 10 and iters < self.MCTS_ITERATION ):
-            node = self.Select()
+            node = self.SelectV1()
             if node is None:
                 continue
             self.ParallelGenerateSuccNode( node )
@@ -806,7 +816,22 @@ class MCTSCaptureAgent(CaptureAgent):
         bestActions = self.rootNode.getBestActions()
         bestAction = bestActions[0]
         return bestAction
-	
+
+    def SelectV1( self ):
+        currentNode = self.rootNode
+        while True:
+            if not currentNode.isFullExpand():
+                return currentNode
+            else:
+                if not currentNode.novelTest:
+                    cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
+                    currentNode.getSuccessorNovel(cacheMemory)
+                currentNode = currentNode.UCB1ChooseSuccNode()
+                if currentNode is None:
+                    raise Exception( "No StateNode in tree is novel!")
+                    return None
+                
+
     def Select(self):
         currentNode = self.rootNode
         #time = 1
@@ -818,6 +843,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 return currentNode.RandChooseLeftActions()
             else:
                 if not currentNode.novelTest:
+                    print "Select modelTest"
                     cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
                     currentNode.getSuccessorNovel(cacheMemory)
                 currentNode = currentNode.UCB1ChooseSuccNode()
@@ -829,12 +855,17 @@ class MCTSCaptureAgent(CaptureAgent):
         # SuccStateNodeNum = len( CurrentNodeStateNode.LegalActions )
         if not CurrentStateNode.novelTest:
             #f = CurrentStateNode.ChooseSuccNode()
-            SuccStateNodes = self.pool.map(CurrentStateNode.ChooseSuccNode, CurrentStateNode.LegalActions)
-            if len(SuccStateNodes) != len(CurrentStateNode.LegalActions):
+            #SuccStateNodes = self.pool.map(CurrentStateNode.ChooseSuccNode, CurrentStateNode.LegalActions)
+            SuccStateNodes = []
+            for actions in CurrentStateNode.LegalActions:
+                SuccStateNode = CurrentStateNode.ChooseSuccNode( actions )
+                SuccStateNodes.append( SuccStateNode )
+            if len(SuccStateNodes) != len(CurrentStateNode.LegalActions) or len(CurrentStateNode.AlliesSuccActionsNodeDict) != len(CurrentStateNode.LegalAlliesActions) \
+                    or len(CurrentStateNode.EnemiesSuccActionsNodeDict) != len(CurrentStateNode.LegalEnemiesActions):
                 raise Exception("Parallel goes wrong!")
             cacheMemory = [CurrentStateNode.NoveltyTestSuccessorsV1(0), CurrentStateNode.NoveltyTestSuccessorsV1(1)]
             CurrentStateNode.getSuccessorNovel(cacheMemory)
-            CurrentSuccStateNodes = []
+        CurrentSuccStateNodes = []
         for SuccStateNode in CurrentStateNode.SuccStateNodeDict.values():
             if SuccStateNode.novel:
                 CurrentSuccStateNodes.append(SuccStateNode)
@@ -867,24 +898,25 @@ class MCTSCaptureAgent(CaptureAgent):
         CurrentNodeList = []
         for i in range(len(actions)):
             iters = 0
-            CurrentNode = CurrentNode.ChooseSuccNode(actions[i])
+            CopyCurrentStateNode = copy.deepcopy(CurrentStateNode)
+            CopyCurrentStateNode = CopyCurrentStateNode.ChooseSuccNode(actions[i])
             while iters < (self.ROLLOUT_DEPTH - 1):
-                n1 = SimulateAgent(self.allies[0], self.allies, self.enemies, CurrentNode.GameState,
+                n1 = SimulateAgent(self.allies[0], self.allies, self.enemies,CopyCurrentStateNode.GameState,
                                    self.getMazeDistance)
-                a1 = n1.chooseAction(CurrentNode.GameState)
-                n2 = SimulateAgent(self.allies[1], self.allies, self.enemies, CurrentNode.GameState,
+                a1 = n1.chooseAction(CopyCurrentStateNode.GameState)
+                n2 = SimulateAgent(self.allies[1], self.allies, self.enemies, CopyCurrentStateNode.GameState,
                                    self.getMazeDistance)
-                a2 = n2.chooseAction(CurrentNode.GameState)
+                a2 = n2.chooseAction(CopyCurrentStateNode.GameState)
 
-                m1 = SimulateAgent(self.enemies[0], self.enemies, self.allies, CurrentNode.GameState,
+                m1 = SimulateAgent(self.enemies[0], self.enemies, self.allies,CopyCurrentStateNode.GameState,
                                    self.getMazeDistance)
-                b1 = m1.chooseAction(CurrentNode.GameState)
-                m2 = SimulateAgent(self.enemies[1], self.enemies, self.allies, CurrentNode.GameState,
+                b1 = m1.chooseAction(CopyCurrentStateNode.GameState)
+                m2 = SimulateAgent(self.enemies[1], self.enemies, self.allies, CopyCurrentStateNode.GameState,
                                    self.getMazeDistance)
-                b2 = m2.chooseAction(CurrentNode.GameState)
-                CurrentNode = CurrentNode.ChooseSuccNode(((a1, a2), (b1, b2)))
+                b2 = m2.chooseAction(CopyCurrentStateNode.GameState)
+                CopyCurrentStateNode = CopyCurrentStateNode.ChooseSuccNode(((a1, a2), (b1, b2)))
                 iters += 1
-            CurrentNodeList.append(CurrentNode)
+            CurrentNodeList.append(CopyCurrentStateNode)
         return CurrentNodeList
 
     def PlayOut( self, CurrentNode ):
@@ -923,12 +955,14 @@ class MCTSCaptureAgent(CaptureAgent):
         currentNode = endNode
         while currentNode is not None:
             if currentNode.AlliesActionParent is not None:
+                print 'hahahahahahahhaha'
                 currentNode.AlliesActionParent.totalValue += score            
                 currentNode.AlliesActionParent.nVisit += 1
                 currentNode.EnemiesActionParent.totalValue += score 
                 currentNode.EnemiesActionParent.nVisit += 1
             currentNode.totalValue += score
             currentNode.nVisit += 1
+            print currentNode.IndexPositions
             currentNode = currentNode.StateParent
             
 
