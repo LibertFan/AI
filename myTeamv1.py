@@ -163,6 +163,7 @@ class StateNode( BasicNode ):
         self.red = self.GameState.isOnRedTeam( self.allies[0] )
         self.novel = True
         self.cacheMemory = [ None, ] * 2
+        self.novelTest = False
     
     ### How to set the best action ?
     ###
@@ -422,9 +423,9 @@ class StateNode( BasicNode ):
     """
     ### the cachyMemory of the successive ActionNode should be set in the following function !
     ### And also update the novel of the SuccStateNodes
-    def getSuccessorNovel(self):#,cacheMemory
+    def getSuccessorNovel(self,cacheMemory):
         for eachStateSucc in self.SuccStateNodeDict.values():
-            #eachStateSucc.cacheMemory = cacheMemory
+            eachStateSucc.cacheMemory = cacheMemory
             eachStateSucc.isNovel()
                 
     def NoveltyTestSuccessors(self, character):
@@ -651,7 +652,7 @@ class MCTSCaptureAgent(CaptureAgent):
         self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
         iters = 0
         running_time = 0.0
-        while( running_time < 20 and iters < self.MCTS_ITERATION ):
+        while( running_time < 30 and iters < self.MCTS_ITERATION ):
             node = self.Select()
             if node is None:
                 continue
@@ -672,8 +673,17 @@ class MCTSCaptureAgent(CaptureAgent):
         print "="* 50   
         bestAction = bestActions[0]
         rev = Directions.REVERSE[GameState.getAgentState(self.index).configuration.direction]
+        import Queue
         if rev == bestActions:
-           while rootNode. 
+            CandidateStates = Queue.Queue()
+            root = self.rootNode
+            CandidateStates.put(root)
+
+            while not CandidateStates.empty():
+                current = CandidateStates.get()
+                print 'visit times',current.nVisit,'score',current.totalValue / float(self.nVisit)
+                for successor in current.SuccStateNodeDict.values():
+                        CandidateStates.put(successor)
 
         print "&" * 50
         return bestActions[0]
@@ -688,8 +698,9 @@ class MCTSCaptureAgent(CaptureAgent):
                 #print 'random'
                 return currentNode.RandChooseLeftActions()
             else:
-                cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
-                currentNode.getSuccessorNovel(cacheMemory)
+                if not currentNode.novelTest:
+                    cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
+                    currentNode.getSuccessorNovel(cacheMemory)
                 currentNode = currentNode.UCB1ChooseSuccNode()
                 if currentNode is None:
                     raise Exception( "No StateNode in tree is novel!")
