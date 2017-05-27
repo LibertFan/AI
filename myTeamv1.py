@@ -422,9 +422,9 @@ class StateNode( BasicNode ):
     """
     ### the cachyMemory of the successive ActionNode should be set in the following function !
     ### And also update the novel of the SuccStateNodes
-    def getSuccessorNovel(self,cacheMemory):
+    def getSuccessorNovel(self):#,cacheMemory
         for eachStateSucc in self.SuccStateNodeDict.values():
-            eachStateSucc.cacheMemory = cacheMemory
+            #eachStateSucc.cacheMemory = cacheMemory
             eachStateSucc.isNovel()
                 
     def NoveltyTestSuccessors(self, character):
@@ -448,13 +448,15 @@ class StateNode( BasicNode ):
                 ChildrenNone = self.AlliesSuccActionsNodeDict
             else:
                 ChildrenNone = self.EnemiesSuccActionsNodeDict
-                
+
+
             sorted_childNones = []
             for succ in ChildrenNone.values():
                 succ_atoms_tuples = succ.generateTuples()
                 diff = len(succ_atoms_tuples - all_atoms_tuples)
                 sorted_childNones.append((succ, diff, succ_atoms_tuples))
             sorted_childNones = sorted(sorted_childNones, lambda x, y: -cmp(x[1], y[1]))
+
 
             for each_pair in sorted_childNones:
                 each_succ = each_pair[0]
@@ -474,6 +476,7 @@ class StateNode( BasicNode ):
                             break
                         p = p.StateParent
                 all_atoms_tuples = all_atoms_tuples | succ_atoms_tuples
+            
 
             ### The original iteration used to modify the succ.novel has been deleted
             """
@@ -679,7 +682,6 @@ class MCTSCaptureAgent(CaptureAgent):
                 #print 'random'
                 return currentNode.RandChooseLeftActions()
             else:
-                #print
                 cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
                 currentNode.getSuccessorNovel(cacheMemory)
                 currentNode = currentNode.UCB1ChooseSuccNode()
@@ -731,13 +733,6 @@ class MCTSCaptureAgent(CaptureAgent):
             currentNode.nVisit += 1
             currentNode = currentNode.StateParent
             
-
-
-
-
-
-
-
 
 
 
