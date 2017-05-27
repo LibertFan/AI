@@ -731,7 +731,7 @@ class MCTSCaptureAgent(CaptureAgent):
         self.MCTS_ITERATION = 10000
         self.ROLLOUT_DEPTH = 10
         self.cores = mp.cpu_count() - 2
-        self.pool = mp.Pool( processes = self.cores )
+        self.pool = mp.ProcessingPool( processes = self.cores )
 
     """ 
     we return the best action for current GameState. 
