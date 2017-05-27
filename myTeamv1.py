@@ -163,6 +163,7 @@ class StateNode( BasicNode ):
         self.red = self.GameState.isOnRedTeam( self.allies[0] )
         self.novel = True
         self.cacheMemory = [ None, ] * 2
+        self.novelTest = False
     
     ### How to set the best action ?
     ###
@@ -448,13 +449,15 @@ class StateNode( BasicNode ):
                 ChildrenNone = self.AlliesSuccActionsNodeDict
             else:
                 ChildrenNone = self.EnemiesSuccActionsNodeDict
-                
+
+
             sorted_childNones = []
             for succ in ChildrenNone.values():
                 succ_atoms_tuples = succ.generateTuples()
                 diff = len(succ_atoms_tuples - all_atoms_tuples)
                 sorted_childNones.append((succ, diff, succ_atoms_tuples))
             sorted_childNones = sorted(sorted_childNones, lambda x, y: -cmp(x[1], y[1]))
+
 
             for each_pair in sorted_childNones:
                 each_succ = each_pair[0]
@@ -474,6 +477,7 @@ class StateNode( BasicNode ):
                             break
                         p = p.StateParent
                 all_atoms_tuples = all_atoms_tuples | succ_atoms_tuples
+            
 
             ### The original iteration used to modify the succ.novel has been deleted
             """
@@ -648,7 +652,7 @@ class MCTSCaptureAgent(CaptureAgent):
         self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
         iters = 0
         running_time = 0.0
-        while( running_time < 20 and iters < self.MCTS_ITERATION ):
+        while( running_time < 30 and iters < self.MCTS_ITERATION ):
             node = self.Select()
             if node is None:
                 continue
@@ -669,6 +673,27 @@ class MCTSCaptureAgent(CaptureAgent):
         print "="* 50   
         bestAction = bestActions[0]
         rev = Directions.REVERSE[GameState.getAgentState(self.index).configuration.direction]
+        import Queue
+        if rev == bestActions:
+            CandidateStates = Queue.Queue()
+            root = self.rootNode
+            CandidateStates.put(root)
+
+            while not CandidateStates.empty():
+                current = CandidateStates.get()
+                if current.ParentState is not None:
+                    print "ParentPosition",currentParentState.IndexPositions
+                    print 'currentPosition',current.IndexPositions
+                    print 'visit times',current.nVisit,'score',current.totalValue / float(self.nVisit)
+                else:
+                    print "ParentPosition",None
+                    print 'currentPosition',current.IndexPositions
+                    print 'visit times',current.nVisit,'score',current.totalValue / float(self.nVisit)
+                   
+
+                for successor in current.SuccStateNodeDict.values():
+                        CandidateStates.put(successor)
+
         print "&" * 50
         return bestActions[0]
 
@@ -682,9 +707,9 @@ class MCTSCaptureAgent(CaptureAgent):
                 #print 'random'
                 return currentNode.RandChooseLeftActions()
             else:
-                #print
-                cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
-                currentNode.getSuccessorNovel(cacheMemory)
+                if not currentNode.novelTest:
+                    cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
+                    currentNode.getSuccessorNovel(cacheMemory)
                 currentNode = currentNode.UCB1ChooseSuccNode()
                 if currentNode is None:
                     raise Exception( "No StateNode in tree is novel!")
@@ -734,13 +759,6 @@ class MCTSCaptureAgent(CaptureAgent):
             currentNode.nVisit += 1
             currentNode = currentNode.StateParent
             
-
-
-
-
-
-
-
 
 
 
