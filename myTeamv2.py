@@ -18,7 +18,6 @@ from game import Directions
 import game
 import math
 from util import nearestPoint
-from collections import defaultdict
 import copy
 import pathos.multiprocessing as mp
 
@@ -231,7 +230,7 @@ class StateNode( BasicNode ):
             or len( self.LegalEnemiesActions ) != len( self.EnemiesSuccActionsNodeDict.keys() ):
                 raise Exception( " This StateNode should not be determined as 'FullExpand' " )
             self.FullExpand = True
-	return self.FullExpand
+        return self.FullExpand
 
     ### RandChooseLeftActions is applied in MCTS select
     def RandChooseLeftActions( self ):
@@ -450,65 +449,6 @@ class StateNode( BasicNode ):
             eachStateSucc.cacheMemory = cacheMemory
             eachStateSucc.isNovel()
 
-    def NoveltyTestSuccessors(self, character):
-        ###character : allies or enemies
-        # 0 is allies
-        # 1 is enemies
-        ########
-        this_atoms_tuples = self.generateTuples(character)
-        all_atoms_tuples =  this_atoms_tuples
-
-        ### cacheMemory is a list consist of set
-        if self.StateParent is None and self.cacheMemory[ character ] is None:
-            self.cacheMemory[ character ] = this_atoms_tuples
-
-            if character == 0:
-                ChildrenNone = self.AlliesSuccActionsNodeDict
-            else:
-                ChildrenNone = self.EnemiesSuccActionsNodeDict
-
-
-            sorted_childNones = []
-            for succ in ChildrenNone.values():
-                succ_atoms_tuples = succ.generateTuples()
-                diff = len(succ_atoms_tuples - all_atoms_tuples)
-                sorted_childNones.append((succ, diff, succ_atoms_tuples))
-            sorted_childNones = sorted(sorted_childNones, lambda x, y: -cmp(x[1], y[1]))
-
-
-            for each_pair in sorted_childNones:
-                each_succ = each_pair[0]
-                succ_atoms_tuples = each_pair[2]
-                novelty = self.computeNovelty(succ_atoms_tuples, all_atoms_tuples)
-                if novelty > threshold:
-                    each_succ.novel = False
-                else:
-                    p = each_succ.StateParent
-                    while p is not None:
-                        parent_atoms_tuples = p.cacheMemory[character]
-                        if parent_atoms_tuples is None:
-                            raise Exception("parent_atom_tuple is None, which goes wrong!")
-                        novelty = self.computeNovelty(succ_atoms_tuples, parent_atoms_tuples)
-                        if novelty > threshold:
-                            each_succ.novel = False
-                            break
-                        p = p.StateParent
-                all_atoms_tuples = all_atoms_tuples | succ_atoms_tuples
-            
-
-            ### The original iteration used to modify the succ.novel has been deleted
-            """
-            for succ in ChildrenNone.values():
-                if succ.getScore() > self.getScore():
-                    succ.novel = True
-            """
-            ### saved in succStateNode
-            """
-            for succ in ChildrenNone.values():
-                succ.cacheMemory = all_atoms_tuples
-            """    
-            return all_atoms_tuples
-
     def updateCacheMemory(self, allMemory, addMemory):
         for component in range(len(addMemory)):
             allMemory[component] = allMemory[component] | addMemory[component]
@@ -520,7 +460,6 @@ class StateNode( BasicNode ):
         # 1 is enemies
         ########
         this_atoms_tuples = self.generateTuples(character)
-        # print this_atoms_tuples
 
         ### cacheMemory is a list consist of set
         # print self.StateParent
@@ -538,12 +477,11 @@ class StateNode( BasicNode ):
         all_memory = [set(),]*5
         p = self
         parent_atoms_tuples = p.cacheMemory[character]
-        # print parent_atoms_tuples
         self.updateCacheMemory(all_memory, parent_atoms_tuples)
         for succ in ChildrenNone.values():
             succ_atoms_tuples = succ.generateTuples()
             self.updateCacheMemory(all_memory,succ_atoms_tuples)
-            if len(succ_atoms_tuples[4] - parent_atoms_tuples[4]) == 0:
+            if len(succ_atoms_tuples[4]) - len(parent_atoms_tuples[4]) == 0:
                 if len(succ_atoms_tuples[self.allies[0]] - parent_atoms_tuples[self.allies[0]]) == 0:
                     succ.novel = False
                     break
@@ -608,7 +546,7 @@ class SimulateAgent:
         maxValue = max(values)
         bestActions = [a for a, v in zip(actions, values) if v == maxValue]
         
-       	if self.red:
+        if self.red:
             foodLeft = self.GameState.getBlueFood().asList()
         else:
             foodLeft = self.GameState.getRedFood().asList()
@@ -786,12 +724,9 @@ class MCTSCaptureAgent(CaptureAgent):
     def Select( self ):
         currentNode = self.rootNode
         while True:
-            if not currentNode.isFullExpand():
+            if not currentNode.novelTest():
                 return currentNode
             else:
-                if not currentNode.novelTest:
-                    cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
-                    currentNode.getSuccessorNovel(cacheMemory)
                 currentNode = currentNode.UCB1ChooseSuccNode()
                 if currentNode is None:
                     raise Exception( "No StateNode in tree is novel!")
@@ -823,24 +758,24 @@ class MCTSCaptureAgent(CaptureAgent):
                CurrentSuccStateNodes.append(SuccStateNode)
                CurrentNovelActions.append( Actions )
         print len(CurrentSuccStateNodes), len(CurrentNovelActions)
-	pool = mp.ProcessingPool(8)
-        time1 = time.time() 
+        pool = mp.ProcessingPool(8)
+        time1 = time.time()
         print "Parallel Begin"
 
+        EndStateNodeLists = []
         ### With Parallel pool.map
         # EndStateNodeLists = self.pool.map(self.PlayOut2, CurrentSuccStateNodes)
         ### With Paralle pool.uimap
-        #results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
-        #while not results.ready():
+        # results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
+        # while not results.ready():
         #    time.sleep(0.5)
-        #EndStateNodeLists = results.get()
+        # EndStateNodeLists = results.get()
         ### With Parallel amap
         # results = self.pool.amap( self.PlayOut2, CurrentSuccStateNodes )
         # while not results.ready():
         #    time.sleep(1)
         # EndStateNodeLists = results.get()
         ### With Parallel pipe
-        EndStateNodeLists = []
         # self.CurrentSuccStateNodes = CurrentSuccStateNodes
         for Action, SuccStateNode in zip( CurrentNovelActions, CurrentSuccStateNodes):
            EndStateNodeLists.append( self.pool.apipe( self.PlayOut2, SuccStateNode, Action ).get() )
@@ -848,11 +783,11 @@ class MCTSCaptureAgent(CaptureAgent):
         ### No Parallel    
         # for SuccStateNode in CurrentSuccStateNodes:
         #     EndStateNodeLists.append( self.PlayOut2( SuccStateNode ) )
-
-	print "Parallel Finish"
+        print "Parallel Finish"
         time2 = time.time()
         print time2 - time1
         raise Exception
+
         for Action, CurrentSuccStateNode, EndStateNodeList in EndStateNodeLists:
             CurrentStateNode.update( Action, CurrentSuccStateNode )
             for EndStateNode in EndStateNodeList:
@@ -907,7 +842,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 iters += 1
             CurrentNodeList.append(CopyCurrentStateNode)
         time2 = time.time()
-	print Action, time2 - time1
+        print Action, time2 - time1
         # print "CurrentNodeList:",len(CurrentNodeList)    
         return Action, CurrentStateNode, CurrentNodeList
 
