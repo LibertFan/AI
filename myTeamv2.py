@@ -825,8 +825,12 @@ class MCTSCaptureAgent(CaptureAgent):
         ### With Parallel pool.map
         # EndStateNodeLists = self.pool.map(self.PlayOut2, CurrentSuccStateNodes)
         ### With Paralle pool.uimap
+        time1 = time.time()
         results = self.pool.uimap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
         EndStateNodeLists = list( results )
+        time2 = time.time()
+        print time2 - time1
+        raise Exception
         ### With Parallel amap
         # results = self.pool.amap( self.PlayOut2, CurrentSuccStateNodes )
         # while not results.ready():
