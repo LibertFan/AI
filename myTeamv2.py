@@ -822,36 +822,50 @@ class MCTSCaptureAgent(CaptureAgent):
             if SuccStateNode.novel:
                CurrentSuccStateNodes.append(SuccStateNode)
                CurrentNovelActions.append( Actions )
+        print len(CurrentSuccStateNodes), len(CurrentNovelActions)
+	pool = mp.ProcessingPool(2)
+        time1 = time.time() 
+        print "Parallel Begin"
+
         ### With Parallel pool.map
         # EndStateNodeLists = self.pool.map(self.PlayOut2, CurrentSuccStateNodes)
         ### With Paralle pool.uimap
         time1 = time.time()
-        results = self.pool.uimap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
+        results = self.pool.map( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
         EndStateNodeLists = list( results )
         time2 = time.time()
         print time2 - time1
         raise Exception
+        #results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
+        #while not results.ready():
+        #    time.sleep(0.5)
+        #EndStateNodeLists = results.get()
         ### With Parallel amap
         # results = self.pool.amap( self.PlayOut2, CurrentSuccStateNodes )
         # while not results.ready():
         #    time.sleep(1)
         # EndStateNodeLists = results.get()
         ### With Parallel pipe
-        # EndStateNodeLists = []
+        EndStateNodeLists = []
         # self.CurrentSuccStateNodes = CurrentSuccStateNodes
-        # for Action, SuccStateNode in enumerate(CurrentSuccStateNodes):
-        #    print "real",index, id(SuccStateNode)
-        #    EndStateNodeLists.append( self.pool.apipe( PlayOut2, SuccStateNode, Action ).get() )
+        for Action, SuccStateNode in zip( CurrentNovelActions, CurrentSuccStateNodes):
+           EndStateNodeLists.append( self.pool.apipe( self.PlayOut2, SuccStateNode, Action ).get() )
         #print EndStateNodeLists
         ### No Parallel    
         # for SuccStateNode in CurrentSuccStateNodes:
         #     EndStateNodeLists.append( self.PlayOut2( SuccStateNode ) )
+
+	print "Parallel Finish"
+        time2 = time.time()
+        print time2 - time1
+        raise Exception
         for Action, CurrentSuccStateNode, EndStateNodeList in EndStateNodeLists:
             CurrentStateNode.update( Action, CurrentSuccStateNode )
             for EndStateNode in EndStateNodeList:
                 self.BackPropagate(EndStateNode)
 
     def PlayOut2(self, CurrentStateNode, Action):
+        time1 = time.time()
         n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
                              self.getMazeDistance)
         a1s = n1.chooseAction(CurrentStateNode.GameState, 2)
@@ -898,7 +912,8 @@ class MCTSCaptureAgent(CaptureAgent):
                 CopyCurrentStateNode = CopyCurrentStateNode.ChooseSuccNode(((a1, a2), (b1, b2)))
                 iters += 1
             CurrentNodeList.append(CopyCurrentStateNode)
-
+        time2 = time.time()
+	print Action, time2 - time1
         # print "CurrentNodeList:",len(CurrentNodeList)    
         return Action, CurrentStateNode, CurrentNodeList
 
