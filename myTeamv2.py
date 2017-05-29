@@ -786,12 +786,11 @@ class MCTSCaptureAgent(CaptureAgent):
     def Select( self ):
         currentNode = self.rootNode
         while True:
-            if not currentNode.isFullExpand():
+            if not currentNode.novelTest:
+                if currentNode.isFullExpand():
+                    raise Exception("This node should be FullExpand!")
                 return currentNode
             else:
-                if not currentNode.novelTest:
-                    cacheMemory = [currentNode.NoveltyTestSuccessors(0), currentNode.NoveltyTestSuccessors(1)]
-                    currentNode.getSuccessorNovel(cacheMemory)
                 currentNode = currentNode.UCB1ChooseSuccNode()
                 if currentNode is None:
                     raise Exception( "No StateNode in tree is novel!")
@@ -812,6 +811,8 @@ class MCTSCaptureAgent(CaptureAgent):
                 raise Exception("Parallel goes wrong!")
             cacheMemory = [CurrentStateNode.NoveltyTestSuccessorsV1(0), CurrentStateNode.NoveltyTestSuccessorsV1(1)]
             CurrentStateNode.getSuccessorNovel(cacheMemory)
+        else:
+            raise Exception("The novelTest of this node should be False!")
         #print CurrentStateNode.SuccStateNodeDict   
         if CurrentStateNode == self.rootNode or id(CurrentStateNode) == id(self.rootNode):
             print "the parent: Parallel is self.rootNode"
@@ -971,12 +972,5 @@ class MCTSCaptureAgent(CaptureAgent):
                 print currentNode.totalValue
             currentNode = currentNode.StateParent
             
-
-
-
-
-
-
-
 
 
