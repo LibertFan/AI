@@ -63,13 +63,17 @@ class BasicNode:
 
     def getNoveltyFeatures( self, character ):
         gameState = self.GameState
-        features = [[],]*5
+        features = [None,]*5
         for i in self.allies:
-            features[i].append(gameState.getAgentState(i).getPosition())
+            features[i]=[gameState.getAgentState(i).getPosition()]
         if character != 0:
             #stateNode
             for i in self.enemies:
-                features[i].append(gameState.getAgentState(i).getPosition())
+                features[i]=[gameState.getAgentState(i).getPosition()]
+        else:
+            for i in self.enemies:
+                features[i] = []
+        features[4] = []
         for j, position in enumerate(gameState.data.capsules):
             features[4].append(('capsule' + str(j), position))
         food = gameState.data.food.asList()
@@ -480,21 +484,29 @@ class StateNode( BasicNode ):
         self.updateCacheMemory(all_memory, parent_atoms_tuples)
         for succ in ChildrenNone.values():
             succ_atoms_tuples = succ.generateTuples()
+            '''
+            print succ_atoms_tuples[succ.allies[0]]
+            print succ_atoms_tuples[succ.allies[1]]
+            print '.....'*20
+            '''
             self.updateCacheMemory(all_memory,succ_atoms_tuples)
             if len(succ_atoms_tuples[4]) - len(parent_atoms_tuples[4]) == 0:
-                if len(succ_atoms_tuples[self.allies[0]] - parent_atoms_tuples[self.allies[0]]) == 0:
+                if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[succ.allies[0]]) == 0:
                     succ.novel = False
-                    break
+                    #print 1
+                    continue
                 else:
-                    if len(succ_atoms_tuples[self.allies[0]] - parent_atoms_tuples[self.allies[1]]) == 0:
-                        if len(succ_atoms_tuples[self.allies[1]] - parent_atoms_tuples[self.allies[0]]) == 0 or \
-                                        len(succ_atoms_tuples[self.allies[1]] - parent_atoms_tuples[self.allies[1]]) == 0:
+                    if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[succ.allies[1]]) == 0:
+                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[succ.allies[0]]) == 0 or \
+                                        len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[succ.allies[1]]) == 0:
                             succ.novel = False
-                            break
+                            #print 2
+                            continue
                     else:
-                        if len(succ_atoms_tuples[self.allies[1]] - parent_atoms_tuples[self.allies[1]]) == 0:
+                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[succ.allies[1]]) == 0:
                             succ.novel = False
-                            break
+                            #print 3
+                            continue
 
         return all_memory
 
@@ -724,7 +736,9 @@ class MCTSCaptureAgent(CaptureAgent):
     def Select( self ):
         currentNode = self.rootNode
         while True:
-            if not currentNode.novelTest():
+            if not currentNode.novelTest:
+                if currentNode.isFullExpand():
+                    raise Exception("This node should be FullExpand!")
                 return currentNode
             else:
                 currentNode = currentNode.UCB1ChooseSuccNode()
@@ -747,6 +761,13 @@ class MCTSCaptureAgent(CaptureAgent):
                 raise Exception("Parallel goes wrong!")
             cacheMemory = [CurrentStateNode.NoveltyTestSuccessorsV1(0), CurrentStateNode.NoveltyTestSuccessorsV1(1)]
             CurrentStateNode.getSuccessorNovel(cacheMemory)
+            for each in CurrentStateNode.AlliesSuccActionsNodeDict.items():
+                print each[0],each[1].novel
+            print 'x'*80
+            for each in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
+                print each[0],each[1].novel
+        else:
+            raise Exception("The novelTest of this node should be False!")
         #print CurrentStateNode.SuccStateNodeDict   
         if CurrentStateNode == self.rootNode or id(CurrentStateNode) == id(self.rootNode):
             print "the parent: Parallel is self.rootNode"
@@ -758,7 +779,7 @@ class MCTSCaptureAgent(CaptureAgent):
                CurrentSuccStateNodes.append(SuccStateNode)
                CurrentNovelActions.append( Actions )
         print len(CurrentSuccStateNodes), len(CurrentNovelActions)
-        pool = mp.ProcessingPool(8)
+        pool = mp.ProcessingPool(2)
         time1 = time.time()
         print "Parallel Begin"
 
@@ -766,8 +787,14 @@ class MCTSCaptureAgent(CaptureAgent):
         ### With Parallel pool.map
         # EndStateNodeLists = self.pool.map(self.PlayOut2, CurrentSuccStateNodes)
         ### With Paralle pool.uimap
-        # results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
-        # while not results.ready():
+        time1 = time.time()
+        results = self.pool.map( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
+        EndStateNodeLists = list( results )
+        time2 = time.time()
+        print time2 - time1
+        raise Exception
+        #results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
+        #while not results.ready():
         #    time.sleep(0.5)
         # EndStateNodeLists = results.get()
         ### With Parallel amap
@@ -900,12 +927,5 @@ class MCTSCaptureAgent(CaptureAgent):
                 print currentNode.totalValue
             currentNode = currentNode.StateParent
             
-
-
-
-
-
-
-
 
 
