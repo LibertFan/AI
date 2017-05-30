@@ -761,11 +761,13 @@ class MCTSCaptureAgent(CaptureAgent):
                 raise Exception("Parallel goes wrong!")
             cacheMemory = [CurrentStateNode.NoveltyTestSuccessorsV1(0), CurrentStateNode.NoveltyTestSuccessorsV1(1)]
             CurrentStateNode.getSuccessorNovel(cacheMemory)
+            '''
             for each in CurrentStateNode.AlliesSuccActionsNodeDict.items():
                 print each[0],each[1].novel
             print 'x'*80
             for each in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
                 print each[0],each[1].novel
+            '''
         else:
             raise Exception("The novelTest of this node should be False!")
         #print CurrentStateNode.SuccStateNodeDict   
@@ -787,12 +789,6 @@ class MCTSCaptureAgent(CaptureAgent):
         ### With Parallel pool.map
         # EndStateNodeLists = self.pool.map(self.PlayOut2, CurrentSuccStateNodes)
         ### With Paralle pool.uimap
-        time1 = time.time()
-        results = self.pool.map( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
-        EndStateNodeLists = list( results )
-        time2 = time.time()
-        print time2 - time1
-        raise Exception
         #results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
         #while not results.ready():
         #    time.sleep(0.5)
@@ -803,9 +799,18 @@ class MCTSCaptureAgent(CaptureAgent):
         #    time.sleep(1)
         # EndStateNodeLists = results.get()
         ### With Parallel pipe
+        # EndStateNodeLists = []
         # self.CurrentSuccStateNodes = CurrentSuccStateNodes
-        for Action, SuccStateNode in zip( CurrentNovelActions, CurrentSuccStateNodes):
-           EndStateNodeLists.append( self.pool.apipe( self.PlayOut2, SuccStateNode, Action ).get() )
+        # for Action, SuccStateNode in zip( CurrentNovelActions, CurrentSuccStateNodes):
+        #    EndStateNodeLists.append( self.pool.apipe( self.PlayOut2, SuccStateNode, Action ).get() )
+        pool = mp.Pool( processes = 3 )
+        results = []
+        for CurrentStateNode, Action in zip( CurrentSuccStateNodes, CurrentSuccStateNodes):
+            results.append( pool.apply_async( self.PlayOut2, args=( CurrentStateNode, Action ) ) )
+        pool.close()
+        pool.join()
+        EndStateNodeLists = [ p.get() for p in results ]
+    
         #print EndStateNodeLists
         ### No Parallel    
         # for SuccStateNode in CurrentSuccStateNodes:
