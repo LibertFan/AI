@@ -681,22 +681,23 @@ class MCTSCaptureAgent(CaptureAgent):
         if rev == bestActions:
             CandidateStates = Queue.Queue()
             root = self.rootNode
-            CandidateStates.put(root)
+            CandidateStates.put((root,i))
 
             while not CandidateStates.empty():
-                current = CandidateStates.get()
-                if current.ParentState is not None:
-                    print "ParentPosition",currentParentState.IndexPositions
-                    print 'currentPosition',current.IndexPositions
-                    print 'visit times',current.nVisit,'score',current.totalValue / float(self.nVisit)
-                else:
-                    print "ParentPosition",None
-                    print 'currentPosition',current.IndexPositions
-                    print 'visit times',current.nVisit,'score',current.totalValue / float(self.nVisit)
+                current, layer = CandidateStates.get()
+                if current.novel and layer < 5:
+                    if current.ParentState is not None:
+                        print "ParentPosition",currentParentState.IndexPositions
+                        print 'currentPosition',current.IndexPositions
+                        print 'visit times',current.nVisit,'score',current.totalValue / float(self.nVisit)
+                    else:
+                        print "ParentPosition",None
+                        print 'currentPosition',current.IndexPositions
+                        print 'visit times',current.nVisit,'score',current.totalValue / float(self.nVisit)
                    
 
                 for successor in current.SuccStateNodeDict.values():
-                        CandidateStates.put(successor)
+                        CandidateStates.put((successor,i))
 
         print "&" * 50
         return bestActions[0]

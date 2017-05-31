@@ -18,7 +18,6 @@ from game import Directions
 import game
 import math
 from util import nearestPoint
-from collections import defaultdict
 import copy
 import pathos.multiprocessing as mp
 
@@ -64,13 +63,17 @@ class BasicNode:
 
     def getNoveltyFeatures( self, character ):
         gameState = self.GameState
-        features = [[],]*5
+        features = [None,]*5
         for i in self.allies:
-            features[i].append(gameState.getAgentState(i).getPosition())
+            features[i]=[gameState.getAgentState(i).getPosition()]
         if character != 0:
             #stateNode
             for i in self.enemies:
-                features[i].append(gameState.getAgentState(i).getPosition())
+                features[i]=[gameState.getAgentState(i).getPosition()]
+        else:
+            for i in self.enemies:
+                features[i] = []
+        features[4] = []
         for j, position in enumerate(gameState.data.capsules):
             features[4].append(('capsule' + str(j), position))
         food = gameState.data.food.asList()
@@ -231,7 +234,7 @@ class StateNode( BasicNode ):
             or len( self.LegalEnemiesActions ) != len( self.EnemiesSuccActionsNodeDict.keys() ):
                 raise Exception( " This StateNode should not be determined as 'FullExpand' " )
             self.FullExpand = True
-	return self.FullExpand
+        return self.FullExpand
 
     ### RandChooseLeftActions is applied in MCTS select
     def RandChooseLeftActions( self ):
@@ -450,65 +453,6 @@ class StateNode( BasicNode ):
             eachStateSucc.cacheMemory = cacheMemory
             eachStateSucc.isNovel()
 
-    def NoveltyTestSuccessors(self, character):
-        ###character : allies or enemies
-        # 0 is allies
-        # 1 is enemies
-        ########
-        this_atoms_tuples = self.generateTuples(character)
-        all_atoms_tuples =  this_atoms_tuples
-
-        ### cacheMemory is a list consist of set
-        if self.StateParent is None and self.cacheMemory[ character ] is None:
-            self.cacheMemory[ character ] = this_atoms_tuples
-
-            if character == 0:
-                ChildrenNone = self.AlliesSuccActionsNodeDict
-            else:
-                ChildrenNone = self.EnemiesSuccActionsNodeDict
-
-
-            sorted_childNones = []
-            for succ in ChildrenNone.values():
-                succ_atoms_tuples = succ.generateTuples()
-                diff = len(succ_atoms_tuples - all_atoms_tuples)
-                sorted_childNones.append((succ, diff, succ_atoms_tuples))
-            sorted_childNones = sorted(sorted_childNones, lambda x, y: -cmp(x[1], y[1]))
-
-
-            for each_pair in sorted_childNones:
-                each_succ = each_pair[0]
-                succ_atoms_tuples = each_pair[2]
-                novelty = self.computeNovelty(succ_atoms_tuples, all_atoms_tuples)
-                if novelty > threshold:
-                    each_succ.novel = False
-                else:
-                    p = each_succ.StateParent
-                    while p is not None:
-                        parent_atoms_tuples = p.cacheMemory[character]
-                        if parent_atoms_tuples is None:
-                            raise Exception("parent_atom_tuple is None, which goes wrong!")
-                        novelty = self.computeNovelty(succ_atoms_tuples, parent_atoms_tuples)
-                        if novelty > threshold:
-                            each_succ.novel = False
-                            break
-                        p = p.StateParent
-                all_atoms_tuples = all_atoms_tuples | succ_atoms_tuples
-            
-
-            ### The original iteration used to modify the succ.novel has been deleted
-            """
-            for succ in ChildrenNone.values():
-                if succ.getScore() > self.getScore():
-                    succ.novel = True
-            """
-            ### saved in succStateNode
-            """
-            for succ in ChildrenNone.values():
-                succ.cacheMemory = all_atoms_tuples
-            """    
-            return all_atoms_tuples
-
     def updateCacheMemory(self, allMemory, addMemory):
         for component in range(len(addMemory)):
             allMemory[component] = allMemory[component] | addMemory[component]
@@ -520,7 +464,6 @@ class StateNode( BasicNode ):
         # 1 is enemies
         ########
         this_atoms_tuples = self.generateTuples(character)
-        # print this_atoms_tuples
 
         ### cacheMemory is a list consist of set
         # print self.StateParent
@@ -532,31 +475,42 @@ class StateNode( BasicNode ):
 
         if character == 0:
             ChildrenNone = self.AlliesSuccActionsNodeDict
+            parent_allies = self.allies
         else:
             ChildrenNone = self.EnemiesSuccActionsNodeDict
+            parent_allies = self.enemies
 
+        print parent_allies
         all_memory = [set(),]*5
         p = self
         parent_atoms_tuples = p.cacheMemory[character]
-        # print parent_atoms_tuples
         self.updateCacheMemory(all_memory, parent_atoms_tuples)
         for succ in ChildrenNone.values():
+            print succ.allies
             succ_atoms_tuples = succ.generateTuples()
+            '''
+            print succ_atoms_tuples[succ.allies[0]]
+            print succ_atoms_tuples[succ.allies[1]]
+            print '.....'*20
+            '''
             self.updateCacheMemory(all_memory,succ_atoms_tuples)
             if len(succ_atoms_tuples[4]) - len(parent_atoms_tuples[4]) == 0:
-                if len(succ_atoms_tuples[self.allies[0]] - parent_atoms_tuples[self.allies[0]]) == 0:
+                if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[parent_allies[0]]) == 0:
                     succ.novel = False
-                    break
+                    #print 1
+                    continue
                 else:
-                    if len(succ_atoms_tuples[self.allies[0]] - parent_atoms_tuples[self.allies[1]]) == 0:
-                        if len(succ_atoms_tuples[self.allies[1]] - parent_atoms_tuples[self.allies[0]]) == 0 or \
-                                        len(succ_atoms_tuples[self.allies[1]] - parent_atoms_tuples[self.allies[1]]) == 0:
+                    if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[parent_allies[1]]) == 0:
+                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[0]]) == 0 or \
+                                        len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
                             succ.novel = False
-                            break
+                            #print 2
+                            continue
                     else:
-                        if len(succ_atoms_tuples[self.allies[1]] - parent_atoms_tuples[self.allies[1]]) == 0:
+                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
                             succ.novel = False
-                            break
+                            #print 3
+                            continue
 
         return all_memory
 
@@ -608,7 +562,7 @@ class SimulateAgent:
         maxValue = max(values)
         bestActions = [a for a, v in zip(actions, values) if v == maxValue]
         
-       	if self.red:
+        if self.red:
             foodLeft = self.GameState.getBlueFood().asList()
         else:
             foodLeft = self.GameState.getRedFood().asList()
@@ -698,8 +652,14 @@ class SimulateAgent:
         """
         return {'successorScore': 100, 'distanceToFood': -1, 'numInvaders': -1000, 'onDefense': 100, 'invaderDistance': -10, 'stop': -100, 'reverse': -2}
 
+    def getAgentName( self ):
+        return "V0"
+
 class SimulateAgentV1( SimulateAgent ):
     ## return the i-th score action!
+    def getAgentName( self ):
+        return "V1"
+
     def chooseAction(self, GameState, nums=None):
         gameState = copy.deepcopy(GameState)
         actions = gameState.getLegalActions(self.index )
@@ -733,10 +693,66 @@ class SimulateAgentV1( SimulateAgent ):
 
         return TopAction
 
-
 class Distancer:
     def __init__( self ):
         return 0
+
+"""
+Store the key-value to accelerate! 
+"""
+class StateAction:
+    def __init__( self, initial_gameState, isRed ):
+        self.AgentMethods = {}
+        self.MethodStateActionDict = {}
+        self.RedAgentsIndex = [0,2]
+        self.BlueAgentsIndex = [1,3]
+        self.RedFoodPositions = []
+        self.BlueFoodPositions = []
+        self.RedCapsulesPositions = []
+        self.BlueCapsulesPositions = []
+    """
+    get a GameState and its method, then return encode for state!
+    """
+    def Hash( self, isRed, method, gameState ):
+        if isRed:
+            FoodPositions = self.RedFoodPositions
+            AgentsIndex = self.RedAgentsIndex
+            CapsulesPositions = self.RedCapsulesPositions
+        else:
+            FoodPositions = self.BlueFoodPositions
+            AgentsIndex = self.BlueAgentsIndex
+            CapsulesPositions = self.BlueCapsulesPositions
+
+        HashCode = ""    
+        for food in FoodPositions:
+            if :
+                s
+            HashCode =+ s
+
+        for capsule in CapsulesPositions:
+            if :
+                s
+            HashCode += s
+
+        for Agent in:
+            if :
+                HashCode += s
+            
+
+        return HashCode
+    
+    def getScore( self, isRed, method, gameState ):
+        HashCode = self.Hash( isRed, method, gameState, index )
+        Action = self.MethodStateActionDict.get( HashCode )
+        return Action
+
+    def AddStateAction( self, isRed, method, gameState, index, BestAction ):
+        HashCode = self.Hash( isRed, method, gameState, index )
+        Action = self.McethodStateActionDict.get( HashCode )
+        if Action is None:
+            self.MethodStateActionDict[ HashCode ] = Action
+        elif Action != BestAction:
+            raise Exception("The BestAction chosed here is different from the original one based on the same gameState!")
 
 #need to change
 class MCTSCaptureAgent(CaptureAgent):
@@ -811,6 +827,13 @@ class MCTSCaptureAgent(CaptureAgent):
                 raise Exception("Parallel goes wrong!")
             cacheMemory = [CurrentStateNode.NoveltyTestSuccessorsV1(0), CurrentStateNode.NoveltyTestSuccessorsV1(1)]
             CurrentStateNode.getSuccessorNovel(cacheMemory)
+
+            for each in CurrentStateNode.AlliesSuccActionsNodeDict.items():
+                print each[0],each[1].novel
+            print 'x'*80
+            for each in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
+                print each[0],each[1].novel
+
         else:
             raise Exception("The novelTest of this node should be False!")
         #print CurrentStateNode.SuccStateNodeDict   
@@ -824,9 +847,11 @@ class MCTSCaptureAgent(CaptureAgent):
                CurrentSuccStateNodes.append(SuccStateNode)
                CurrentNovelActions.append( Actions )
         print len(CurrentSuccStateNodes), len(CurrentNovelActions)
-        time1 = time.time() 
+        pool = mp.ProcessingPool(2)
+        time1 = time.time()
         print "Parallel Begin"
 
+        EndStateNodeLists = []
         ### With Parallel pool.map
         pool = mp.ProcessingPool( processes = 3 )       
         EndStateNodeLists = list( pool.uimap(self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions ) )
@@ -837,6 +862,9 @@ class MCTSCaptureAgent(CaptureAgent):
         # results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
         # while not results.ready():
         #     time.sleep(0.5)
+        #results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
+        #while not results.ready():
+        #    time.sleep(0.5)
         # EndStateNodeLists = results.get()
         ### With Parallel amap
         # results = self.pool.amap( self.PlayOut2, CurrentSuccStateNodes )
@@ -860,18 +888,26 @@ class MCTSCaptureAgent(CaptureAgent):
         ### No Parallel    
         # for SuccStateNode in CurrentSuccStateNodes:
         #     EndStateNodeLists.append( self.PlayOut2( SuccStateNode ) )
-
-	print "Parallel Finish"
+        print "Parallel Finish"
         time2 = time.time()
         print time2 - time1
         raise Exception
+
         for Action, CurrentSuccStateNode, EndStateNodeList in EndStateNodeLists:
             CurrentStateNode.update( Action, CurrentSuccStateNode )
             for EndStateNode in EndStateNodeList:
                 self.BackPropagate(EndStateNode)
 
     def PlayOut2(self, CurrentStateNode, Action):
+        """
         time1 = time.time()
+        SuccStateNodeScores = []
+        for Action in CurrentStateNode.LegalActions:
+            SuccStateNode = CurrentStateNode.ChooseSuccNode( Action )
+            SuccStateNodeScore.append( ( SuccStateNode, SuccStateNode.getScore(), SuccStateNode.getLatentScore() ) )
+        SuccStateNodeScores = sorted( SuccStateNodeScores, lambda x: x[1:] )    
+        """
+        """
         n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
                              self.getMazeDistance)
         a1s = n1.chooseAction(CurrentStateNode.GameState, 2)
@@ -891,6 +927,7 @@ class MCTSCaptureAgent(CaptureAgent):
         if len(b12s) > 3:
             b12s = b12s[:3]
         actions = tuple(itertools.product(a12s, b12s))
+        """
         # print actions
         # print "actions:",len(actions)
         # if CurrentStateNode.StateParent == self.rootNode or id(CurrentStateNode.StateParent) == id(self.rootNode):
@@ -919,7 +956,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 iters += 1
             CurrentNodeList.append(CopyCurrentStateNode)
         time2 = time.time()
-	print Action, time2 - time1
+        print Action, time2 - time1
         # print "CurrentNodeList:",len(CurrentNodeList)    
         return Action, CurrentStateNode, CurrentNodeList
 
