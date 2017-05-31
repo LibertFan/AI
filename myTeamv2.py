@@ -1,4 +1,4 @@
-#myTeam.py
+# myTeamv2.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
 # educational purposes provided that (1) you do not distribute or publish
@@ -828,12 +828,16 @@ class MCTSCaptureAgent(CaptureAgent):
         print "Parallel Begin"
 
         ### With Parallel pool.map
-        # EndStateNodeLists = self.pool.map(self.PlayOut2, CurrentSuccStateNodes)
+        pool = mp.ProcessingPool( processes = 3 )       
+        EndStateNodeLists = list( pool.uimap(self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions ) )
+        pool.close()
+        pool.join()
+
         ### With Paralle pool.uimap
-        #results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
-        #while not results.ready():
-        #    time.sleep(0.5)
-        #EndStateNodeLists = results.get()
+        # results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
+        # while not results.ready():
+        #     time.sleep(0.5)
+        # EndStateNodeLists = results.get()
         ### With Parallel amap
         # results = self.pool.amap( self.PlayOut2, CurrentSuccStateNodes )
         # while not results.ready():
@@ -844,13 +848,13 @@ class MCTSCaptureAgent(CaptureAgent):
         # self.CurrentSuccStateNodes = CurrentSuccStateNodes
         # for Action, SuccStateNode in zip( CurrentNovelActions, CurrentSuccStateNodes):
         #    EndStateNodeLists.append( self.pool.apipe( self.PlayOut2, SuccStateNode, Action ).get() )
-        pool = mp.Pool( processes = 3 )
-        results = []
-        for CurrentStateNode, Action in zip( CurrentSuccStateNodes, CurrentSuccStateNodes):
-            results.append( pool.apply_async( self.PlayOut2, args=( CurrentStateNode, Action ) ) )
-        pool.close()
-        pool.join()
-        EndStateNodeLists = [ p.get() for p in results ]
+        # pool = mp.Pool( processes = 3 )
+        # results = []
+        # for CurrentStateNode, Action in zip( CurrentSuccStateNodes, CurrentSuccStateNodes):
+        #     results.append( pool.apply_async( self.PlayOut2, args=( CurrentStateNode, Action ) ) )
+        # pool.close()
+        # pool.join()
+        # EndStateNodeLists = [ p.get() for p in results ]
     
         #print EndStateNodeLists
         ### No Parallel    

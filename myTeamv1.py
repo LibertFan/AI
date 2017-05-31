@@ -20,6 +20,7 @@ import math
 from util import nearestPoint
 from collections import defaultdict
 import copy
+import multiprocessing as mp
 
 #################
 # Team creation #
@@ -164,6 +165,7 @@ class StateNode( BasicNode ):
         self.novel = True
         self.cacheMemory = [ None, ] * 2
         self.novelTest = False
+        self.InProcess = False
     
     ### How to set the best action ?
     ###
@@ -642,6 +644,8 @@ class MCTSCaptureAgent(CaptureAgent):
         print self.allies, self.enemies
         self.MCTS_ITERATION = 10000
         self.ROLLOUT_DEPTH = 10
+		self.cores = multiprocessing.cpu_count() - 2
+		self.pool = multiprocessing.Pool( processes = self.cores )
 
     def chooseAction( self, GameState ):
         """ 
