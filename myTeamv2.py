@@ -475,14 +475,18 @@ class StateNode( BasicNode ):
 
         if character == 0:
             ChildrenNone = self.AlliesSuccActionsNodeDict
+            parent_allies = self.allies
         else:
             ChildrenNone = self.EnemiesSuccActionsNodeDict
+            parent_allies = self.enemies
 
+        print parent_allies
         all_memory = [set(),]*5
         p = self
         parent_atoms_tuples = p.cacheMemory[character]
         self.updateCacheMemory(all_memory, parent_atoms_tuples)
         for succ in ChildrenNone.values():
+            print succ.allies
             succ_atoms_tuples = succ.generateTuples()
             '''
             print succ_atoms_tuples[succ.allies[0]]
@@ -491,19 +495,19 @@ class StateNode( BasicNode ):
             '''
             self.updateCacheMemory(all_memory,succ_atoms_tuples)
             if len(succ_atoms_tuples[4]) - len(parent_atoms_tuples[4]) == 0:
-                if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[succ.allies[0]]) == 0:
+                if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[parent_allies[0]]) == 0:
                     succ.novel = False
                     #print 1
                     continue
                 else:
-                    if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[succ.allies[1]]) == 0:
-                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[succ.allies[0]]) == 0 or \
-                                        len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[succ.allies[1]]) == 0:
+                    if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[parent_allies[1]]) == 0:
+                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[0]]) == 0 or \
+                                        len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
                             succ.novel = False
                             #print 2
                             continue
                     else:
-                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[succ.allies[1]]) == 0:
+                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
                             succ.novel = False
                             #print 3
                             continue
@@ -761,13 +765,13 @@ class MCTSCaptureAgent(CaptureAgent):
                 raise Exception("Parallel goes wrong!")
             cacheMemory = [CurrentStateNode.NoveltyTestSuccessorsV1(0), CurrentStateNode.NoveltyTestSuccessorsV1(1)]
             CurrentStateNode.getSuccessorNovel(cacheMemory)
-            '''
+
             for each in CurrentStateNode.AlliesSuccActionsNodeDict.items():
                 print each[0],each[1].novel
             print 'x'*80
             for each in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
                 print each[0],each[1].novel
-            '''
+
         else:
             raise Exception("The novelTest of this node should be False!")
         #print CurrentStateNode.SuccStateNodeDict   
