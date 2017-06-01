@@ -194,20 +194,17 @@ class StateNode( BasicNode ):
         print len(self.LegalActions), len(self.SuccStateNodeDict)
         for AlliesAction in self.LegalAlliesActions:
             SuccAlliesActionsNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
+            lowestEnemiesScore = 9999
             if SuccAlliesActionsNode.novel:
-                nVisit = 0.0
-                totalValue = 0.0
                 for EnemiesAction in self.LegalEnemiesActions:
                     SuccEnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( EnemiesAction )
                     if SuccEnemiesActionNode.novel:   
-                        # print "SuccEnemiesActionNode", SuccEnemiesActionNode.novel, SuccEnemiesActionNode.nVisit
                         SuccStateNode = self.SuccStateNodeDict.get((AlliesAction,EnemiesAction))
-                        nVisit += SuccStateNode.nVisit
-                        totalValue += SuccStateNode.totalValue
-                score = totalValue / float( nVisit )
-                SuccAlliesActionsNode.PScore = score
-                if score > HighestScore:
-                    HighestScore = score
+                        score = SuccStateNode.totalValue/float(SuccStateNode.nVisit)
+                        if score < lowestEnemiesScore:
+                            lowestEnemiesScore = score
+                if lowestEnemiesScore > HighestScore:
+                    HighestScore = lowestEnemiesScore
                     BestAlliesAction = AlliesAction
         if BestAlliesAction is None:
             raise Exception( "Error in getBestAction, check the \
