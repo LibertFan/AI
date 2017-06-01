@@ -194,20 +194,17 @@ class StateNode( BasicNode ):
         print len(self.LegalActions), len(self.SuccStateNodeDict)
         for AlliesAction in self.LegalAlliesActions:
             SuccAlliesActionsNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
+            lowestEnemiesScore = 9999
             if SuccAlliesActionsNode.novel:
-                nVisit = 0.0
-                totalValue = 0.0
                 for EnemiesAction in self.LegalEnemiesActions:
                     SuccEnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( EnemiesAction )
                     if SuccEnemiesActionNode.novel:   
-                        # print "SuccEnemiesActionNode", SuccEnemiesActionNode.novel, SuccEnemiesActionNode.nVisit
                         SuccStateNode = self.SuccStateNodeDict.get((AlliesAction,EnemiesAction))
-                        nVisit += SuccStateNode.nVisit
-                        totalValue += SuccStateNode.totalValue
-                score = totalValue / float( nVisit )
-                SuccAlliesActionsNode.PScore = score
-                if score > HighestScore:
-                    HighestScore = score
+                        score = SuccStateNode.totalValue/float(SuccStateNode.nVisit)
+                        if score < lowestEnemiesScore:
+                            lowestEnemiesScore = score
+                if lowestEnemiesScore > HighestScore:
+                    HighestScore = lowestEnemiesScore
                     BestAlliesAction = AlliesAction
         if BestAlliesAction is None:
             raise Exception( "Error in getBestAction, check the \
@@ -800,14 +797,17 @@ class MCTSCaptureAgent(CaptureAgent):
 
         EndStateNodeLists = []
         ### With Parallel pool.map
-        EndStateNodeLists = pool.map( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions )
+        #EndStateNodeLists = pool.map( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions ) 
+
         #pool.close()
         #pool.join()
         ### With Paralle pool.uimap
-        #results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
-        #while not results.ready():
-        #    time.sleep(0.5)
-        # EndStateNodeLists = results.get()
+        results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
+        while not results.ready():
+            time.sleep(0.1)
+        EndStateNodeLists = results.get()
+        #pool.close()
+        #pool.join()
         ### With Parallel amap
         # results = self.pool.amap( self.PlayOut2, CurrentSuccStateNodes )
         # while not results.ready():
