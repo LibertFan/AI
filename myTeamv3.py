@@ -769,17 +769,23 @@ class MCTSCaptureAgent(CaptureAgent):
         self.cores = mp.cpu_count() - 2
         print self.cores
         self.pool = mp.ProcessingPool( processes = self.cores )
+        self.PreviousTree = None
 
+    def TreeReuse( self, GameState ):
+        self.
+        
     """ 
     we return the best action for current GameState. 
     we hope to return the best two action for two pacman! 
     """
     def chooseAction( self, GameState ):
         start = time.time()
-        self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
+        self.rootNode = self.TreeReuse( GameState )
+        if self.rootNode is None:
+            self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
         iters = 0
         running_time = 0.0
-        while( running_time < 10 and iters < self.MCTS_ITERATION ):
+        while( running_time < 60 and iters < self.MCTS_ITERATION ):
             node = self.Select()
             print node.IndexPositions
             if node == self.rootNode or id(node) ==  id(self.rootNode):
@@ -792,6 +798,7 @@ class MCTSCaptureAgent(CaptureAgent):
             running_time = end - start
             iters += 1
         print "iters", iters   
+        self.PreviousTree = self.rootNode
         bestActions = self.rootNode.getBestActions()
         bestAction = bestActions[0]
         print "Positions:", self.rootNode.IndexPositions
@@ -894,7 +901,7 @@ class MCTSCaptureAgent(CaptureAgent):
         raise Exception
 
         for Action, CurrentSuccStateNode, EndStateNodeList in EndStateNodeLists:
-            CurrentStateNode.update( Action, CurrentSuccStateNode )
+            #CurrentStateNode.update( Action, CurrentSuccStateNode )
             for EndStateNode in EndStateNodeList:
                 self.BackPropagate(EndStateNode)
 
