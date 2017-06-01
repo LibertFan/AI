@@ -480,13 +480,13 @@ class StateNode( BasicNode ):
             ChildrenNone = self.EnemiesSuccActionsNodeDict
             parent_allies = self.enemies
 
-        print parent_allies
+        # print parent_allies
         all_memory = [set(),]*5
         p = self
         parent_atoms_tuples = p.cacheMemory[character]
         self.updateCacheMemory(all_memory, parent_atoms_tuples)
         for succ in ChildrenNone.values():
-            print succ.allies
+            # print succ.allies
             succ_atoms_tuples = succ.generateTuples()
             '''
             print succ_atoms_tuples[succ.allies[0]]
@@ -719,11 +719,15 @@ class MCTSCaptureAgent(CaptureAgent):
         running_time = 0.0
         while( running_time < 10 and iters < self.MCTS_ITERATION ):
             node = self.Select()
-            print node.IndexPositions
+            # print node.IndexPositions
             if node == self.rootNode or id(node) ==  id(self.rootNode):
                 print "this node is rootNode"
             if node is None:
                 print "Invalid Selections"
+                print iters
+                iters += 1
+                if node == self.rootNode or id(node) == id(self.rootNode):
+                    raise Exception("MCTS/chooseAction: No Node in the tree is novel")
                 continue
             self.ParallelGenerateSuccNode( node )
             end = time.time()
@@ -747,8 +751,9 @@ class MCTSCaptureAgent(CaptureAgent):
             else:
                 currentNode = currentNode.UCB1ChooseSuccNode()
                 if currentNode is None:
-                    raise Exception( "No StateNode in tree is novel!")
-                    return None
+
+                    #raise Exception( "No StateNode in tree is novel!")
+                    return None 
 
     def ParallelGenerateSuccNode(self, CurrentStateNode):
         # SuccStateNodeNum = len( CurrentNodeStateNode.LegalActions )
@@ -775,8 +780,8 @@ class MCTSCaptureAgent(CaptureAgent):
         else:
             raise Exception("The novelTest of this node should be False!")
         #print CurrentStateNode.SuccStateNodeDict   
-        if CurrentStateNode == self.rootNode or id(CurrentStateNode) == id(self.rootNode):
-            print "the parent: Parallel is self.rootNode"
+        #if CurrentStateNode == self.rootNode or id(CurrentStateNode) == id(self.rootNode):
+        #    print "the parent: Parallel is self.rootNode"
         ### No Parallel    
         CurrentSuccStateNodes = []
         CurrentNovelActions = []
@@ -784,6 +789,10 @@ class MCTSCaptureAgent(CaptureAgent):
             if SuccStateNode.novel:
                CurrentSuccStateNodes.append(SuccStateNode)
                CurrentNovelActions.append( Actions )
+
+        if len(CurrentNovelActions) == 0:
+            CurrentStateNode.novel = False
+            return 
         print len(CurrentSuccStateNodes), len(CurrentNovelActions)
         pool = mp.ProcessingPool(2)
         time1 = time.time()
@@ -791,7 +800,9 @@ class MCTSCaptureAgent(CaptureAgent):
 
         EndStateNodeLists = []
         ### With Parallel pool.map
-        # EndStateNodeLists = self.pool.map(self.PlayOut2, CurrentSuccStateNodes)
+        EndStateNodeLists = pool.map( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions )
+        #pool.close()
+        #pool.join()
         ### With Paralle pool.uimap
         #results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
         #while not results.ready():
@@ -807,28 +818,29 @@ class MCTSCaptureAgent(CaptureAgent):
         # self.CurrentSuccStateNodes = CurrentSuccStateNodes
         # for Action, SuccStateNode in zip( CurrentNovelActions, CurrentSuccStateNodes):
         #    EndStateNodeLists.append( self.pool.apipe( self.PlayOut2, SuccStateNode, Action ).get() )
-        pool = mp.Pool( processes = 3 )
-        results = []
-        for CurrentStateNode, Action in zip( CurrentSuccStateNodes, CurrentSuccStateNodes):
-            results.append( pool.apply_async( self.PlayOut2, args=( CurrentStateNode, Action ) ) )
-        pool.close()
-        pool.join()
-        EndStateNodeLists = [ p.get() for p in results ]
+        # pool = mp.Pool( processes = 3 )
+        # results = []
+        # for CurrentStateNode, Action in zip( CurrentSuccStateNodes, CurrentSuccStateNodes):
+        #    results.append( pool.apply_async( self.PlayOut2, args=( CurrentStateNode, Action ) ) )
+        # pool.close()
+        # pool.join()
+        # EndStateNodeLists = [ p.get() for p in results ]
     
-        #print EndStateNodeLists
+        # print EndStateNodeLists
         ### No Parallel    
-        # for SuccStateNode in CurrentSuccStateNodes:
-        #     EndStateNodeLists.append( self.PlayOut2( SuccStateNode ) )
+        # for Action, SuccStateNode in zip( CurrentNovelActions, CurrentSuccStateNodes):
+        #     EndStateNodeLists.append( self.PlayOut2( SuccStateNode, Action ) )
         print "Parallel Finish"
         time2 = time.time()
         print time2 - time1
-        raise Exception
-
+        #raise Exception
+        
         for Action, CurrentSuccStateNode, EndStateNodeList in EndStateNodeLists:
             CurrentStateNode.update( Action, CurrentSuccStateNode )
             for EndStateNode in EndStateNodeList:
                 self.BackPropagate(EndStateNode)
-
+        
+ 
     def PlayOut2(self, CurrentStateNode, Action):
         time1 = time.time()
         n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
@@ -925,6 +937,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 currentNode.EnemiesActionParent.nVisit += 1
             currentNode.totalValue += score
             currentNode.nVisit += 1
+            """
             if currentNode.StateParent is None:
                 print currentNode.IndexPositions
                 print id(currentNode)
@@ -934,6 +947,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 print currentNode.IndexPositions
                 print currentNode.nVisit
                 print currentNode.totalValue
+            """    
             currentNode = currentNode.StateParent
             
 
