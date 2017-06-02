@@ -771,7 +771,63 @@ class MCTSCaptureAgent(CaptureAgent):
                     return None 
 
     def ParallelGenerateSuccNode(self, CurrentStateNode):
-        # SuccStateNodeNum = len( CurrentNodeStateNode.LegalActions )
+
+        def PlayOut2(CurrentStateInfo): 
+
+            CurrentStateNode, Action = CurrentStateInfo
+            time1 = time.time()
+            print Action, "palyout begin!"       
+            n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
+                                 self.getMazeDistance)
+            a1s = n1.chooseAction(CurrentStateNode.GameState, 2)
+            n2 = SimulateAgentV1(self.allies[1], self.allies, self.enemies, CurrentStateNode.GameState,
+                                 self.getMazeDistance)
+            a2s = n2.chooseAction(CurrentStateNode.GameState, 2)
+            a12s = list(itertools.product(a1s, a2s))
+            if len(a12s) > 3:
+                a12s = a12s[:3]
+            m1 = SimulateAgentV1(self.enemies[0], self.enemies, self.allies, CurrentStateNode.GameState,
+                                 self.getMazeDistance)
+            b1s = m1.chooseAction(CurrentStateNode.GameState, 2)
+            m2 = SimulateAgentV1(self.enemies[1], self.enemies, self.allies, CurrentStateNode.GameState,
+                                 self.getMazeDistance)
+            b2s = m2.chooseAction(CurrentStateNode.GameState, 2)
+            b12s = list(itertools.product(b1s, b2s))
+            if len(b12s) > 3:
+                b12s = b12s[:3]
+            actions = tuple(itertools.product(a12s, b12s))
+            # print actions
+            # print "actions:",len(actions)
+            # if CurrentStateNode.StateParent == self.rootNode or id(CurrentStateNode.StateParent) == id(self.rootNode):
+            #     print "Play out CurrentNode == rootNode"
+            CurrentNodeList = []
+            for i in range(len(actions)):
+                iters = 0
+                #print CurrentStateNode.LegalActions
+                #print actions[i]
+                CopyCurrentStateNode = CurrentStateNode.ChooseSuccNode(actions[i])
+                while iters < (self.ROLLOUT_DEPTH - 1):
+                    n1 = SimulateAgent(self.allies[0], self.allies, self.enemies,CopyCurrentStateNode.GameState,
+                                       self.getMazeDistance)
+                    a1 = n1.chooseAction(CopyCurrentStateNode.GameState)
+                    n2 = SimulateAgent(self.allies[1], self.allies, self.enemies, CopyCurrentStateNode.GameState,
+                                       self.getMazeDistance)
+                    a2 = n2.chooseAction(CopyCurrentStateNode.GameState)
+
+                    m1 = SimulateAgent(self.enemies[0], self.enemies, self.allies,CopyCurrentStateNode.GameState,
+                                       self.getMazeDistance)
+                    b1 = m1.chooseAction(CopyCurrentStateNode.GameState)
+                    m2 = SimulateAgent(self.enemies[1], self.enemies, self.allies, CopyCurrentStateNode.GameState,
+                                       self.getMazeDistance)
+                    b2 = m2.chooseAction(CopyCurrentStateNode.GameState)
+                    CopyCurrentStateNode = CopyCurrentStateNode.ChooseSuccNode(((a1, a2), (b1, b2)))
+                    iters += 1
+                CurrentNodeList.append(CopyCurrentStateNode)
+            time2 = time.time()
+            print Action, time2 - time1
+            # print "CurrentNodeList:",len(CurrentNodeList)    
+            return Action, CurrentStateNode, CurrentNodeList
+
         if not CurrentStateNode.novelTest:
             print "ParallelGenerateSuccNdoe novelTest"
             # f = CurrentStateNode.ChooseSuccNode()
@@ -792,76 +848,50 @@ class MCTSCaptureAgent(CaptureAgent):
            #     print each[0],each[1].novel
         else:
             raise Exception("The novelTest of this node should be False!")
-        CurrentSuccStateNodes = []
-        CurrentNovelActions = []
+
+        CurrentCopyInfo = []
         CurrentInfo = []
         for Actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
             if SuccStateNode.novel:
-                CopySuccStateNode = copy.deepcopy( SuccStateNode ) 
-                CurrentSuccStateNodes.append( CopySuccStateNode)
-                CurrentNovelActions.append( Actions )
+                CurrentInfo.append( ( SuccStateNode, Actions ) )
+                CopySuccStateNode = copy.deepcopy( SuccStateNode )
                 CopySuccStateNode.AlliesActionParent = None
                 CopySuccStateNode.EnemiesActionParent = None
                 CopySuccStateNode.StateParent = None 
-                CurrentInfo.append( ( CopySuccStateNode, Actions ) ) 
+                CurrentCopyInfo.append( ( CopySuccStateNode, Actions ) ) 
 
-        if len(CurrentNovelActions) == 0:
+        if len(CurrentInfo) == 0:
             CurrentStateNode.novel = False
-            return 
-        print len(CurrentSuccStateNodes), len(CurrentNovelActions)
-        print CurrentSuccStateNodes, CurrentNovelActions
-        pool = mp.ProcessPool( 4 )
-        time1 = time.time()
-        print "Parallel Begin"
-        EndStateNodeLists = []
+            return
 
-        ### With Parallel pool.map
-        #EndStateNodeLists = pool.map( self.PlayOut2, CurrentInfo )
-        #pool.close()
-        #pool.join()
-        #EndStateNodeLists = pool.map( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions ) 
+        print "The number of branch is:", len(CurrentInfo)
 
-        #pool.close()
-        #pool.join()
-        ### With Paralle pool.uimap
-        # results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
-        # while not results.ready():
-        #     time.sleep(0.1)
-        # EndStateNodeLists = results.get()
-        #pool.close()
-        #pool.join()
-        ### With Parallel amap
-        results = pool.amap( self.PlayOut2, CurrentInfo )
-        while not results.ready():
-            time.sleep(0.1)
-        EndStateNodeLists = results.get()
-        ### With Parallel pipe
-        # EndStateNodeLists = []
-        # self.CurrentSuccStateNodes = CurrentSuccStateNodes
-        # for Action, SuccStateNode in zip( CurrentNovelActions, CurrentSuccStateNodes):
-        #    EndStateNodeLists.append( self.pool.apipe( self.PlayOut2, SuccStateNode, Action ).get() )
-        # pool = mp.Pool( processes = 3 )
-        # results = []
-        # for info in CurrentInfo:
-        #   results.append( pool.apply_async( self.PlayOut2, args=( info ) ) )
-        #pool.close()
-        #pool.join()
-        #EndStateNodeLists = [ p.get() for p in results ]
-    
-        # print EndStateNodeLists
-        ### No Parallel    
-        # for Action, SuccStateNode in zip( CurrentNovelActions, CurrentSuccStateNodes):
-        #     EndStateNodeLists.append( self.PlayOut2( SuccStateNode, Action ) )
-        print "Parallel Finish"
-        time2 = time.time()
-        print time2 - time1
-        #raise Exception
-        
-        for Action, CurrentSuccStateNode, EndStateNodeList in EndStateNodeLists:
-            CurrentStateNode.update( Action, CurrentSuccStateNode )
-            for EndStateNode in EndStateNodeList:
-                self.BackPropagate(EndStateNode)
-        
+        if len(CurrentInfo) > 2:
+            pool = mp.ProcessPool( 4 )
+            t1 = time.time()
+            print "Parallel Begin"
+
+            results = pool.amap( PlayOut2, CurrentCopyInfo )
+            while not results.ready():
+                time.sleep(0.1)
+            EndStateNodeLists = results.get()
+            #pool.close()
+            #pool.join()
+            t2 = time.time()
+            print "Parallel Finish!", t2 - t1
+
+            for Action, CurrentSuccStateNode, EndStateNodeList in EndStateNodeLists:
+                CurrentStateNode.update( Action, CurrentSuccStateNode )
+                for EndStateNode in EndStateNodeList:
+                    self.BackPropagate(EndStateNode)
+            t3 = time.time()        
+            print "BackPropagate Finish!", t3 - t1      
+        else:
+            for info in CurrentInfo:
+                _, _, EndStateNodeList = PlayOut2( info )
+                for EndStateNode in EndStateNodeList: 
+                    self.BackPropagate( EndStateNode )
+
     def PlayOut2(self, CurrentStateInfo): 
     #def PlayOut2(self, CurrentStateNode, Action):
         CurrentStateNode, Action = CurrentStateInfo
