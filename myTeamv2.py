@@ -19,12 +19,42 @@ import game
 import math
 from util import nearestPoint
 import copy
-import pathos.multiprocessing as mp
+from pathos import multiprocessing as mp
 
 #################
 # Team creation #
 #################
+"""
+def _pickle_method(method):
+    func_name = method.im_func.__name__
+    obj = method.im_self
+    cls = method.im_class
+    return _unpickle_method, (func_name, obj, cls)
 
+def _pickle_method(method):
+    func_name = method.im_func.__name__
+    obj = method.im_self
+    cls = method.im_class
+    if func_name.startswith('__') and not func_name.endswith('__'):
+        cls_name = cls.__name__.lstrip('_')
+    if cls_name: 
+        func_name = '_' + cls_name + func_name
+    return _unpickle_method, (func_name, obj, cls)
+
+def _unpickle_method(func_name, obj, cls):
+    for cls in cls.mro():
+        try:
+            func = cls.__dict__[func_name]
+        except KeyError:
+            pass
+        else:
+            break
+        return func.__get__(obj, cls)
+
+import copy_reg
+import types
+copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
+"""
 def createTeam(firstIndex, secondIndex, isRed,
                first = 'MCTSCaptureAgent', second = 'MCTSCaptureAgent'):
     """
@@ -140,7 +170,7 @@ class StateNode( BasicNode ):
             self.enemies = self.StateParent.enemies
             self.getDistancer = self.StateParent.getDistancer
             self.Bound = self.StateParent.Bound
-            CurrentGameState = copy.deepcopy(self.StateParent.GameState )
+            CurrentGameState = self.StateParent.GameState
             for index, action in self.LastActions.items():
                 CurrentGameState = CurrentGameState.generateSuccessor( index, action )
             self.GameState = CurrentGameState
@@ -703,7 +733,7 @@ class MCTSCaptureAgent(CaptureAgent):
         self.ROLLOUT_DEPTH = 10
         self.cores = mp.cpu_count() - 2
         print self.cores
-        self.pool = mp.ProcessingPool( processes = self.cores )
+        #self.pool = mp.ProcessingPool( processes = self.cores )
 
     """ 
     we return the best action for current GameState. 
@@ -711,17 +741,12 @@ class MCTSCaptureAgent(CaptureAgent):
     """
     def chooseAction( self, GameState ):
         start = time.time()
-        self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
+        self.rootNode = StateNode( self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
         iters = 0
         running_time = 0.0
         while( running_time < 10 and iters < self.MCTS_ITERATION ):
             node = self.Select()
-            # print node.IndexPositions
-            if node == self.rootNode or id(node) ==  id(self.rootNode):
-                print "this node is rootNode"
             if node is None:
-                print "Invalid Selections"
-                print iters
                 iters += 1
                 if node == self.rootNode or id(node) == id(self.rootNode):
                     raise Exception("MCTS/chooseAction: No Node in the tree is novel")
@@ -755,7 +780,6 @@ class MCTSCaptureAgent(CaptureAgent):
     def ParallelGenerateSuccNode(self, CurrentStateNode):
         # SuccStateNodeNum = len( CurrentNodeStateNode.LegalActions )
         if not CurrentStateNode.novelTest:
-            print "ParallelGenerateSuccNdoe novelTest"
             # f = CurrentStateNode.ChooseSuccNode()
             # SuccStateNodes = self.pool.map(CurrentStateNode.ChooseSuccNode, CurrentStateNode.LegalActions)
             SuccStateNodes = []
@@ -767,45 +791,52 @@ class MCTSCaptureAgent(CaptureAgent):
                 raise Exception("Parallel goes wrong!")
             cacheMemory = [CurrentStateNode.NoveltyTestSuccessorsV1(0), CurrentStateNode.NoveltyTestSuccessorsV1(1)]
             CurrentStateNode.getSuccessorNovel(cacheMemory)
-
+            """
             for each in CurrentStateNode.AlliesSuccActionsNodeDict.items():
                 print each[0],each[1].novel
             print 'x'*80
             for each in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
                 print each[0],each[1].novel
-
+            """
         else:
             raise Exception("The novelTest of this node should be False!")
         #print CurrentStateNode.SuccStateNodeDict   
         #if CurrentStateNode == self.rootNode or id(CurrentStateNode) == id(self.rootNode):
         #    print "the parent: Parallel is self.rootNode"
         ### No Parallel    
-        CurrentSuccStateNodes = []
-        CurrentNovelActions = []
+        # CurrentNovelActions = []
+        # CurrentSuccGameStates = []
+        CurrentSuccInfo = []
         for Actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
             if SuccStateNode.novel:
-               CurrentSuccStateNodes.append(SuccStateNode)
-               CurrentNovelActions.append( Actions )
+                #CurrentSuccStateNodes.append( SuccStateNode )
+                #CurrentNovelActions.append( Actions )
+                CurrentSuccInfo.append( ( SuccStateNode, Actions ) )
+                #CurrentSuccGameStates.append( SuccStateNode.GameState )
 
-        if len(CurrentNovelActions) == 0:
+        if len(CurrentSuccInfo) == 0:
             CurrentStateNode.novel = False
             return 
-        print len(CurrentSuccStateNodes), len(CurrentNovelActions)
-        pool = mp.ProcessingPool(2)
+        #print type(CurrentSuccStateNodes), type(CurrentNovelActions) 
+        #print len(CurrentSuccStateNodes), len(CurrentNovelActions)
+        #print CurrentSuccStateNodes, CurrentNovelActions
+        if len(CurrentSuccInfo) < 31:
+            pool = mp.ProcessPool( len( CurrentSuccInfo ) + 1 )
+        else:
+            pool = mp.ProcessPool( 32 ) 
         time1 = time.time()
-        print "Parallel Begin"
-
+        print "Parallel Begin:", len(CurrentSuccInfo)
+        
         EndStateNodeLists = []
         ### With Parallel pool.map
-        #EndStateNodeLists = pool.map( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions ) 
-
+        EndStateNodeLists = list( pool.uimap( self.PlayOut2, CurrentSuccInfo ) )
         #pool.close()
         #pool.join()
         ### With Paralle pool.uimap
-        results = pool.amap( self.PlayOut2, CurrentSuccStateNodes, CurrentNovelActions)
-        while not results.ready():
-            time.sleep(0.1)
-        EndStateNodeLists = results.get()
+        #results = pool.amap( self.PlayOut2, CurrentSuccInfo)
+        #while not results.ready():
+        #    time.sleep(0.1)
+        #EndStateNodeLists = results.get()
         #pool.close()
         #pool.join()
         ### With Parallel amap
@@ -820,8 +851,9 @@ class MCTSCaptureAgent(CaptureAgent):
         #    EndStateNodeLists.append( self.pool.apipe( self.PlayOut2, SuccStateNode, Action ).get() )
         # pool = mp.Pool( processes = 3 )
         # results = []
-        # for CurrentStateNode, Action in zip( CurrentSuccStateNodes, CurrentSuccStateNodes):
-        #    results.append( pool.apply_async( self.PlayOut2, args=( CurrentStateNode, Action ) ) )
+        # for info in CurrentSuccInfo:
+        #     print info, type(info)
+        #     results.append( pool.apply_async( self.PlayOut2, info ) )
         # pool.close()
         # pool.join()
         # EndStateNodeLists = [ p.get() for p in results ]
@@ -840,8 +872,10 @@ class MCTSCaptureAgent(CaptureAgent):
             for EndStateNode in EndStateNodeList:
                 self.BackPropagate(EndStateNode)
         
+    #def PlayOut2(self, CurrentStateNode, Action=None):
  
-    def PlayOut2(self, CurrentStateNode, Action):
+    def PlayOut2(self, CurrentSuccInfo ):
+        CurrentStateNode, Action = CurrentSuccInfo
         time1 = time.time()
         n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
                              self.getMazeDistance)
