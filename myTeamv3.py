@@ -903,15 +903,16 @@ class MCTSCaptureAgent(CaptureAgent):
                 self.BackPropagate(EndStateNode)
 
     def PlayOut2(self, CurrentStateNode, Action):
-        """
+        
         time1 = time.time()
+        """
         SuccStateNodeScores = []
         for Action in CurrentStateNode.LegalActions:
             SuccStateNode = CurrentStateNode.ChooseSuccNode( Action )
             SuccStateNodeScore.append( ( SuccStateNode, SuccStateNode.getScore(), SuccStateNode.getLatentScore() ) )
         SuccStateNodeScores = sorted( SuccStateNodeScores, lambda x: x[1:] )    
         """
-        """
+        
         n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
                              self.getMazeDistance)
         a1s = n1.chooseAction(CurrentStateNode.GameState, 2)
@@ -931,7 +932,7 @@ class MCTSCaptureAgent(CaptureAgent):
         if len(b12s) > 3:
             b12s = b12s[:3]
         actions = tuple(itertools.product(a12s, b12s))
-        """
+        
         # print actions
         # print "actions:",len(actions)
         # if CurrentStateNode.StateParent == self.rootNode or id(CurrentStateNode.StateParent) == id(self.rootNode):
