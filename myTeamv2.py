@@ -24,7 +24,36 @@ from pathos import multiprocessing as mp
 #################
 # Team creation #
 #################
+"""
+def _pickle_method(method):
+    func_name = method.im_func.__name__
+    obj = method.im_self
+    cls = method.im_class
+    if func_name.startswith('__') and not func_name.endswith('__'):
+        cls_name = cls.__name__.lstrip('_')
+    if cls_name: 
+        func_name = '_' + cls_name + func_name
 
+def _pickle_method(method):
+    func_name = method.im_func.__name__
+    obj = method.im_self
+    cls = method.im_class
+    return _unpickle_method, (func_name, obj, cls)
+
+def _unpickle_method(func_name, obj, cls):
+    for cls in cls.mro():
+        try:
+            func = cls.__dict__[func_name]
+        except KeyError:
+            pass
+        else:
+            break
+        return func.__get__(obj, cls)
+
+import copy_reg
+import types
+copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
+"""
 def createTeam(firstIndex, secondIndex, isRed,
                first = 'MCTSCaptureAgent', second = 'MCTSCaptureAgent'):
     """
@@ -704,6 +733,7 @@ class MCTSCaptureAgent(CaptureAgent):
         self.LastRootNode = None
         self.cores = mp.cpu_count() - 2
         print self.cores
+        self.count = 0 
         #self.pool = mp.ProcessingPool( processes = self.cores )
 
     """ 
@@ -711,7 +741,9 @@ class MCTSCaptureAgent(CaptureAgent):
     we hope to return the best two action for two pacman! 
     """
     def TreeReuse( self, GameState):
+        print "TreeReuse is used"
         if self.LastRootNode is None:
+            print "LastRootNode is None"
             return None
         else:
             IndexPositions = dict()
@@ -720,21 +752,28 @@ class MCTSCaptureAgent(CaptureAgent):
             for Action in self.LastRootNode.LegalActions: 
                 SuccStateNode = self.LastRootNode.SuccStateNodeDict.get( Action )
                 if SuccStateNode is not None and SuccStateNode.novel and SuccStateNode.IndexPositions == IndexPositions:
-                   self.rootNode = SuccStateNode
-                   self.rootNode.AlliesActionParent = None
-                   self.rootNode.EnemiesActionParent = None
-                   self.rootNode.StateParent = None
-                   return self.rootNode
+                    self.rootNode = SuccStateNode
+                    self.rootNode.AlliesActionParent = None
+                    self.rootNode.EnemiesActionParent = None
+                    self.rootNode.StateParent = None
+                    return self.rootNode
+                    
+            return None   
 
     def chooseAction( self, GameState ):
+        self.count =+ 1
+        print self.count
         start = time.time()
-        rootNode = self.TreeReuse( GameState )
-        if rootNode is None:
+        self.rootNode = self.TreeReuse( GameState )
+        if self.rootNode is None:
             self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
-            
+        print "="*50
+        print "Start Position",self.rootNode.IndexPositions
+        print "="*50   
         iters = 0
         running_time = 0.0
-        while( iters < 4 ):        
+
+        while( iters < 2 and running_time < 5 ):        
         #while( running_time < 10 and iters < self.MCTS_ITERATION ):
             node = self.Select()
             if node is None:
@@ -744,17 +783,23 @@ class MCTSCaptureAgent(CaptureAgent):
                 if node == self.rootNode or id(node) == id(self.rootNode):
                     raise Exception("MCTS/chooseAction: No Node in the tree is novel")
                 continue
+            print "iters",iters, "select node position:", node.IndexPositions
+           
             self.ParallelGenerateSuccNode( node )
             end = time.time()
             running_time = end - start
             iters += 1
+
         print "iters", iters  
         self.LastRootNode = self.rootNode
         bestActions = self.rootNode.getBestActions()
         bestAction = bestActions[0]
+        print "="*50
+        print "="*50
         print "Positions:", self.rootNode.IndexPositions
         print "index:", self.index, "beseAction:", bestAction
         print "=" * 50
+        print "="*50
         return bestAction
 
     def Select( self ):
@@ -776,7 +821,7 @@ class MCTSCaptureAgent(CaptureAgent):
 
             CurrentStateNode, Action = CurrentStateInfo
             time1 = time.time()
-            print Action, "palyout begin!"       
+            print Action, "playout begin!"       
             n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
                                  self.getMazeDistance)
             a1s = n1.chooseAction(CurrentStateNode.GameState, 2)
@@ -866,17 +911,23 @@ class MCTSCaptureAgent(CaptureAgent):
 
         print "The number of branch is:", len(CurrentInfo)
 
-        if len(CurrentInfo) > 4:
-            pool = mp.ProcessPool( 4 )
+        if len(CurrentInfo) > 2:
+            p = mp.Pool( 3 )
             t1 = time.time()
             print "Parallel Begin"
-
-            results = pool.amap( PlayOut2, CurrentCopyInfo )
-            while not results.ready():
-                time.sleep(0.1)
-            EndStateNodeLists = results.get()
-            #pool.close()
-            #pool.join()
+            EndStateNodeLists = p.map( PlayOut2, CurrentCopyInfo )
+            #HelpList = []
+            #for each in CurrentCopyInfo:
+            #    HelpList.append( p.apply_async( PlayOut2, args=(each,) ) )   
+            #results = p.amap( PlayOut2, CurrentCopyInfo )
+            #while not results.ready():
+            #    time.sleep(0.1)
+            #EndStateNodeLists = results.get()
+            #p.close()
+            #p.join()
+            #EndStateNodeLists = []  
+            #for each in HelpList:
+            #    EndStateNodeLists.append( each.get() ) 
             t2 = time.time()
             print "Parallel Finish!", t2 - t1
 
@@ -896,7 +947,7 @@ class MCTSCaptureAgent(CaptureAgent):
     #def PlayOut2(self, CurrentStateNode, Action):
         CurrentStateNode, Action = CurrentStateInfo
         time1 = time.time()
-        print Action, "palyout begin!"       
+        print Action, "playout begin!"       
         n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
                              self.getMazeDistance)
         a1s = n1.chooseAction(CurrentStateNode.GameState, 2)

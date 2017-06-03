@@ -1,3 +1,6 @@
+# Caution
+Parallel programe is in myTeamv2.py --Multiprocessing!
+
 # AI description
 This programme comes from berkeley CS221 final contest, the website is: http://ai.berkeley.edu/contest.html
 
