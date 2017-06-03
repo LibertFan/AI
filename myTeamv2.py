@@ -154,6 +154,7 @@ class StateNode( BasicNode ):
             self.allies = allies
             self.enemies = enemies
             self.Bound = self.getBound()
+            self.depth = 0
         elif GameState is None:
             self.GameState = GameState
             self.allies = self.StateParent.allies
@@ -164,6 +165,7 @@ class StateNode( BasicNode ):
             for index, action in self.LastActions.items():
                 CurrentGameState = CurrentGameState.generateSuccessor( index, action )
             self.GameState = CurrentGameState
+            self.depth = self.StateParent.depth + 1 
         # self.LegalIndexActions is an auxiliary variables that store a dict which key is the agent index 
         # and the value is its corresponding legal actions  
         self.LegalIndexActions = dict()
@@ -747,11 +749,28 @@ class MCTSCaptureAgent(CaptureAgent):
                     self.rootNode.AlliesActionParent = None
                     self.rootNode.EnemiesActionParent = None
                     self.rootNode.StateParent = None
+
+                    import Queue
+                    CandidateStates = Queue.Queue()
+                    root = self.rootNode
+                    CandidateStates.put( ( root ) )
+                    num = 0
+                    novelnum = 0 
+                    while not CandidateStates.empty():              
+                        CurrentState = CandidateStates.get()
+                        CurrentState.depth = CurrentState.depth - 1 
+                        num += 1
+                        if CurrentState.novel:
+                            novelnum += 1
+                        for successor in CurrentState.SuccStateNodeDict.values():
+                            CandidateStates.put( successor ) 
+                    print num, novelnum
                     return self.rootNode
 
             return None   
 
     def chooseAction( self, GameState ):
+        print "="* 25, "new process", "="*25
         self.count =+ 1
         print self.count
         start = time.time()
@@ -764,7 +783,7 @@ class MCTSCaptureAgent(CaptureAgent):
         iters = 0
         running_time = 0.0
 
-        while( iters < 3 and running_time < 20 ):        
+        while( iters < 2 and running_time < 10 ):        
         #while( running_time < 10 and iters < self.MCTS_ITERATION ):
             node = self.Select()
             if node is None:
@@ -903,7 +922,7 @@ class MCTSCaptureAgent(CaptureAgent):
         print "The number of branch is:", len(CurrentInfo)
 
         if len(CurrentInfo) > 12:
-            p = mp.ProcessPool( 10 )
+            p = mp.ProcessPool( 12 )
             t1 = time.time()
             print "Parallel Begin"
             #HelpList = []
