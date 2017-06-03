@@ -866,7 +866,7 @@ class MCTSCaptureAgent(CaptureAgent):
 
         print "The number of branch is:", len(CurrentInfo)
 
-        if len(CurrentInfo) > 2:
+        if len(CurrentInfo) > 4:
             pool = mp.ProcessPool( 4 )
             t1 = time.time()
             print "Parallel Begin"
