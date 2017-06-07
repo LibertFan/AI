@@ -703,28 +703,23 @@ class StateAction:
         self.MethodStateActionDict = {}
         self.RedAgentsIndex = [0,2]
         self.BlueAgentsIndex = [1,3]
-        self.RedFoodPositions = []
-        self.BlueFoodPositions = []
-        self.RedCapsulesPositions = []
-        self.BlueCapsulesPositions = []
+
     """
     get a GameState and its method, then return encode for state!
     """
     def Hash( self, isRed, method, gameState ):
+        FoodPositions = gameState.data.food.asList()
+        CapsulesPositions = gameState.data.capsules
         if isRed:
-            FoodPositions = self.RedFoodPositions
             AgentsIndex = self.RedAgentsIndex
-            CapsulesPositions = self.RedCapsulesPositions
         else:
-            FoodPositions = self.BlueFoodPositions
             AgentsIndex = self.BlueAgentsIndex
-            CapsulesPositions = self.BlueCapsulesPositions
 
         HashCode = ""    
         for food in FoodPositions:
             if :
                 s
-            HashCode =+ s
+            HashCode += s
 
         for capsule in CapsulesPositions:
             if :

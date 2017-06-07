@@ -10,7 +10,45 @@
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
+import copy_reg
+import types
 
+
+def _pickle_method(method):
+    func_name = method.im_func.__name__
+    obj = method.im_self
+    cls = method.im_class
+    return _unpickle_method, (func_name, obj, cls)
+
+
+'''
+def _pickle_method(method):
+  func_name = method.im_func.__name__
+  obj = method.im_self
+  cls = method.im_class
+  if func_name.startswith('__') and not func_name.endswith('__'):
+    cls_name = cls.__name__.lstrip('_')
+  if cls_name: 
+    func_name = '_' + cls_name + func_name
+  return _unpickle_method, (func_name, obj, cls)
+'''
+
+
+def _unpickle_method(func_name, obj, cls):
+    for cls in cls.mro():
+        try:
+            func = cls.__dict__[func_name]
+        except KeyError:
+            pass
+        else:
+            break
+        return func.__get__(obj, cls)
+
+
+import copy_reg
+import types
+
+copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 from captureAgents import CaptureAgent
 import random, time, util, itertools
@@ -20,6 +58,7 @@ import math
 from util import nearestPoint
 import copy
 from pathos import multiprocessing as mp
+#from multiprocessing import Pool
 #import multiprocessing as mp
 #################
 # Team creation #
@@ -702,15 +741,16 @@ class MCTSCaptureAgent(CaptureAgent):
         self.MCTS_ITERATION = 10000
         self.ROLLOUT_DEPTH = 10
         self.LastRootNode = None
-        self.cores = mp.cpu_count() - 2
-        print self.cores
+        #self.cores = mp.cpu_count() - 2
+        #print self.cores
         #self.pool = mp.ProcessingPool( processes = self.cores )
 
     """ 
     we return the best action for current GameState. 
     we hope to return the best two action for two pacman! 
     """
-    def TreeReuse( self, GameState):
+    def TreeReuse(self, GameState):
+
         if self.LastRootNode is None:
             return None
         else:
@@ -725,11 +765,12 @@ class MCTSCaptureAgent(CaptureAgent):
                    self.rootNode.EnemiesActionParent = None
                    self.rootNode.StateParent = None
                    return self.rootNode
+            return None
 
     def chooseAction( self, GameState ):
         start = time.time()
-        rootNode = self.TreeReuse( GameState )
-        if rootNode is None:
+        self.rootNode = self.TreeReuse( GameState )
+        if self.rootNode is None:
             self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
             
         iters = 0
@@ -867,16 +908,25 @@ class MCTSCaptureAgent(CaptureAgent):
         print "The number of branch is:", len(CurrentInfo)
 
         if len(CurrentInfo) > 2:
-            pool = mp.ProcessPool( 4 )
+            #pool = mp.ProcessPool( 4 )
+            p = mp.Pool(4)
             t1 = time.time()
             print "Parallel Begin"
 
-            results = pool.amap( PlayOut2, CurrentCopyInfo )
-            while not results.ready():
-                time.sleep(0.1)
-            EndStateNodeLists = results.get()
+            HelpList = []
+            for each in CurrentCopyInfo:
+                HelpList.append(p.apply_async(PlayOut2, args=(each,)))
+            p.close()
+            p.join()
+            #results = pool.amap( PlayOut2, CurrentCopyInfo )
+            #while not results.ready():
+            #    time.sleep(0.1)
+            #EndStateNodeLists = results.get()
             #pool.close()
             #pool.join()
+            EndStateNodeLists = []
+            for each in HelpList:
+                EndStateNodeLists.append(each.get())
             t2 = time.time()
             print "Parallel Finish!", t2 - t1
 
@@ -1003,6 +1053,6 @@ class MCTSCaptureAgent(CaptureAgent):
                 print currentNode.totalValue
             """    
             currentNode = currentNode.StateParent
-            
+
 
 
