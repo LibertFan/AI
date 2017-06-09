@@ -714,35 +714,37 @@ class StateAction:
             AgentsIndex = self.RedAgentsIndex
         else:
             AgentsIndex = self.BlueAgentsIndex
+        AgentPositions = gameState.getAgentPosition(AgentsIndex)
 
-        HashCode = ""    
+        HashCode = ""
+        HashCode += "foods:"
         for food in FoodPositions:
-            if :
-                s
-            HashCode += s
+            HashCode += food
+            HashCode += ","
 
+        HashCode += " capsules:"
         for capsule in CapsulesPositions:
-            if :
-                s
-            HashCode += s
+            HashCode += capsule
+            HashCode += ","
 
-        for Agent in:
-            if :
-                HashCode += s
+        HashCode += " agents:"
+        for i,Agent in enumerate(AgentsIndex):
+            HashCode += "{"+i+":"+AgentPositions[i]+"}"
+
             
 
         return HashCode
     
-    def getScore( self, isRed, method, gameState ):
-        HashCode = self.Hash( isRed, method, gameState, index )
+    def getAction( self, isRed, method, gameState ):
+        HashCode = self.Hash( isRed, method, gameState )
         Action = self.MethodStateActionDict.get( HashCode )
         return Action
 
-    def AddStateAction( self, isRed, method, gameState, index, BestAction ):
-        HashCode = self.Hash( isRed, method, gameState, index )
+    def AddStateAction( self, isRed, method, gameState, BestAction ):
+        HashCode = self.Hash( isRed, method, gameState )
         Action = self.McethodStateActionDict.get( HashCode )
         if Action is None:
-            self.MethodStateActionDict[ HashCode ] = Action
+            self.MethodStateActionDict[ HashCode ] = BestAction
         elif Action != BestAction:
             raise Exception("The BestAction chosed here is different from the original one based on the same gameState!")
 
