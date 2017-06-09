@@ -26,6 +26,9 @@ import random, time, util, sys
 from game import Directions
 import game
 from util import nearestPoint
+import psyco ;
+psyco.jit()
+from psyco.classes import *
 
 #################
 # Team creation #
@@ -60,6 +63,7 @@ class ReflexCaptureAgent(CaptureAgent):
  
   def registerInitialState(self, gameState):
     self.start = gameState.getAgentPosition(self.index)
+    print "self.index",self.index
     CaptureAgent.registerInitialState(self, gameState)
 
   def chooseAction(self, gameState):

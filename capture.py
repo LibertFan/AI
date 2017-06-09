@@ -1010,13 +1010,13 @@ def save_score(game):
         print >>f, game.state.data.score
 
 if __name__ == '__main__':
-  """   
+
   def _pickle_method(method):
     func_name = method.im_func.__name__
     obj = method.im_self
     cls = method.im_class
     return _unpickle_method, (func_name, obj, cls)
-  
+  '''
   def _pickle_method(method):
     func_name = method.im_func.__name__
     obj = method.im_self
@@ -1026,7 +1026,7 @@ if __name__ == '__main__':
     if cls_name: 
       func_name = '_' + cls_name + func_name
     return _unpickle_method, (func_name, obj, cls)
-  
+  '''
   def _unpickle_method(func_name, obj, cls):
     for cls in cls.mro():
       try:
@@ -1040,7 +1040,7 @@ if __name__ == '__main__':
   import copy_reg
   import types
   copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
-  """
+
 
   """
   The main function called when pacman.py is run
@@ -1052,6 +1052,7 @@ if __name__ == '__main__':
 
   > python capture.py --help
   """
+
   options = readCommand( sys.argv[1:] ) # Get game components based on input
   games = runGames(**options)
 
