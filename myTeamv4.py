@@ -23,7 +23,7 @@ from collections import defaultdict
 from pathos import multiprocessing as mp
 import sys
 import numpy as np
-#import multiprocessing as mp
+import multiprocessing 
 #import copy_reg
 #import types
 #################
@@ -601,7 +601,10 @@ class SimulateAgent:
             for action in actions:
                 successor = self.getSuccessor(gameState, action)
                 pos2 = successor.getAgentPosition(self.index)
-                dist = self.getDistancer(self.startPosition,pos2)
+                if self.getDistanceDict is not None:
+                    dist = self.getDistanceDict[self.startPosition][pos2]
+                else:
+                    dist = self.getDistancer( self.startPosition, pos2 )
                 if dist < bestDist:
                     bestAction = action
                     bestDist = dist
@@ -643,7 +646,12 @@ class SimulateAgent:
 
         if len(foodList) > 0: # This should always be True,  but better safe than sorry
             myPos = successor.getAgentState( self.index ).getPosition()
-        minDistance = min([self.getDistancer(myPos, food) for food in foodList])
+        if self.getDistanceDict is not None:
+            minDistance = min([self.getDistanceDict[myPos][food] for food in foodList])
+        else:
+            minDistance = min([self.getDistancer( myPos, food ) for food in foodList])
+            
+
         features['distanceToFood'] = minDistance
 
         return features
@@ -665,7 +673,10 @@ class SimulateAgent:
         features['numInvaders'] = len(invaders)
         if len(invaders) > 0:
             invader_positions = [ a.getPosition() for a in invaders ]
-            mindist = self.getDistancer( myPos, invader_positions )
+            if self.getDistanceDict is not None:
+                mindist = self.getDistanceDict[ myPos][ invader_positions ]
+            else:
+                mindist = self.getDistancer( myPos, invader_positions )
             features['invaderDistance'] = mindist
 
         if action == Directions.STOP: features['stop'] = 1
@@ -708,7 +719,12 @@ class SimulateAgentV1( SimulateAgent ):
             for action in actions:
                 successor = self.getSuccessor(gameState, action)
                 pos2 = successor.getAgentPosition( self.index )
-                dist = self.getDistancer(self.startPosition,pos2)
+                if self.getDistanceDict is not None:
+                    dist = self.getDistanceDict[self.startPosition][pos2]
+                else:
+                    dist = self.getDistancer(self.startPosition, pos2)
+                
+                #dist = self.getDistancer(self.startPosition,pos2)
                 if dist < bestDist:
                     bestAction = action
                     bestDist = dist
@@ -779,30 +795,47 @@ class Distancer:
         #return self.DistanceMatrix[pos1][pos2]
 
 class ParallelAgent:
-    def __init__( self, allies, enemies, ROLLOUT_DEPTH, getMazeDistance ):
+    def __init__( self, allies, enemies, ROLLOUT_DEPTH, PositionsDict, getMazeDistance ):
         self.index = allies[0]
         self.allies = allies
         self.enemies = enemies
+        self.PositionDictManager = PositionsDict
         self.getMazeDistance = getMazeDistance
         self.ROLLOUT_DEPTH = ROLLOUT_DEPTH
 
-    def PlayOut3(self, CurrentStateInfo ):
+    #def PlayOut3(self, CurrentStateInfo ):
+    #    GameState, InitialAction, PositionDict = CurrentStateInfo
+    def PlayOut3(self, GameState, InitialAction, PositionDict ): 
+        #print "PlayOut3 Initial playout",PositionDict[(1,10)][(30,1)]
+        
+        PositionDictM = PositionDict
+        def getMazeDistance( pos1, pos2 ):
+            #print pos1, pos2
+            try:
+                #print "try"
+                return 10
+            except:
+                print pos1, pos2
+                raise Exception
+
+        PositionDict = None
+      
         t1 = time.time()
-        GameState, InitialAction = CurrentStateInfo
         print InitialAction, "playout begin!"      
-
-        n1 = SimulateAgentV1( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
+        getMazeDistance = self.getMazeDistance
+        n1 = SimulateAgentV1( self.allies[0], self.allies, self.enemies, GameState, getMazeDistance, PositionDict )
         a1s = n1.chooseAction( GameState, 2 )
-        n2 = SimulateAgentV1( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
+        n2 = SimulateAgentV1( self.allies[1], self.allies, self.enemies, GameState, getMazeDistance, PositionDict )
         a2s = n2.chooseAction( GameState, 2 )
-
+        print "Simulate one Finish"
         a12s = list( itertools.product( a1s , a2s ) )
         if len( a12s ) > 3:
             a12s = a12s[:3]
 
-        m1 = SimulateAgentV1( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
+            #mindist = self.getDistancer( myPos, invader_positions )
+        m1 = SimulateAgentV1( self.enemies[0], self.enemies, self.allies, GameState, getMazeDistance, PositionDict )
         b1s = m1.chooseAction( GameState, 2 )
-        m2 = SimulateAgentV1( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance )
+        m2 = SimulateAgentV1( self.enemies[1], self.enemies, self.allies, GameState, getMazeDistance, PositionDict )
         b2s = m2.chooseAction( GameState, 2 )
 
         b12s = list( itertools.product( b1s, b2s ) )
@@ -815,10 +848,10 @@ class ParallelAgent:
         for index in range( len( ActionList ) ):
             ActionSeriesList[ index ] = [ InitialAction, ] 
 
-        n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-        n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-        m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-        m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance ) 
+        n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, GameState, getMazeDistance, PositionDict )
+        n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, GameState, getMazeDistance, PositionDict )
+        m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, GameState, getMazeDistance, PositionDict )
+        m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, GameState, getMazeDistance, PositionDict ) 
 
         for index, Actions in enumerate(ActionList):
             ActionSeriesList[ index ].append( Actions )
@@ -876,11 +909,10 @@ class ParallelAgent:
         GameStateList = [ ( copy.deepcopy( CurrentState.GameState ), Action ) for CurrentState, Action in CurrentInfo ]
 
         print "Parallel Begin"
-
         ActionSeriesLists = []
         results = []
-        for gs in GameStateList:
-            results.append( p.apipe( self.PlayOut3, gs ) ) 
+        for gs, a in GameStateList:
+            results.append( p.apipe( self.PlayOut3, gs, a, None ) ) 
         for r in results:
             ActionSeriesLists.append( r.get() )
 
@@ -906,8 +938,24 @@ class MCTSCaptureAgent(CaptureAgent):
         self.ROLLOUT_DEPTH = 10
         self.LastRootNode = None
         self.count = 0 
-        self.getMazeDistance = Distancer( gameState.data.layout ).getDistancer
-        self.ChildParallelAgent = ParallelAgent( self.allies, self.enemies, self.ROLLOUT_DEPTH, self.getMazeDistance )
+        self.D = Distancer( gameState.data.layout )
+        self.PositionDict = self.D.positions_dict
+        self.getMazeDistance = self.D.getDistancer
+
+        mgr = multiprocessing.Manager()
+        PositionDictManager = mgr.dict()
+        for k1 in self.PositionDict.keys():
+            print type(self.PositionDict[k1])
+            PositionDictManager[k1] = self.PositionDict[k1]
+            #for k2 in self.PositionDict[k1].keys():
+            #    val = self.PositionDict[k1][k2]
+            #    PositionDictManager[k1][k2] = val
+        print "set Parallel"
+        print "simulate",PositionDictManager[(30,1)][(6,1)]
+        #self.PositionDictManager = PositionDictManager
+
+        self.ChildParallelAgent = ParallelAgent( self.allies, self.enemies, self.ROLLOUT_DEPTH,\
+                                                 PositionDictManager, self.getMazeDistance )
 
     def TreeReuse( self, GameState):
         print "TreeReuse is used"
@@ -1036,7 +1084,7 @@ class MCTSCaptureAgent(CaptureAgent):
 
         ### Parallel Begin
         if len(CurrentInfo) > 2:
-            print CurrentInfo
+            #print CurrentInfo
             ActionSeriesLists = self.ChildParallelAgent.P1( CurrentInfo )
             ### test parallel
             self.ChildParallelAgent.P2()
