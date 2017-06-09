@@ -761,26 +761,22 @@ class Distancer:
                     self.positions_dict[ position1 ][ position2 ] +\
                     self.positions_dict[ position2 ][ position3 ] )
 
+        self.DistanceMatrix = []
+        for w in range( self.width + 1 ):
+            self.DistanceMatrix.append( [ 0,] * ( self.height + 1 ) )
+        
+        for k, v in self.positions_dict.items():
+            kx, ky = k
+            self.DistanceMatrix[ kx ][ ky ] = v
+
     def getDistancer( self, pos1 ,pos2 ):
         """
         self.count += 1
         if self.count % 100000 == 1:
             print self.count
-        """    
-        #return self.positions_dict[pos1][pos2]
-        return 10
-
-    def min_position_distance( self, start_position, target_list ):
-        distances = self.positions_dict[ start_position ]
-        min_distance = 9999
-        for target in target_list:
-            distance = distances[ target ]  
-            if min_distance > distance:
-                min_distance = distance
-        return min_distance    
-    
-    def max_position_distance( self, layout, start_position ):
-        return 0
+        """   
+        return self.positions_dict[pos1][pos2]
+        #return self.DistanceMatrix[pos1][pos2]
 
 class ParallelAgent:
     def __init__( self, allies, enemies, ROLLOUT_DEPTH, getMazeDistance ):
@@ -848,7 +844,6 @@ class ParallelAgent:
 
         t2 = time.time()
         print InitialAction, t2 - t1
-
         return ActionSeriesList
 
     def PlayOut4( self, poses ):
@@ -874,7 +869,7 @@ class ParallelAgent:
         t2 = time.time()
         print "2 Finish", t2 - t1
      
-    def Parallel( self, CurrentInfo ):
+    def P1( self, CurrentInfo ):
         p = mp.ProcessPool( 4 )
         #p = mp.Pool( processes=4 )  
         t1 = time.time()
@@ -885,8 +880,6 @@ class ParallelAgent:
         ActionSeriesLists = []
         results = []
         for gs in GameStateList:
-            print gs
-            print type(gs), len(gs)
             results.append( p.apipe( self.PlayOut3, gs ) ) 
         for r in results:
             ActionSeriesLists.append( r.get() )
@@ -896,28 +889,25 @@ class ParallelAgent:
         p.clear()
         
         t2 = time.time()
-        print "1 Finish!", t2 - t1
+        print "P1 Finish!", t2 - t1
          
         return ActionSeriesLists
 
-class MCTSAgent:
-    def __init__( self, allies, enemies, gameState):
-        self.index = allies[0]
-        self.allies = allies
-        self.enemies = enemies
-        self.getMazeDistance = Distancer( gameState.data.layout ).getDistancer
-        self.LastRootNode = None
-        self.count = 0
+class MCTSCaptureAgent(CaptureAgent):
+
+    def registerInitialState(self, gameState):
+        CaptureAgent.registerInitialState(self, gameState)
+        self.allies = self.getTeam( gameState )
+        if self.allies[0] != self.index:
+            self.allies = self.allies[::-1]
+        self.enemies = self.getOpponents( gameState )
+        print self.allies, self.enemies
         self.MCTS_ITERATION = 10000
         self.ROLLOUT_DEPTH = 10
-        self.red = gameState.isOnRedTeam( self.allies[0] )
-        self.ChildParallelAgent = ParallelAgent( allies, enemies, self.ROLLOUT_DEPTH, self.getMazeDistance )
-
-    def getScore(self, gameState):
-        if self.red:
-            return gameState.getScore()
-        else:
-            return gameState.getScore() * -1
+        self.LastRootNode = None
+        self.count = 0 
+        self.getMazeDistance = Distancer( gameState.data.layout ).getDistancer
+        self.ChildParallelAgent = ParallelAgent( self.allies, self.enemies, self.ROLLOUT_DEPTH, self.getMazeDistance )
 
     def TreeReuse( self, GameState):
         print "TreeReuse is used"
@@ -961,7 +951,7 @@ class MCTSAgent:
                     
             return None   
 
-    def ChooseAction( self, GameState):
+    def chooseAction( self, GameState):
         print "="* 25, "new process", "="*25
         self.count =+ 1
         print self.count
@@ -1018,136 +1008,8 @@ class MCTSAgent:
                     return None 
 
     def ParallelGenerateSuccNode(self, CurrentStateNode):
-
-        def PlayOut3( CurrentStateInfo ):
-            t1 = time.time()
-            GameState, InitialAction = CurrentStateInfo
-            print InitialAction, "playout begin!"      
-
-            n1 = SimulateAgentV1( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-            a1s = n1.chooseAction( GameState, 2 )
-            n2 = SimulateAgentV1( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-            a2s = n2.chooseAction( GameState, 2 )
-
-            a12s = list( itertools.product( a1s , a2s ) )
-            if len( a12s ) > 3:
-                a12s = a12s[:3]
-
-            m1 = SimulateAgentV1( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-            b1s = m1.chooseAction( GameState, 2 )
-            m2 = SimulateAgentV1( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance )
-            b2s = m2.chooseAction( GameState, 2 )
-
-            b12s = list( itertools.product( b1s, b2s ) )
-            if len(b12s) > 3:
-                b12s = b12s[:3]
-
-            ActionList = tuple( itertools.product( a12s, b12s ) )
-
-            ActionSeriesList = [ None, ] * len( ActionList )
-            for index in range( len( ActionList ) ):
-                ActionSeriesList[ index ] = [ InitialAction, ] 
-
-            n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-            n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-            m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-            m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance ) 
-
-            for index, Actions in enumerate(ActionList):
-                ActionSeriesList[ index ].append( Actions )
-                iters = 0
-                CurrentGameState = copy.deepcopy( GameState )
-                for Agent, Action in zip( self.allies + self.enemies, Actions[0] + Actions[1] ):
-                    CurrentGameState = CurrentGameState.generateSuccessor( Agent, Action )
-              
-                while iters < ( self.ROLLOUT_DEPTH - 1 ):
-
-                    a1 = n1.chooseAction( CurrentGameState )
-                    a2 = n2.chooseAction( CurrentGameState )
-
-                    b1 = m1.chooseAction( CurrentGameState )
-                    b2 = m2.chooseAction( CurrentGameState )
-
-                    Actions = ( a1, a2, b1, b2 )
-                    for Agent, Action in zip( self.allies + self.enemies, Actions):
-                        CurrentGameState = CurrentGameState.generateSuccessor( Agent, Action )
-                         
-                    iters += 1
-                    ActionSeriesList[ index ].append( ( ( a1, a2 ) , ( b1, b2 ) ) )     
-
-            t2 = time.time()
-            print InitialAction, t2 - t1
-
-            return ActionSeriesList
-
-        def PlayOut2( CurrentStateInfo ): 
-
-            CurrentStateNode, Action = CurrentStateInfo
-            time1 = time.time()
-            print Action, "playout begin!"       
-            n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
-                                 self.getMazeDistance)
-            a1s = n1.chooseAction(CurrentStateNode.GameState, 2)
-            n2 = SimulateAgentV1(self.allies[1], self.allies, self.enemies, CurrentStateNode.GameState,
-                                 self.getMazeDistance)
-            a2s = n2.chooseAction(CurrentStateNode.GameState, 2)
-            a12s = list(itertools.product(a1s, a2s))
-
-            if len(a12s) > 3:
-                a12s = a12s[:3]
-            m1 = SimulateAgentV1(self.enemies[0], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance)
-            b1s = m1.chooseAction(CurrentStateNode.GameState, 2)
-            m2 = SimulateAgentV1(self.enemies[1], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance)            
-            b2s = m2.chooseAction(CurrentStateNode.GameState, 2)
-            b12s = list(itertools.product(b1s, b2s))
-            if len(b12s) > 3:
-                b12s = b12s[:3]
-            actions = tuple(itertools.product(a12s, b12s))
-
-            # print actions
-            # print "actions:",len(actions)
-            # if CurrentStateNode.StateParent == self.rootNode or id(CurrentStateNode.StateParent) == id(self.rootNode):
-            #     print "Play out CurrentNode == rootNode" 
-  
-            n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
-            n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
-            m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance )
-            m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance )
-           
-            CurrentNodeList = []
-            for i in range(len(actions)):
-                iters = 0
-                #print CurrentStateNode.LegalActions
-                #print actions[i]
-                CopyCurrentStateNode = CurrentStateNode.ChooseSuccNode(actions[i])
-               
-                while iters < (self.ROLLOUT_DEPTH - 1):
-
-                    a1 = n1.chooseAction( CopyCurrentStateNode.GameState )
-                    a2 = n2.chooseAction( CopyCurrentStateNode.GameState )
-
-                    b1 = m1.chooseAction( CopyCurrentStateNode.GameState )
-                    b2 = m2.chooseAction( CopyCurrentStateNode.GameState )
-                    CopyCurrentStateNode = CopyCurrentStateNode.ChooseSuccNode(((a1, a2), (b1, b2)))
-                    iters += 1
-                CurrentNodeList.append(CopyCurrentStateNode)
-
-            time2 = time.time()
-            print Action, time2 - time1
-
-            return Action, CurrentStateNode, CurrentNodeList
-
-        def PlayOut4( poses ):
-            print "start"
-            pos1, pos2 = poses
-            time.sleep(1)
-            print "finish"
-            return self.getMazeDistance( pos1, pos2)
-
+    
         if not CurrentStateNode.novelTest:
-            print "ParallelGenerateSuccNdoe novelTest"
-            # f = CurrentStateNode.ChooseSuccNode()
-            # SuccStateNodes = self.pool.map(CurrentStateNode.ChooseSuccNode, CurrentStateNode.LegalActions)
             SuccStateNodes = []
             for actions in CurrentStateNode.LegalActions:
                 SuccStateNode = CurrentStateNode.ChooseSuccNode( actions )
@@ -1158,24 +1020,13 @@ class MCTSAgent:
                 raise Exception("Parallel goes wrong!")
             cacheMemory = [CurrentStateNode.NoveltyTestSuccessorsV1(0), CurrentStateNode.NoveltyTestSuccessorsV1(1)]
             CurrentStateNode.getSuccessorNovel(cacheMemory)
-           # for each in CurrentStateNode.AlliesSuccActionsNodeDict.items():
-           #     print each[0],each[1].novel
-           # print 'x'*80
-           # for each in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
-           #     print each[0],each[1].novel
         else:
             raise Exception("The novelTest of this node should be False!")
 
-        #CurrentCopyInfo = []
         CurrentInfo = []
         for Actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
             if SuccStateNode.novel:
                 CurrentInfo.append( ( SuccStateNode, Actions ) )
-                #CopySuccStateNode = copy.deepcopy( SuccStateNode )
-                #CopySuccStateNode.AlliesActionParent = None
-                #CopySuccStateNode.EnemiesActionParent = None
-                #CopySuccStateNode.StateParent = None 
-                #CurrentCopyInfo.append( ( CopySuccStateNode, Actions ) ) 
 
         if len( CurrentInfo ) == 0:
             CurrentStateNode.novel = False
@@ -1183,609 +1034,76 @@ class MCTSAgent:
 
         print "The number of branch is:", len(CurrentInfo)
 
+        ### Parallel Begin
         if len(CurrentInfo) > 2:
-            """
-            GameState = CurrentStateNode.GameState
-            self.a1 = SimulateAgentV1( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-            self.a2 = SimulateAgentV1( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-
-            self.b1 = SimulateAgentV1( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-            self.b2 = SimulateAgentV1( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance )
-
-            self.n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-            self.n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-
-            self.m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-            self.m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance )
-            
-
-            p = mp.ProcessPool( 4 )
-            #p = mp.Pool( processes=4 )  
-            t1 = time.time()
-
-            GameStateList = [ ( copy.deepcopy( CurrentState.GameState ), Action ) for CurrentState, Action in CurrentInfo ]
-            print "Parallel Begin"
-
-            ActionSeriesLists = []
-            results = []
-            for gs in GameStateList:
-                results.append( p.apipe( self.PlayOut3, gs ) ) 
-            for r in results:
-                ActionSeriesLists.append( r.get() )
-
-            p.close()
-            p.join()
-            p.clear()
-
-            p = mp.ProcessPool( 4 )
-            HelpLists = []
-            results = []
-            for _ in range(10):
-                results.append( p.apipe( PlayOut4, ((10,1),(30,14)) ) ) 
-            for r in results:
-                HelpLists.append( r.get() )
-
-            p.close()
-            p.join()
-            p.clear()
-            """
-                                              #ActionSeriesLists = p.map( PlayOut3, GameStateList )
-
-            #results = p.amap( PlayOut3, GameStateList )
-            #while not results.ready():
-            #    time.sleep(0.1)
-            #ActionSeriesLists = results.get()
-            #HelpList = []
-            #for each in GameStateList:
-            #    HelpList.append( p.apply_async( self.PlayOut3, args=(each,) ) )   
-            #p.close()
-            #p.join()
-            #ActionSeriesLists = []  
-            #for each in HelpList:
-            #    ActionSeriesLists.append( each.get() ) 
-
-            #t2 = time.time()
-            #print "Parallel Finish!", t2 - t1
-
-            ActionSeriesLists = self.ChildParallelAgent.Parallel( CurrentInfo )
+            print CurrentInfo
+            ActionSeriesLists = self.ChildParallelAgent.P1( CurrentInfo )
+            ### test parallel
             self.ChildParallelAgent.P2()
             for ActionSeriesList in ActionSeriesLists:
                 for ActionSeries in ActionSeriesList:
                     EndStateNode = CurrentStateNode.update( ActionSeries )
                     self.BackPropagate(EndStateNode)
-            t3 = time.time()        
-            #print "BackPropagate Finish!", t3 - t1      
         else:
             for info in CurrentInfo:
-                _, _, EndStateNodeList = PlayOut2( info )
+                _, _, EndStateNodeList = self.PlayOut2( info )
                 for EndStateNode in EndStateNodeList: 
                     self.BackPropagate( EndStateNode )
 
-    def PlayOut( self, CurrentNode ):
-        iters = 0
-        while iters < self.ROLLOUT_DEPTH:
-            n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, CurrentNode.GameState, self.getMazeDistance )
-            a1 = n1.chooseAction( CurrentNode.GameState )
-            n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, CurrentNode.GameState, self.getMazeDistance )
-            a2 = n2.chooseAction( CurrentNode.GameState )
+    def PlayOut2( self, CurrentStateInfo ): 
 
-            m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, CurrentNode.GameState, self.getMazeDistance )
-            b1 = m1.chooseAction( CurrentNode.GameState )
-            m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, CurrentNode.GameState, self.getMazeDistance )
-            b2 = m2.chooseAction( CurrentNode.GameState )
-            CurrentNode = CurrentNode.ChooseSuccNode( ((a1,a2),(b1,b2)) )
-            iters += 1
+        CurrentStateNode, Action = CurrentStateInfo
+        time1 = time.time()
+        print Action, "playout begin!"       
+        n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
+                             self.getMazeDistance)
+        a1s = n1.chooseAction(CurrentStateNode.GameState, 2)
+        n2 = SimulateAgentV1(self.allies[1], self.allies, self.enemies, CurrentStateNode.GameState,
+                             self.getMazeDistance)
+        a2s = n2.chooseAction(CurrentStateNode.GameState, 2)
+        a12s = list(itertools.product(a1s, a2s))
 
-        return CurrentNode
-
-    def PlayOut1( self, CurrentNode ):
-        iters = 0
-        while iters < self.ROLLOUT_DEPTH:
-            CurrentNode = CurrentNode.ChooseSuccNode()
-            iters += 1
-        return CurrentNode
-
-    def BackPropagate( self, endNode):
-        #print "backPropagate"
-        """
-        In ExploreNode.getSupScore, self.distance_layout is used!
-        """
-        score = self.getScore( endNode.GameState )
-        if score == self.getScore( self.rootNode.GameState ):
-            LatentScore = endNode.getLatentScore()
-            score += LatentScore
-        else:
-            print "Oh My God", score
-        currentNode = endNode
-        while currentNode is not None:
-            if currentNode.AlliesActionParent is not None:
-                currentNode.AlliesActionParent.totalValue += score            
-                currentNode.AlliesActionParent.nVisit += 1
-                currentNode.EnemiesActionParent.totalValue += score 
-                currentNode.EnemiesActionParent.nVisit += 1
-            currentNode.totalValue += score
-            currentNode.nVisit += 1
-            """
-            if currentNode.StateParent is None:
-                print currentNode.IndexPositions
-                print id(currentNode)
-                print id(self.rootNode)
-            if currentNode == self.rootNode or id(currentNode) == id(self.rootNode):
-                print "rootNode"
-                print currentNode.IndexPositions
-                print currentNode.nVisit
-                print currentNode.totalValue
-            """    
-            currentNode = currentNode.StateParent
-
-    def PlayOut3( self, CurrentStateInfo ):
-        t1 = time.time()
-        GameState, InitialAction = CurrentStateInfo
-        print InitialAction, "playout begin!"      
-
-        a1 = SimulateAgentV1( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-        a1s = a1.chooseAction( GameState, 2 )
-        a2 = SimulateAgentV1( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-        a2s = a2.chooseAction( GameState, 2 )
-
-        a12s = list( itertools.product( a1s , a2s ) )
-        if len( a12s ) > 3:
+        if len(a12s) > 3:
             a12s = a12s[:3]
-
-        b1 = SimulateAgentV1( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-        b1s = b1.chooseAction( GameState, 2 )
-        b2 = SimulateAgentV1( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance )
-        b2s = b2.chooseAction( GameState, 2 )
-
-        b12s = list( itertools.product( b1s, b2s ) )
+        m1 = SimulateAgentV1(self.enemies[0], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance)
+        b1s = m1.chooseAction(CurrentStateNode.GameState, 2)
+        m2 = SimulateAgentV1(self.enemies[1], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance)            
+        b2s = m2.chooseAction(CurrentStateNode.GameState, 2)
+        b12s = list(itertools.product(b1s, b2s))
         if len(b12s) > 3:
             b12s = b12s[:3]
+        actions = tuple(itertools.product(a12s, b12s))
 
-        ActionList = tuple( itertools.product( a12s, b12s ) )
-
-        ActionSeriesList = [ None, ] * len( ActionList )
-        for index in range( len( ActionList ) ):
-            ActionSeriesList[ index ] = [ InitialAction, ] 
-
-        n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-        n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-        m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-        m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance ) 
-
-        for index, Actions in enumerate(ActionList):
-            ActionSeriesList[ index ].append( Actions )
-            iters = 0
-            CurrentGameState = copy.deepcopy( GameState )
-            for Agent, Action in zip( self.allies + self.enemies, Actions[0] + Actions[1] ):
-                CurrentGameState = CurrentGameState.generateSuccessor( Agent, Action )
-          
-            while iters < ( self.ROLLOUT_DEPTH - 1 ):
-
-                a1 = n1.chooseAction( CurrentGameState )
-                a2 = n2.chooseAction( CurrentGameState )
-
-                b1 = m1.chooseAction( CurrentGameState )
-                b2 = m2.chooseAction( CurrentGameState )
-
-                Actions = ( a1, a2, b1, b2 )
-                for Agent, Action in zip( self.allies + self.enemies, Actions):
-                    CurrentGameState = CurrentGameState.generateSuccessor( Agent, Action )
-                    
-                iters += 1
-                ActionSeriesList[ index ].append( ( ( a1, a2 ) , ( b1, b2 ) ) )     
-
-        t2 = time.time()
-        print InitialAction, t2 - t1
-        return ActionSeriesList
-
-    def PlayOut4( self, poses ):
-        print "start"
-        pos1, pos2 = poses
-        time.sleep(1)
-        print "finish"
-        return self.getMazeDistance( pos1, pos2)
- 
- 
-
-
-#need to change
-class MCTSCaptureAgent(CaptureAgent):
-
-    def registerInitialState(self, gameState):
-        CaptureAgent.registerInitialState(self, gameState)
-        self.allies = self.getTeam( gameState )
-        if self.allies[0] != self.index:
-            self.allies = self.allies[::-1]
-        self.enemies = self.getOpponents( gameState )
-        print self.allies, self.enemies
-        self.MCTS_ITERATION = 10000
-        self.ROLLOUT_DEPTH = 10
-        self.LastRootNode = None
-        self.cores = mp.cpu_count() - 2
-        print self.cores
-        self.count = 0 
-        self.MCTS = MCTSAgent( self.allies, self.enemies, gameState )
-        #self.pool = mp.ProcessingPool( processes = self.cores )
-        #self.getMazeDistance = Distancer( gameState.data.layout ).getDistancer
-	"""
-        print "someClass begin"
-        s = someClass( gameState )
-        print "finish initialization"
-        s.go1()
-        print "someClass End"
-        """ 
-    def chooseAction( self, GameState ):
-        print "new chooseAction" 
-        return self.MCTS.ChooseAction( GameState )   
+        n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
+        n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
+        m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance )
+        m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance )
        
-    """ 
-    we return the best action for current GameState. 
-    we hope to return the best two action for two pacman! 
-    """
-    def TreeReuse( self, GameState):
-        print "TreeReuse is used"
-        if self.LastRootNode is None:
-            print "LastRootNode is None"
-            self.leaf = None
-            self.novelleaf = None
-            return None
-        else:
-            IndexPositions = dict()
-            for index in self.allies + self.enemies:
-                IndexPositions[ index ] = GameState.getAgentState( index ).getPosition()
-            for Action in self.LastRootNode.LegalActions: 
-                SuccStateNode = self.LastRootNode.SuccStateNodeDict.get( Action )
-                if SuccStateNode is not None and SuccStateNode.novel and SuccStateNode.IndexPositions == IndexPositions:
-                    self.rootNode = SuccStateNode
-                    self.rootNode.AlliesActionParent = None
-                    self.rootNode.EnemiesActionParent = None
-                    self.rootNode.StateParent = None
-
-                    import Queue
-                    CandidateStates = Queue.Queue()
-                    root = self.rootNode
-                    CandidateStates.put( ( root ) )
-                    num = 0
-                    novelnum = 0 
-                    while not CandidateStates.empty():              
-                        CurrentState = CandidateStates.get()
-                        CurrentState.depth = CurrentState.depth - 1 
-                        num += 1
-                        if CurrentState.novel:
-                            novelnum += 1
-                        for successor in CurrentState.SuccStateNodeDict.values():
-                            CandidateStates.put( successor ) 
-                    print num, novelnum
-                    self.leaf = num
-                    self.novelleaf = novelnum
-                    return self.rootNode
-                    
-            return None   
-
-   
-
-    #def chooseAction( self, GameState ):
-        """
-        print "="* 25, "new process", "="*25
-        self.count =+ 1
-        print self.count
-        start = time.time()
-        self.rootNode = self.TreeReuse( GameState )
-        if self.rootNode is None:
-            self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
-        print "="*50
-        print "Start Position",self.rootNode.IndexPositions
-        print "="*50  
-
-        iters = 0
-        running_time = 0.0
-        if self.novelleaf is None or self.novelleaf < 500:             
-            while( iters < 2 and running_time < 10 ):        
-                node = self.Select()
-                if node is None:
-                    print "Invalid Selections"
-                    print iters
-                    iters += 1
-                    if node == self.rootNode or id(node) == id(self.rootNode):
-                        raise Exception("MCTS/chooseAction: No Node in the tree is novel")
-                    continue
-                print "iters",iters, "select node position:", node.IndexPositions               
-                self.ParallelGenerateSuccNode( node )
-                end = time.time()
-                running_time = end - start
-                iters += 1
-             
-        print "iters", iters  
-        self.LastRootNode = self.rootNode
-        bestActions = self.rootNode.getBestActions()
-        bestAction = bestActions[0]
-        print "="*50
-        print "="*50
-        print "Positions:", self.rootNode.IndexPositions
-        print "index:", self.index, "beseAction:", bestAction
-        print "=" * 50
-        print "="*50
-        return bestAction
-        """
-    def Select( self ):
-        currentNode = self.rootNode
-        while True:
-            if not currentNode.novelTest:
-                if currentNode.isFullExpand():
-                    raise Exception("This node should be FullExpand!")
-                return currentNode
-            else:
-                currentNode = currentNode.UCB1ChooseSuccNode()
-                if currentNode is None:
-                    #raise Exception( "No StateNode in tree is novel!")
-                    return None 
-
-    def ParallelGenerateSuccNode(self, CurrentStateNode):
-
-        def PlayOut3( CurrentStateInfo ):
-            t1 = time.time()
-            GameState, InitialAction = CurrentStateInfo
-            print InitialAction, "playout begin!"      
-
-            #n1 = SimulateAgentV1( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-            a1s = n1.chooseAction( GameState, 2 )
-            n2 = SimulateAgentV1( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-            a2s = n2.chooseAction( GameState, 2 )
-
-            a12s = list( itertools.product( a1s , a2s ) )
-            if len( a12s ) > 3:
-                a12s = a12s[:3]
-
-            m1 = SimulateAgentV1( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-            b1s = m1.chooseAction( GameState, 2 )
-            m2 = SimulateAgentV1( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance )
-            b2s = m2.chooseAction( GameState, 2 )
-
-            b12s = list( itertools.product( b1s, b2s ) )
-            if len(b12s) > 3:
-                b12s = b12s[:3]
-
-            ActionList = tuple( itertools.product( a12s, b12s ) )
-
-            ActionSeriesList = [ None, ] * len( ActionList )
-            for index in range( len( ActionList ) ):
-                ActionSeriesList[ index ] = [ InitialAction, ] 
-
-            n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-            n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-            m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-            m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance ) 
-
-            for index, Actions in enumerate(ActionList):
-                ActionSeriesList[ index ].append( Actions )
-                iters = 0
-                CurrentGameState = copy.deepcopy( GameState )
-                for Agent, Action in zip( self.allies + self.enemies, Actions[0] + Actions[1] ):
-                    CurrentGameState = CurrentGameState.generateSuccessor( Agent, Action )
-              
-                while iters < ( self.ROLLOUT_DEPTH - 1 ):
-
-                    a1 = n1.chooseAction( CurrentGameState )
-                    a2 = n2.chooseAction( CurrentGameState )
-
-                    b1 = m1.chooseAction( CurrentGameState )
-                    b2 = m2.chooseAction( CurrentGameState )
-
-                    Actions = ( a1, a2, b1, b2 )
-                    for Agent, Action in zip( self.allies + self.enemies, Actions):
-                        CurrentGameState = CurrentGameState.generateSuccessor( Agent, Action )
-                        
-                    iters += 1
-                    ActionSeriesList[ index ].append( ( ( a1, a2 ) , ( b1, b2 ) ) )     
-
-            t2 = time.time()
-            print InitialAction, t2 - t1
-
-            return ActionSeriesList
-
-        def PlayOut2( CurrentStateInfo ): 
-
-            CurrentStateNode, Action = CurrentStateInfo
-            time1 = time.time()
-            print Action, "playout begin!"       
-            n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
-                                 self.getMazeDistance)
-            a1s = n1.chooseAction(CurrentStateNode.GameState, 2)
-            n2 = SimulateAgentV1(self.allies[1], self.allies, self.enemies, CurrentStateNode.GameState,
-                                 self.getMazeDistance)
-            a2s = n2.chooseAction(CurrentStateNode.GameState, 2)
-            a12s = list(itertools.product(a1s, a2s))
-
-            if len(a12s) > 3:
-                a12s = a12s[:3]
-            m1 = SimulateAgentV1(self.enemies[0], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance)
-            b1s = m1.chooseAction(CurrentStateNode.GameState, 2)
-            m2 = SimulateAgentV1(self.enemies[1], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance)            
-            b2s = m2.chooseAction(CurrentStateNode.GameState, 2)
-            b12s = list(itertools.product(b1s, b2s))
-            if len(b12s) > 3:
-                b12s = b12s[:3]
-            actions = tuple(itertools.product(a12s, b12s))
-
-            # print actions
-            # print "actions:",len(actions)
-            # if CurrentStateNode.StateParent == self.rootNode or id(CurrentStateNode.StateParent) == id(self.rootNode):
-            #     print "Play out CurrentNode == rootNode" 
-  
-            n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
-            n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
-            m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance )
-            m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance )
+        CurrentNodeList = []
+        for i in range(len(actions)):
+            iters = 0
+            #print CurrentStateNode.LegalActions
+            #print actions[i]
+            CopyCurrentStateNode = CurrentStateNode.ChooseSuccNode(actions[i])
            
-            CurrentNodeList = []
-            for i in range(len(actions)):
-                iters = 0
-                #print CurrentStateNode.LegalActions
-                #print actions[i]
-                CopyCurrentStateNode = CurrentStateNode.ChooseSuccNode(actions[i])
-               
-                while iters < (self.ROLLOUT_DEPTH - 1):
+            while iters < (self.ROLLOUT_DEPTH - 1):
 
-                    a1 = n1.chooseAction( CopyCurrentStateNode.GameState )
-                    a2 = n2.chooseAction( CopyCurrentStateNode.GameState )
+                a1 = n1.chooseAction( CopyCurrentStateNode.GameState )
+                a2 = n2.chooseAction( CopyCurrentStateNode.GameState )
 
-                    b1 = m1.chooseAction( CopyCurrentStateNode.GameState )
-                    b2 = m2.chooseAction( CopyCurrentStateNode.GameState )
-                    CopyCurrentStateNode = CopyCurrentStateNode.ChooseSuccNode(((a1, a2), (b1, b2)))
-                    iters += 1
-                CurrentNodeList.append(CopyCurrentStateNode)
+                b1 = m1.chooseAction( CopyCurrentStateNode.GameState )
+                b2 = m2.chooseAction( CopyCurrentStateNode.GameState )
+                CopyCurrentStateNode = CopyCurrentStateNode.ChooseSuccNode(((a1, a2), (b1, b2)))
+                iters += 1
+            CurrentNodeList.append(CopyCurrentStateNode)
 
-            time2 = time.time()
-            print Action, time2 - time1
+        time2 = time.time()
+        print Action, time2 - time1
 
-            return Action, CurrentStateNode, CurrentNodeList
+        return Action, CurrentStateNode, CurrentNodeList
 
-        def PlayOut4( poses ):
-            print "start"
-            pos1, pos2 = poses
-            time.sleep(1)
-            print "finish"
-            return self.getMazeDistance( pos1, pos2)
-
-        if not CurrentStateNode.novelTest:
-            print "ParallelGenerateSuccNdoe novelTest"
-            # f = CurrentStateNode.ChooseSuccNode()
-            # SuccStateNodes = self.pool.map(CurrentStateNode.ChooseSuccNode, CurrentStateNode.LegalActions)
-            SuccStateNodes = []
-            for actions in CurrentStateNode.LegalActions:
-                SuccStateNode = CurrentStateNode.ChooseSuccNode( actions )
-                SuccStateNodes.append( SuccStateNode )
-            if len(SuccStateNodes) != len(CurrentStateNode.LegalActions) or\
-               len(CurrentStateNode.AlliesSuccActionsNodeDict) != len(CurrentStateNode.LegalAlliesActions) or\
-               len(CurrentStateNode.EnemiesSuccActionsNodeDict) != len(CurrentStateNode.LegalEnemiesActions):
-                raise Exception("Parallel goes wrong!")
-            cacheMemory = [CurrentStateNode.NoveltyTestSuccessorsV1(0), CurrentStateNode.NoveltyTestSuccessorsV1(1)]
-            CurrentStateNode.getSuccessorNovel(cacheMemory)
-           # for each in CurrentStateNode.AlliesSuccActionsNodeDict.items():
-           #     print each[0],each[1].novel
-           # print 'x'*80
-           # for each in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
-           #     print each[0],each[1].novel
-        else:
-            raise Exception("The novelTest of this node should be False!")
-
-        #CurrentCopyInfo = []
-        CurrentInfo = []
-        for Actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
-            if SuccStateNode.novel:
-                CurrentInfo.append( ( SuccStateNode, Actions ) )
-                #CopySuccStateNode = copy.deepcopy( SuccStateNode )
-                #CopySuccStateNode.AlliesActionParent = None
-                #CopySuccStateNode.EnemiesActionParent = None
-                #CopySuccStateNode.StateParent = None 
-                #CurrentCopyInfo.append( ( CopySuccStateNode, Actions ) ) 
-
-        if len( CurrentInfo ) == 0:
-            CurrentStateNode.novel = False
-            return
-
-        print "The number of branch is:", len(CurrentInfo)
-
-        if len(CurrentInfo) > 2:
-            GameState = CurrentStateNode.GameState
-            self.a1 = SimulateAgentV1( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-            self.a2 = SimulateAgentV1( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-
-            self.b1 = SimulateAgentV1( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-            self.b2 = SimulateAgentV1( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance )
-
-            self.n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-            self.n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-
-            self.m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-            self.m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance )
-            
-
-            p = mp.ProcessPool( 4 )
-            #p = mp.Pool( processes=4 )  
-            t1 = time.time()
-
-            GameStateList = [ ( copy.deepcopy( CurrentState.GameState ), Action ) for CurrentState, Action in CurrentInfo ]
-            print "Parallel Begin"
-
-            ActionSeriesLists = []
-            results = []
-            for gs in GameStateList:
-                results.append( p.apipe( self.PlayOut3, gs ) ) 
-            for r in results:
-                ActionSeriesLists.append( r.get() )
-
-            p.close()
-            p.join()
-            p.clear()
-
-            p = mp.ProcessPool( 4 )
-            HelpLists = []
-            results = []
-            for _ in range(10):
-                results.append( p.apipe( PlayOut4, ((10,1),(30,14)) ) ) 
-            for r in results:
-                HelpLists.append( r.get() )
-
-            p.close()
-            p.join()
-            p.clear()
-
-                                              #ActionSeriesLists = p.map( PlayOut3, GameStateList )
-            #results = p.amap( PlayOut3, GameStateList )
-            #while not results.ready():
-            #    time.sleep(0.1)
-            #ActionSeriesLists = results.get()
-            #HelpList = []
-            #for each in GameStateList:
-            #    HelpList.append( p.apply_async( self.PlayOut3, args=(each,) ) )   
-            #p.close()
-            #p.join()
-            #ActionSeriesLists = []  
-            #for each in HelpList:
-            #    ActionSeriesLists.append( each.get() ) 
-
-            t2 = time.time()
-            print "Parallel Finish!", t2 - t1
-
-            for ActionSeriesList in ActionSeriesLists:
-                for ActionSeries in ActionSeriesList:
-                    EndStateNode = CurrentStateNode.update( ActionSeries )
-                    self.BackPropagate(EndStateNode)
-            t3 = time.time()        
-            print "BackPropagate Finish!", t3 - t1      
-        else:
-            for info in CurrentInfo:
-                _, _, EndStateNodeList = PlayOut2( info )
-                for EndStateNode in EndStateNodeList: 
-                    self.BackPropagate( EndStateNode )
-
-    def PlayOut( self, CurrentNode ):
-        iters = 0
-        while iters < self.ROLLOUT_DEPTH:
-            n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, CurrentNode.GameState, self.getMazeDistance )
-            a1 = n1.chooseAction( CurrentNode.GameState )
-            n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, CurrentNode.GameState, self.getMazeDistance )
-            a2 = n2.chooseAction( CurrentNode.GameState )
-
-            m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, CurrentNode.GameState, self.getMazeDistance )
-            b1 = m1.chooseAction( CurrentNode.GameState )
-            m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, CurrentNode.GameState, self.getMazeDistance )
-            b2 = m2.chooseAction( CurrentNode.GameState )
-            CurrentNode = CurrentNode.ChooseSuccNode( ((a1,a2),(b1,b2)) )
-            iters += 1
-
-        return CurrentNode
-
-    def PlayOut1( self, CurrentNode ):
-        iters = 0
-        while iters < self.ROLLOUT_DEPTH:
-            CurrentNode = CurrentNode.ChooseSuccNode()
-            iters += 1
-        return CurrentNode
 
     def BackPropagate( self, endNode):
-        #print "backPropagate"
         """
         In ExploreNode.getSupScore, self.distance_layout is used!
         """
@@ -1804,145 +1122,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 currentNode.EnemiesActionParent.nVisit += 1
             currentNode.totalValue += score
             currentNode.nVisit += 1
-            """
-            if currentNode.StateParent is None:
-                print currentNode.IndexPositions
-                print id(currentNode)
-                print id(self.rootNode)
-            if currentNode == self.rootNode or id(currentNode) == id(self.rootNode):
-                print "rootNode"
-                print currentNode.IndexPositions
-                print currentNode.nVisit
-                print currentNode.totalValue
-            """    
+
             currentNode = currentNode.StateParent
-
-    def PlayOut3( self, CurrentStateInfo ):
-        t1 = time.time()
-        GameState, InitialAction = CurrentStateInfo
-        print InitialAction, "playout begin!"      
-
-        a1 = SimulateAgentV1( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-        a1s = a1.chooseAction( GameState, 2 )
-        a2 = SimulateAgentV1( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-        a2s = a2.chooseAction( GameState, 2 )
-
-        a12s = list( itertools.product( a1s , a2s ) )
-        if len( a12s ) > 3:
-            a12s = a12s[:3]
-
-        b1 = SimulateAgentV1( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-        b1s = b1.chooseAction( GameState, 2 )
-        b2 = SimulateAgentV1( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance )
-        b2s = b2.chooseAction( GameState, 2 )
-
-        b12s = list( itertools.product( b1s, b2s ) )
-        if len(b12s) > 3:
-            b12s = b12s[:3]
-
-        ActionList = tuple( itertools.product( a12s, b12s ) )
-
-        ActionSeriesList = [ None, ] * len( ActionList )
-        for index in range( len( ActionList ) ):
-            ActionSeriesList[ index ] = [ InitialAction, ] 
-
-        n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, GameState, self.getMazeDistance )
-        n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, GameState, self.getMazeDistance )
-        m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, GameState, self.getMazeDistance )
-        m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, GameState, self.getMazeDistance ) 
-
-        for index, Actions in enumerate(ActionList):
-            ActionSeriesList[ index ].append( Actions )
-            iters = 0
-            CurrentGameState = copy.deepcopy( GameState )
-            for Agent, Action in zip( self.allies + self.enemies, Actions[0] + Actions[1] ):
-                CurrentGameState = CurrentGameState.generateSuccessor( Agent, Action )
-          
-            while iters < ( self.ROLLOUT_DEPTH - 1 ):
-
-                a1 = n1.chooseAction( CurrentGameState )
-                a2 = n2.chooseAction( CurrentGameState )
-
-                b1 = m1.chooseAction( CurrentGameState )
-                b2 = m2.chooseAction( CurrentGameState )
-
-                Actions = ( a1, a2, b1, b2 )
-                for Agent, Action in zip( self.allies + self.enemies, Actions):
-                    CurrentGameState = CurrentGameState.generateSuccessor( Agent, Action )
-                    
-                iters += 1
-                ActionSeriesList[ index ].append( ( ( a1, a2 ) , ( b1, b2 ) ) )     
-
-        t2 = time.time()
-        print InitialAction, t2 - t1
-        return ActionSeriesList
-
-    def PlayOut4( self, poses ):
-        print "start"
-        pos1, pos2 = poses
-        time.sleep(1)
-        print "finish"
-        return self.getMazeDistance( pos1, pos2)
-
-
-class someClass(object):
-    def __init__( self, gameState ):
-        self.c = 4
-        self.GameState = gameState
-        self.getMazeDistance = Distancer( gameState.data.layout ).getDistancer
-        pass
-
-    def f(self, i,j):
-        print i,j,"begin"
-        t1 = time.time()
-        v = pow(i,j)
-        for t in range(1,v):
-            s = np.log(t)
-        t2 = time.time()
-        t = t2 - t1
-        print i,"finish",t,t2
-        
-        print "anyClass"
-        #A = anyClass()
-        #dictw = A.f( 100 )
-        print dictw[str(1000)]
-        return s
-
-    def playout4( self, poses ):
-        print "start"
-        pos1, pos2 = poses
-        time.sleep(1)
-        print "finish"
-        return self.getMazeDistance( pos1, pos2)
-
-    def go1( self ):
-        p = mp.ProcessPool( 4 )
-        HelpLists = []
-        results = []
-        for _ in range(10):
-            results.append( p.apipe( self.playout4, ((10,1),(30,14)) ) ) 
-        for r in results:
-            HelpLists.append( r.get() )
-
-        p.close()
-        p.join()
-        p.clear()
-        
-
-    def go(self):
-        #pool = multiprocessing.Pool( processes = 4 )    
-        #a = [ 10, 10, 10, 10] 
-        #print pool.map(self.f, a)
-        al = list(range(151,156))
-        bl = [3,3,3,3,3]
-        results = []
-        pool = mp.ProcessPool( nodes = 4 )
-
-        for a, b in zip( al, bl ):
-            results.append( pool.apipe( self.f, a, b ) )
-        for r in results:
-            print r.get()
-        pool.close()
-        pool.join()
-        pool.clear()
-
+  
+       
