@@ -1020,6 +1020,13 @@ class MCTSCaptureAgent(CaptureAgent):
 
             return Action, CurrentStateNode, CurrentNodeList
 
+        def PlayOut4( poses ):
+            print "start"
+            pos1, pos2 = poses
+            time.sleep(1)
+            print "finish"
+            return self.getMazeDistance( pos1, pos2)
+
         if not CurrentStateNode.novelTest:
             print "ParallelGenerateSuccNdoe novelTest"
             # f = CurrentStateNode.ChooseSuccNode()
@@ -1092,10 +1099,11 @@ class MCTSCaptureAgent(CaptureAgent):
             p.join()
             p.clear()
 
+            p = mp.ProcessPool( 4 )
             HelpLists = []
             results = []
             for _ in range(10):
-                results.append( p.apipe( self.PlayOut4, ((10,1),(30,14)) ) ) 
+                results.append( p.apipe( PlayOut4, ((10,1),(30,14)) ) ) 
             for r in results:
                 HelpLists.append( r.get() )
 
