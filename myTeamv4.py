@@ -716,7 +716,6 @@ class SimulateAgentV1( SimulateAgent ):
 
         return TopAction
 
-
 class Distancer:
 
     def __init__( self, layout ):
@@ -765,7 +764,7 @@ class Distancer:
         for i,poi in enumerate(self.positions):
             distanceList = []
             for j,poi2 in enumerate(self.positions):
-                if j >= i:
+                if j <= i:
                     distanceList.append(self.positions_dict[poi][poi2])
             self.DistanceMatrix.append(distanceList)
 
@@ -777,10 +776,10 @@ class Distancer:
         """
         index1 = self.positions.index(pos1)
         index2 = self.positions.index(pos2)
-        if index1 <= index2:
-            return self.positions_dict[index1][index2]
+        if index1 >= index2:
+            return self.DistanceMatrix[index1][index2]
         else:
-            return self.positions_dict[index2][index1]
+            return self.DistanceMatrix[index2][index1]
 
 class ParallelAgent:
     def __init__( self, allies, enemies, ROLLOUT_DEPTH, getMazeDistance ):
