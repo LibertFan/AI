@@ -26,9 +26,6 @@ import random, time, util, sys
 from game import Directions
 import game
 from util import nearestPoint
-import psyco ;
-psyco.jit()
-from psyco.classes import *
 
 #################
 # Team creation #
