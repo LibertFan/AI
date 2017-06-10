@@ -803,24 +803,45 @@ class ParallelAgent:
         self.allies = allies
         self.enemies = enemies
         self.PositionDictManager = PositionsDict
-        self.getMazeDistance = getMazeDistance
+
+        print "What are the keys like ?"
+        k1 = self.PositionDictManager.keys()[0]
+        print k1
+        print self.PositionDictManager[k1].keys()[0]
+         
+
+        self.getMazeDistancev1 = getMazeDistance
         self.ROLLOUT_DEPTH = ROLLOUT_DEPTH
 
-    #def PlayOut3(self, CurrentStateInfo ):
-    #    GameState, InitialAction, PositionDict = CurrentStateInfo
+    def getMazeDistance( self, pos1, pos2 ):
+        try:
+            return self.PositionDictManager[ pos1 ][ pos2 ]
+        except:
+            print "sad news", pos1, pos2
+            raise Exception
+            return 0
+
+
     def PlayOut3(self, GameState, InitialAction, PositionDict ): 
         #print "PlayOut3 Initial playout",PositionDict[(1,10)][(30,1)]
-        
+        """
         PositionDictM = PositionDict
         def getMazeDistance( pos1, pos2 ):
             #print pos1, pos2
-            try:
-                #print "try"
-                return 10
-            except:
-                print pos1, pos2
-                raise Exception
-
+            iters = 0
+            while True:
+                try:
+                    #iters += 1
+                    #if iters > 2:
+                        
+                    return PositionDictM[pos1][pos2]
+                except:
+                    #continue
+                    print "something goes wrong!",pos1, pos2
+                    raise Exception
+        print getMazeDistance( (1.0,2.0),(17,6))
+        print getMazeDistance( (1.0,2.0),(21,12))
+        """
         PositionDict = None
       
         t1 = time.time()
@@ -844,6 +865,7 @@ class ParallelAgent:
         b12s = list( itertools.product( b1s, b2s ) )
         if len(b12s) > 3:
             b12s = b12s[:3]
+        print "Simulate two Finish"
 
         ActionList = tuple( itertools.product( a12s, b12s ) )
 
@@ -882,12 +904,23 @@ class ParallelAgent:
         print InitialAction, t2 - t1
         return ActionSeriesList
 
-    def PlayOut4( self, poses ):
+    def PlayOut4( self, poses, PositionDict ):
+        def getMazeDistance( pos1, pos2 ):
+            #print pos1, pos2
+            try:
+                #print "try"
+                return PositionDict[pos1][pos2]
+            except:
+                print pos1, pos2
+                raise Exception
+
         print "start"
         pos1, pos2 = poses
+        val = getMazeDistance( pos1, pos2)
         time.sleep(1)
-        print "finish"
-        return self.getMazeDistance( pos1, pos2)
+        print "finish",val
+
+        return val
 
     def P2( self ):
         t1 = time.time()
@@ -895,7 +928,7 @@ class ParallelAgent:
         HelpLists = []
         results = []
         for _ in range(10):
-            results.append( p.apipe( self.PlayOut4, ((10,1),(30,14)) ) ) 
+            results.append( p.apipe( self.PlayOut4, ((10,1),(30,14)) , self.PositionDictManager ) )
         for r in results:
             HelpLists.append( r.get() )
 
@@ -910,12 +943,12 @@ class ParallelAgent:
         #p = mp.Pool( processes=4 )  
         t1 = time.time()
         GameStateList = [ ( copy.deepcopy( CurrentState.GameState ), Action ) for CurrentState, Action in CurrentInfo ]
-
+        
         print "Parallel Begin"
         ActionSeriesLists = []
         results = []
         for gs, a in GameStateList:
-            results.append( p.apipe( self.PlayOut3, gs, a, None ) ) 
+            results.append( p.apipe( self.PlayOut3, gs, a, self.PositionDictManager ) ) 
         for r in results:
             ActionSeriesLists.append( r.get() )
 
@@ -944,21 +977,21 @@ class MCTSCaptureAgent(CaptureAgent):
         self.D = Distancer( gameState.data.layout )
         self.PositionDict = self.D.positions_dict
         self.getMazeDistance = self.D.getDistancer
-
-        mgr = multiprocessing.Manager()
-        PositionDictManager = mgr.dict()
+       
+        self.mgr = multiprocessing.Manager()
+        self.PositionDictManager = self.mgr.dict()
         for k1 in self.PositionDict.keys():
-            print type(self.PositionDict[k1])
-            PositionDictManager[k1] = self.PositionDict[k1]
+            self.PositionDictManager[k1] = self.PositionDict[k1]
             #for k2 in self.PositionDict[k1].keys():
             #    val = self.PositionDict[k1][k2]
             #    PositionDictManager[k1][k2] = val
-        print "set Parallel"
-        print "simulate",PositionDictManager[(30,1)][(6,1)]
-        #self.PositionDictManager = PositionDictManager
-
+        
+        #print "set Parallel"
+        #print "simulate",self.PositionDict[(1.0,3.0)][(17,6)],self.PositionDictManager[(1.0,3.0)][(17,6)]
+        #print type(self.PositionDict), type(self.PositionDictManager)
+        #raise Exception
         self.ChildParallelAgent = ParallelAgent( self.allies, self.enemies, self.ROLLOUT_DEPTH,\
-                                                 PositionDictManager, self.getMazeDistance )
+                                                 self.PositionDictManager, self.getMazeDistance )
 
     def TreeReuse( self, GameState):
         print "TreeReuse is used"
@@ -1088,9 +1121,9 @@ class MCTSCaptureAgent(CaptureAgent):
         ### Parallel Begin
         if len(CurrentInfo) > 2:
             #print CurrentInfo
+            self.ChildParallelAgent.P2()
             ActionSeriesLists = self.ChildParallelAgent.P1( CurrentInfo )
             ### test parallel
-            self.ChildParallelAgent.P2()
             for ActionSeriesList in ActionSeriesLists:
                 for ActionSeries in ActionSeriesList:
                     EndStateNode = CurrentStateNode.update( ActionSeries )
