@@ -50,7 +50,6 @@ class StateNode( BasicNode ):
             self.Bound = self.getBound()
             self.depth = 0
         elif GameState is None:
-            self.GameState = GameState
             self.allies = self.StateParent.allies
             self.enemies = self.StateParent.enemies
             self.index = self.allies[0]
@@ -58,7 +57,15 @@ class StateNode( BasicNode ):
             self.Bound = self.StateParent.Bound
             CurrentGameState = self.StateParent.GameState
             for index, action in self.LastActions.items():
-                CurrentGameState = CurrentGameState.generateSuccessor( index, action )
+		try:
+                    CurrentGameState = CurrentGameState.generateSuccessor( index, action )
+                except:
+		    print index, action, StateParent.GameState.getAgentState( index ).getPosition()
+                    CurrentStateNode = StateParent
+                    while CurrentStateNode is not None:
+                        print CurrentStateNode.IndexPositions[ index ], CurrentStateNode.GameState.getAgentState( index ).getPosition()
+                        CurrentStateNode = CurrentStateNode.StateParent 
+                    raise Exception 
             self.GameState = CurrentGameState
             self.depth = self.StateParent.depth + 1 
         # self.LegalIndexActions is an auxiliary variables that store a dict which key is the agent index 
@@ -145,7 +152,16 @@ class StateNode( BasicNode ):
             if len( self.LegalAlliesActions ) != len( self.AlliesSuccActionsNodeDict.keys() ) \
             or len( self.LegalEnemiesActions ) != len( self.EnemiesSuccActionsNodeDict.keys() ):
                 raise Exception( " This StateNode should not be determined as 'FullExpand' " )
-            self.FullExpand = True
+            flag = 0
+            for SuccStateNode in self.SuccStateNodeDict.values():
+                if SuccStateNode.novel and SuccStateNode.nVisit == 0:
+                    flag = 1
+                    break
+            if flag == 1:
+                self.FullExpand = False
+            else:
+                self.FullExpand = True             
+  
         return self.FullExpand
 
     ### RandChooseLeftActions is applied in MCTS select
@@ -242,6 +258,7 @@ class StateNode( BasicNode ):
             ### The format of AlliesActionNode and EnenmiesAcrionNode should be dict instead of list!
             AlliesActions = dict( zip( self.allies, ChosedAlliesAction ) )
             EnemiesActions = dict( zip( self.enemies, ChosedEnemiesAction ) )
+            print type(AlliesActions), type(EnemiesActions), type(self)
             SuccStateNode = StateNode( AlliesActions = AlliesActions, EnemiesActions = EnemiesActions,\
                             AlliesActionNodeParent = AlliesActionNode, EnemiesActionNodeParent = EnemiesActionNode, StateParent = self )
             self.SuccStateNodeDict[ ChosedActions ] = SuccStateNode
@@ -252,7 +269,7 @@ class StateNode( BasicNode ):
     ### Expand the StateNode fully 
     ### Del those unnovel nodes( replace them with instances of ReplaceNode )
     ### return the list of NovelSuccStateNode 
-    def FullExpand( self ):
+    def FullExpandFunc( self ):
         if not self.novelTest:
             SuccStateNodeList = []
             for actions in self.LegalActions:
@@ -260,60 +277,58 @@ class StateNode( BasicNode ):
             cacheMemory = [ self.NoveltyTestSuccessorsV1(0), self.NoveltyTestSuccessorsV1(1)]
             self.getSuccessorNovel( cacheMemory )                  
 
-            NovelSuccActionStateNodeList = [] 
-            for actions, SuccStateNode in self.SuccStateNodeDict.items():
-                if not SuccStateNode.novel:
-                    rn = ReplaceNode()
-                    self.SuccStateNodeDict[ actions ] = rn
-                    ### delete an instance of StateNode
-                    del SuccStateNode 
-                else:
-                    NovelSuccActionStateNodeList.append( (actions, SuccStateNode) ) 
-        else:
-            NovelSuccActionStateNodeList = [] 
-            for actions, SuccStateNode in self.SuccStateNodeDict.items():
-                if not SuccStateNode.novel:
-                    rn = ReplaceNode()
-                    self.SuccStateNodeDict[ actions ] = rn
-                    ### delete an instance of StateNode
-                    del SuccStateNode 
-                else:                 
-                    NovelSuccActionStateNodeList.append( ( actions, SuccStateNode ) )  
+        NovelSuccActionStateNodeList = [] 
+        for actions, SuccStateNode in self.SuccStateNodeDict.items():
+            if not SuccStateNode.novel:
+                rn = ReplaceNode( SuccStateNode.depth )
+                self.SuccStateNodeDict[ actions ] = rn
+                ### delete an instance of StateNode
+                del SuccStateNode 
+            else:
+                NovelSuccActionStateNodeList.append( ( SuccStateNode, actions ) ) 
 
         return NovelSuccActionStateNodeList           
-
+    
+    def getNovelSuccStateNodeList( self ):
+        NovelSuccActionStateNodeList = [] 
+        for actions, SuccStateNode in self.SuccStateNodeDict.items():
+            if SuccStateNode.novel:                 
+                NovelSuccActionStateNodeList.append( ( SuccStateNode, actions ) )  
+        return NovelSuccActionStateNodeList
+    
     ### Return top K NovelSuccStateNode in score!
     ### If the number of NovelSuccStateNode is less than k, return them all and the 
-    def getTopKSuccStateNode( self, K, PreActions = [] ):        
-        NovelSuccActionStateNodeList = self.FullExpand()
+    def getSortedSuccStateNodes( self, K, PreActions = [] ):
+        if not self.novelTest:        
+            raise Exception(" CurrentStateNode is not fully expanded") 
 
-        if K >= len( NovelSuccActionStateNodeList ):
-            NewNovelSuccActionStateNodeList = []     
-            for actions, SuccStateNode in TopKNovelSuccStateNodeList: 
-                NewNovelSuccActionStateNodeList.append( ( PreActions + [ actions, ], SuccStateNode ) )  
-           return NewNovelSuccActionStateNodeList, K - len(NovelSuccActionStateNodeList) 
-        else:
-            NovelScoreSuccStateNodeList = [] 
-            for actions, SuccStateNode in NovelSuccStateNodeList:
-                AlliesActions, EnemiesActions = actions
-                AlliesActionNode = self.AlliesSuccActionsNodeDict[ AlliesActions ]
-                EnemiesActionNode = self.EnemiesSuccActionsNodeDict[ EnemiesActions ]                  
-                NovelScoreSuccStateNodeList.append( ( actions, SuccStateNode, AlliesActionNode.getLatentScore(), EnemiesActionNode.getLatentScore() ) )
-            TopKNovelSuccStateNodeList = sorted( NovelScoreSuccStateNodeList, keys = lambda x:( x[-2], x[-1] ), reverse = True )[1:K]        
-            NewNovelSuccActionStateNodeList = []     
-            for actions, SuccStateNode, _, _ in TopKNovelSuccStateNodeList: 
-                NewNovelSuccActionStateNodeList.append( ( PreActions + [ actions, ], SuccStateNode ) )  
-            return NewNovelSuccActionStateNodeList, K - len(NovelSuccActionStateNodeList) 
-             
-    """ 
-    The following method is used to compute the LatentScore the process of playout when the final score has no change with the original one!
+        ### the following list is None !
+        NovelSuccActionStateNodeList = self.getNovelSuccStateNodeList()
+        if NovelSuccActionStateNodeList == 0:
+            raise Exception("No Successive Node is Novel in node.py's function getSortedSuccStateNodes ")           
  
-    getBound is used to scale the features value to interval [ 0, 0.5 ], and we name the final score as LatentScore!
-    getFeatures is used to compute the features in 
-    getWeights returns a dictionary that record the different features and their corresponding weight
-    getLatentScore is used to
+        NovelScoreSuccStateNodeList = [] 
+        for SuccStateNode, actions in NovelSuccActionStateNodeList:
+            AlliesActions, EnemiesActions = actions
+            AlliesActionNode = self.AlliesSuccActionsNodeDict[ AlliesActions ]
+            EnemiesActionNode = self.EnemiesSuccActionsNodeDict[ EnemiesActions ]                  
+            NovelScoreSuccStateNodeList.append( ( actions, SuccStateNode, AlliesActionNode.getLatentScore(), EnemiesActionNode.getLatentScore() ) )
+        try:
+            SortedNovelSuccStateNodeList = sorted( NovelScoreSuccStateNodeList, key = lambda x:( x[-2], x[-1] ) )[:K]    
+        except:
+            print NovelScoreSuccStateNodeList
+            raise Exception
+    
+        NewNovelSuccActionStateNodeList = []     
+        for actions, SuccStateNode, _, _ in NovelScoreSuccStateNodeList: 
+            NewNovelSuccActionStateNodeList.append( ( SuccStateNode, PreActions + [ actions, ] ) )  
+        return NewNovelSuccActionStateNodeList, K - len( NewNovelSuccActionStateNodeList )
 
-    """
+    # The following method is used to compute the LatentScore the process of playout when the final score has no change with the original one! 
+    # getBound is used to scale the features value to interval [ 0, 0.5 ], and we name the final score as LatentScore!
+    # getFeatures is used to compute the features in 
+    # getWeights returns a dictionary that record the different features and their corresponding weight
+    # getLatentScore is used to
 
     def getLatentScore( self ):
         weights = self.getWeights()
@@ -473,19 +488,20 @@ class ActionNode( BasicNode ):
         self.red = self.GameState.isOnRedTeam(self.allies[0])
         self.nVisit = 0
         self.totalValue = 0.0
-		self.LatentScore = None
+        self.LatentScore = None
 	
-	def getLatentScore( self ):
-		if self.LatentScore is not None:
+    def getLatentScore( self ):
+        if self.LatentScore is not None:
             return self.LatentScore
         else:
-		    LatentScore = 0
-		    for index, action in zip( self.allies, self.LastActions ):
-			    LatentScore += self.getIndexFeatures( self.StateParent.GameState, action, index ) * self.getWeights	
-		    self.LatentScore = LatentScore
+	    LatentScore = 0
+       
+	    for index, action in zip( self.allies, list(self.LastActions) ):
+		LatentScore += self.getIndexFeatures( self.StateParent.GameState, action, index ) * self.getWeights()	
+	    self.LatentScore = LatentScore
             return self.LatentScore  
 
-	def getWeights( self ):
+    def getWeights( self ):
         return {'eats-invader': 5, 'invaders-1-step-away': 0, 'teammateDist': 1.5, 'closest-food': -1,
                 'eats-capsules': 10.0, '#-of-dangerous-ghosts-1-step-away': -20, 'eats-ghost': 1.0,
                 '#-of-harmless-ghosts-1-step-away': 0.1, 'stopped': -5, 'eats-food': 1}
@@ -498,13 +514,11 @@ class ActionNode( BasicNode ):
         return foodLeft
 	
     def getIndexFeatures(self, state, action, index):
-
         state = self.StateParent.GameState
-		action = self.LastActions 
         food = self.getFood( state ) 
         foodList = food.asList()
         walls = state.getWalls()
-        isPacman = self.getSuccessor(state, action).getAgentState(index).isPacman
+        isPacman = self.GameState.getAgentState(index).isPacman
 
         # Zone of the board agent is primarily responsible for
         zone = (index - index % 2) / 2
