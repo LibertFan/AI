@@ -236,7 +236,7 @@ class MCTSCaptureAgent(CaptureAgent):
 
 
     def ParallelGenerateSuccNode(self, CurrentStateNode):
-        NovelSuccActionStateNodeList = CurrentStateNode.FullExpand() 
+        NovelSuccActionStateNodeList = CurrentStateNode.FullExpandFunc()
         for actions, SuccStateNode in NovelSuccActionStateNodeList:
             TopKSuccStateNodeList = self.getTopKSuccStateNodeList( SuccStateNode, [ actions, ] ) 
 

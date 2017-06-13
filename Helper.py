@@ -199,6 +199,7 @@ class ParallelAgent:
 
         return val
 
+    '''
     def P2( self ):
         t1 = time.time()
         p = mp.ProcessPool( 4 )
@@ -237,4 +238,4 @@ class ParallelAgent:
         #print "P1 Finish!", t2 - t1
          
         return ActionSeriesLists
-
+    '''

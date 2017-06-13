@@ -2,16 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6fcc4672-e85a-415d-ab24-6991f0799893" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/BasicNode.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Helper.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/SimulateAgents.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/nodes.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/baselineTeam.py" afterPath="$PROJECT_DIR$/baselineTeam.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/capture.py" afterPath="$PROJECT_DIR$/capture.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/captureAgents.py" afterPath="$PROJECT_DIR$/captureAgents.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BasicNode.py" afterPath="$PROJECT_DIR$/BasicNode.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Helper.py" afterPath="$PROJECT_DIR$/Helper.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/myTeamv4.py" afterPath="$PROJECT_DIR$/myTeamv4.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/score" afterPath="$PROJECT_DIR$/score" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/nodes.py" afterPath="$PROJECT_DIR$/nodes.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -51,8 +45,8 @@
       <file leaf-file-name="myTeamv4.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/myTeamv4.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="84">
-              <caret line="243" column="10" lean-forward="true" selection-start-line="243" selection-start-column="10" selection-end-line="243" selection-end-column="10" />
+            <state relative-caret-position="306">
+              <caret line="233" column="8" lean-forward="true" selection-start-line="233" selection-start-column="8" selection-end-line="233" selection-end-column="8" />
               <folding />
             </state>
           </provider>
@@ -61,7 +55,7 @@
       <file leaf-file-name="myTeamv2.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/myTeamv2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="7371">
+            <state relative-caret-position="431">
               <caret line="352" column="26" lean-forward="false" selection-start-line="352" selection-start-column="21" selection-end-line="352" selection-end-column="26" />
               <folding />
             </state>
@@ -71,8 +65,8 @@
       <file leaf-file-name="capture.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/capture.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5397">
-              <caret line="1058" column="20" lean-forward="false" selection-start-line="1058" selection-start-column="20" selection-end-line="1058" selection-end-column="20" />
+            <state relative-caret-position="144">
+              <caret line="181" column="24" lean-forward="false" selection-start-line="181" selection-start-column="20" selection-end-line="181" selection-end-column="24" />
               <folding>
                 <element signature="e#2321#2351#0" expanded="true" />
               </folding>
@@ -80,21 +74,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="baselineTeam.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/baselineTeam.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="23" column="25" lean-forward="true" selection-start-line="23" selection-start-column="25" selection-end-line="23" selection-end-column="25" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="BasicNode.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/BasicNode.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="315">
-              <caret line="21" column="25" lean-forward="true" selection-start-line="21" selection-start-column="25" selection-end-line="21" selection-end-column="25" />
+            <state relative-caret-position="84">
+              <caret line="43" column="40" lean-forward="true" selection-start-line="43" selection-start-column="40" selection-end-line="43" selection-end-column="40" />
               <folding>
                 <element signature="e#0#38#0" expanded="true" />
               </folding>
@@ -102,13 +86,13 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="captureAgents.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/captureAgents.py">
+      <file leaf-file-name="nodes.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/nodes.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1428">
-              <caret line="72" column="26" lean-forward="false" selection-start-line="72" selection-start-column="26" selection-end-line="72" selection-end-column="26" />
+            <state relative-caret-position="7224">
+              <caret line="344" column="40" lean-forward="true" selection-start-line="344" selection-start-column="40" selection-end-line="344" selection-end-column="40" />
               <folding>
-                <element signature="e#725#747#0" expanded="true" />
+                <element signature="e#0#38#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -135,11 +119,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>ParallelGenerateSuccNode</find>
-      <find>&lt;&lt;&lt;</find>
-      <find>chooseAction</find>
-      <find>SuccStateNodes</find>
-      <find>ChooseSuccNode</find>
       <find>PlayOut1</find>
       <find>SimulateAgentV1</find>
       <find>self.GameState</find>
@@ -165,6 +144,11 @@
       <find>OffensiveReflexAgent</find>
       <find>float</find>
       <find>&lt;&lt;&lt;&lt;</find>
+      <find>parall</find>
+      <find>ChildParallelAgent</find>
+      <find>layout</find>
+      <find>TopKNovelSuccStateNodeList</find>
+      <find>ParallelAgent</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -182,12 +166,15 @@
         <option value="$PROJECT_DIR$/../../Hadoop/homework4/reducer.py" />
         <option value="$PROJECT_DIR$/myTeamv2.py" />
         <option value="$PROJECT_DIR$/myTeamv3.py" />
-        <option value="$PROJECT_DIR$/myTeamv4.py" />
         <option value="$PROJECT_DIR$/SubGameState.py" />
         <option value="$PROJECT_DIR$/captureAgents.py" />
         <option value="$PROJECT_DIR$/myTeam_caesar.py" />
         <option value="$PROJECT_DIR$/capture.py" />
         <option value="$PROJECT_DIR$/baselineTeam.py" />
+        <option value="$PROJECT_DIR$/Helper.py" />
+        <option value="$PROJECT_DIR$/BasicNode.py" />
+        <option value="$PROJECT_DIR$/nodes.py" />
+        <option value="$PROJECT_DIR$/myTeamv4.py" />
       </list>
     </option>
   </component>
@@ -461,7 +448,7 @@
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32846716" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.0" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.010948905" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.09489051" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -510,23 +497,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/capture.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="8106">
-          <caret line="397" column="45" lean-forward="false" selection-start-line="397" selection-start-column="45" selection-end-line="397" selection-end-column="52" />
-          <folding>
-            <element signature="e#2321#2351#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/myTeam.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2583">
-          <caret line="123" column="0" lean-forward="false" selection-start-line="121" selection-start-column="0" selection-end-line="123" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../Transwarp/Dictionary/words/separate/Dictionary_vector.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1113">
@@ -787,14 +757,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/myTeamv2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7371">
-          <caret line="352" column="26" lean-forward="false" selection-start-line="352" selection-start-column="21" selection-end-line="352" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/myTeam.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="97">
@@ -860,30 +822,58 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/capture.py">
+    <entry file="file://$PROJECT_DIR$/Helper.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5397">
-          <caret line="1058" column="20" lean-forward="false" selection-start-line="1058" selection-start-column="20" selection-end-line="1058" selection-end-column="20" />
-          <folding>
-            <element signature="e#2321#2351#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/BasicNode.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="315">
-          <caret line="21" column="25" lean-forward="true" selection-start-line="21" selection-start-column="25" selection-end-line="21" selection-end-column="25" />
+        <state relative-caret-position="286">
+          <caret line="240" column="7" lean-forward="false" selection-start-line="240" selection-start-column="7" selection-end-line="240" selection-end-column="7" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/myTeamv4.py">
+    <entry file="file://$PROJECT_DIR$/capture.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="181" column="24" lean-forward="false" selection-start-line="181" selection-start-column="20" selection-end-line="181" selection-end-column="24" />
+          <folding>
+            <element signature="e#2321#2351#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/nodes.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="7224">
+          <caret line="344" column="40" lean-forward="true" selection-start-line="344" selection-start-column="40" selection-end-line="344" selection-end-column="40" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BasicNode.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="84">
-          <caret line="243" column="10" lean-forward="true" selection-start-line="243" selection-start-column="10" selection-end-line="243" selection-end-column="10" />
+          <caret line="43" column="40" lean-forward="true" selection-start-line="43" selection-start-column="40" selection-end-line="43" selection-end-column="40" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/myTeamv2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="431">
+          <caret line="352" column="26" lean-forward="false" selection-start-line="352" selection-start-column="21" selection-end-line="352" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/myTeamv4.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="306">
+          <caret line="233" column="8" lean-forward="true" selection-start-line="233" selection-start-column="8" selection-end-line="233" selection-end-column="8" />
           <folding />
         </state>
       </provider>

@@ -291,10 +291,10 @@ class StateNode( BasicNode ):
             NewNovelSuccActionStateNodeList = []     
             for actions, SuccStateNode in TopKNovelSuccStateNodeList: 
                 NewNovelSuccActionStateNodeList.append( ( PreActions + [ actions, ], SuccStateNode ) )  
-           return NewNovelSuccActionStateNodeList, K - len(NovelSuccActionStateNodeList) 
+            return NewNovelSuccActionStateNodeList, K - len(NovelSuccActionStateNodeList)
         else:
-            NovelScoreSuccStateNodeList = [] 
-            for actions, SuccStateNode in NovelSuccStateNodeList:
+            NovelScoreSuccStateNodeList = []
+            for actions, SuccStateNode in NovelSuccActionStateNodeList:
                 AlliesActions, EnemiesActions = actions
                 AlliesActionNode = self.AlliesSuccActionsNodeDict[ AlliesActions ]
                 EnemiesActionNode = self.EnemiesSuccActionsNodeDict[ EnemiesActions ]                  
@@ -473,19 +473,19 @@ class ActionNode( BasicNode ):
         self.red = self.GameState.isOnRedTeam(self.allies[0])
         self.nVisit = 0
         self.totalValue = 0.0
-		self.LatentScore = None
-	
-	def getLatentScore( self ):
-		if self.LatentScore is not None:
+        self.LatentScore = None
+
+    def getLatentScore( self ):
+        if self.LatentScore is not None:
             return self.LatentScore
         else:
-		    LatentScore = 0
-		    for index, action in zip( self.allies, self.LastActions ):
-			    LatentScore += self.getIndexFeatures( self.StateParent.GameState, action, index ) * self.getWeights	
-		    self.LatentScore = LatentScore
-            return self.LatentScore  
+            LatentScore = 0
+            for index, action in zip( self.allies, self.LastActions ):
+                LatentScore += self.getIndexFeatures( self.StateParent.GameState, action, index ) * self.getWeights
+            self.LatentScore = LatentScore
+            return self.LatentScore
 
-	def getWeights( self ):
+    def getWeights( self ):
         return {'eats-invader': 5, 'invaders-1-step-away': 0, 'teammateDist': 1.5, 'closest-food': -1,
                 'eats-capsules': 10.0, '#-of-dangerous-ghosts-1-step-away': -20, 'eats-ghost': 1.0,
                 '#-of-harmless-ghosts-1-step-away': 0.1, 'stopped': -5, 'eats-food': 1}
@@ -500,7 +500,7 @@ class ActionNode( BasicNode ):
     def getIndexFeatures(self, state, action, index):
 
         state = self.StateParent.GameState
-		action = self.LastActions 
+        action = self.LastActions
         food = self.getFood( state ) 
         foodList = food.asList()
         walls = state.getWalls()
