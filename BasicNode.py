@@ -6,14 +6,12 @@ import math
 from util import nearestPoint
 import copy
 from collections import defaultdict
-from pathos import multiprocessing as mp
-import sys
-import numpy as np
-import multiprocessing 
+
 
 class ReplaceNode:
-    def __init__( self ):
+    def __init__( self, depth = -1 ):
         self.novel = False
+        self.depth = depth
 
 class BasicNode:
     def __init__( self , AlliesActions = None, OpponetActions = None ):

@@ -19,14 +19,14 @@ import game
 import math
 from util import nearestPoint
 import copy
-from collections import defaultdict
+from collections import defaultdict, deque
 from pathos import multiprocessing as mp
 import sys
 import numpy as np
 import multiprocessing 
 from nodes import StateNode, ActionNode
-from SimulateAgents import SimulateAgent, SimulateAgentV1
-from Helper import Distancer, ParallelAgent
+#from SimulateAgents import SimulateAgent, SimulateAgentV1
+from Helper import Distancer, ParallelAgent, SimulateAgent, SimulateAgentV1
 #import copy_reg
 #import types
 #################
@@ -97,7 +97,7 @@ class MCTSCaptureAgent(CaptureAgent):
         self.enemies = self.getOpponents( gameState )
         print self.allies, self.enemies
         self.MCTS_ITERATION = 10000
-        self.ROLLOUT_DEPTH = 10
+        self.ROLLOUT_DEPTH = 15
         self.LastRootNode = None
         self.M = 4
         self.count = 0 
@@ -121,7 +121,6 @@ class MCTSCaptureAgent(CaptureAgent):
                                                  self.PositionDictManager, self.getMazeDistance )
 
     def TreeReuse( self, GameState):
-        print "TreeReuse is used"
         if self.LastRootNode is None:
             print "LastRootNode is None"
             self.leaf = None
@@ -142,6 +141,7 @@ class MCTSCaptureAgent(CaptureAgent):
 
     ### the following part is used to compute the number of leaf and noveltree in search tree
                     import Queue
+                    Depth = 0 
                     CandidateStates = Queue.Queue()
                     root = self.rootNode
                     CandidateStates.put( ( root ) )
@@ -150,46 +150,57 @@ class MCTSCaptureAgent(CaptureAgent):
                     while not CandidateStates.empty():              
                         CurrentState = CandidateStates.get()
                         CurrentState.depth = CurrentState.depth - 1 
+                        try: 
+                            if CurrentState.isFullExpand() and CurrentState.depth > Depth:
+                                Depth = CurrentState.depth
+                        except:
+                            pass  
                         num += 1
                         if CurrentState.novel:
                             novelnum += 1
-                            if CurrentState.nVisit == 0:
-                                print self.rootNode.IndexPositions
-                                raise Exception( "nVisit of some StateNode is 0")                           
-                        for successor in CurrentState.SuccStateNodeDict.values():
-                            CandidateStates.put( successor ) 
-                    print num, novelnum
+                            #if CurrentState.nVisit == 0:
+                            #    print self.rootNode.IndexPositions
+                            #    raise Exception( "nVisit of some StateNode is 0")                           
+                            for successor in CurrentState.SuccStateNodeDict.values():
+                                CandidateStates.put( successor ) 
+                    print "The Last Tree:"
+                    print "leaf nodes:",num, "novel leaf nodes:",novelnum,"depth of the search tree:",Depth
                     self.leaf = num
                     self.novelleaf = novelnum
 
                     return self.rootNode
-                    
+  
+            self.leaf = None
+            self.novelleaf = None   
             return None   
 
     def chooseAction( self, GameState):
+        self.n = 0
         print "="* 25, "new process", "="*25
-        self.count =+ 1
-        print self.count
         start = time.time()
         self.rootNode = self.TreeReuse( GameState )
         if self.rootNode is None:
+            print "The Last Trees is no use!"
             self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
-
-        print "="*50
+            self.leaf is None
+               
+        else:
+            print "The Last Tree is in use!" 
+        print "=" * 50
         print "Start Position",self.rootNode.IndexPositions
-        print "="*50  
+        print "=" * 50  
 
         iters = 0
         running_time = 0.0
-        if self.novelleaf is None or self.novelleaf < 2000:             
-            while( iters < 20 and running_time < 20 ):        
+        if self.novelleaf is None or self.novelleaf < 2000:  
+            while( iters < 40 and running_time < 60 ):        
                 node = self.Select()
                 if node is None:
                     print "Invalid Selections"
                     if node == self.rootNode or id(node) == id(self.rootNode):
                         raise Exception("MCTS/chooseAction: No Node in the tree is novel")
                     continue
-                print "iters",iters, "select node position:", node.IndexPositions               
+                print "iters",iters, "select node position:", node.IndexPositions,               
                 self.ParallelGenerateSuccNode( node )
                 end = time.time()
                 running_time = end - start
@@ -200,17 +211,23 @@ class MCTSCaptureAgent(CaptureAgent):
         bestActions = self.rootNode.getBestActions()
         bestAction = bestActions[0]
         print "="*50
-        print "="*50
+        print "="*25,"basic condition of this step","="*25
         print "Positions:", self.rootNode.IndexPositions
-        print "index:", self.index, "beseAction:", bestAction
-        """
+        print "index:", self.index, "beseAction:", bestAction, "PlayOut Times:", self.n
+        
         for Actions, SuccStateNode in self.rootNode.SuccStateNodeDict.items():
-            #if SuccStateNode.novel:
-            try:
-                print Actions, SuccStateNode.IndexPositions, SuccStateNode.nVisit, SuccStateNode.totalValue / float(SuccStateNode.nVisit), SuccStateNode.novel
-            except:
-                print Actions, SuccStateNode.nVisit, SuccStateNode.totalValue, SuccStateNode.novel
-        """
+            AlliesActions, EnemiesActions = Actions
+            AlliesActionNode = self.rootNode.AlliesSuccActionsNodeDict[AlliesActions]
+            EnemiesActionNode = self.rootNode.EnemiesSuccActionsNodeDict[EnemiesActions]     
+            if SuccStateNode.novel:
+                print "-"*50
+                try:
+		    print Actions, SuccStateNode.IndexPositions, SuccStateNode.nVisit, SuccStateNode.totalValue / float(SuccStateNode.nVisit), SuccStateNode.novel
+                    print "Allies", AlliesActionNode.nVisit, AlliesActionNode.totalValue / float( AlliesActionNode.nVisit) 
+                    print "Enemies", EnemiesActionNode.nVisit, EnemiesActionNode.totalValue / float( EnemiesActionNode.nVisit )
+		except:
+		    print Actions, SuccStateNode.nVisit, SuccStateNode.totalValue, SuccStateNode.novel
+		    
         print "=" * 50
         print "=" * 50
         return bestAction
@@ -219,9 +236,7 @@ class MCTSCaptureAgent(CaptureAgent):
 
         currentNode = self.rootNode
         while True:
-            if not currentNode.novelTest:
-                if currentNode.isFullExpand():
-                    raise Exception("This node should be FullExpand!")
+            if not currentNode.isFullExpand():
                 return currentNode
             else:
                 currentNode = currentNode.UCB1ChooseSuccNode()
@@ -229,111 +244,102 @@ class MCTSCaptureAgent(CaptureAgent):
                     #raise Exception( "No StateNode in tree is novel!")
                     return None 
 
-    def getTopKSuccStateNodeList( self, CurrentStateNode, PreActions = [] ):
-        raise Exception("getTopKSuccStateNodeList has not been finished") 
+    def TopKSuccStateNodeList( self, CurrentStateNode, PreActions = [] ):
+        CandidataFTSSNL = list()
+        NovelSuccStateNodeList = CurrentStateNode.FullExpandFunc()
+        if len(NovelSuccStateNodeList) == 0:
+            CurrentStateNode.novel = False
+            return []
+        SortedSuccStateNodes, LeftNum = CurrentStateNode.getSortedSuccStateNodes( self.M, PreActions )
+        CandidataFTSSNL.extend( SortedSuccStateNodes )
         
+        j = 0
+        while( len(CandidataFTSSNL) > 0 and len( CandidataFTSSNL ) < self.M ):
+            #print CandidataFTSSNL 
+            #print j
+            FirstStateNode, PreActions = CandidataFTSSNL.pop()
+            NovelSuccStateNodeList = FirstStateNode.FullExpandFunc()
+            if len(NovelSuccStateNodeList) == 0:
+                FirstStateNode.novel = False
+                continue
+            SortedSuccStateNodes, LeftNum = FirstStateNode.getSortedSuccStateNodes( LeftNum, PreActions )           
+            CandidataFTSSNL.extend( SortedSuccStateNodes )
+            j += 1  
 
-
-
+        if len(CandidataFTSSNL) == 0:
+            CurrentStateNode.novel = False
+            return []
+        else:      
+            return CandidataFTSSNL[-self.M:]
+        
     def ParallelGenerateSuccNode(self, CurrentStateNode):
-        NovelSuccActionStateNodeList = CurrentStateNode.FullExpandFunc()
-        for actions, SuccStateNode in NovelSuccActionStateNodeList:
-            TopKSuccStateNodeList = self.getTopKSuccStateNodeList( SuccStateNode, [ actions, ] ) 
-
-        if not CurrentStateNode.novelTest:
-            SuccStateNodes = []
-            for actions in CurrentStateNode.LegalActions:
-                 SuccStateNode = CurrentStateNode.ChooseSuccNode( actions )
-                 SuccStateNodes.append( SuccStateNode )
-            if len(SuccStateNodes) != len(CurrentStateNode.LegalActions) or\
-               len(CurrentStateNode.AlliesSuccActionsNodeDict) != len(CurrentStateNode.LegalAlliesActions) or\
-               len(CurrentStateNode.EnemiesSuccActionsNodeDict) != len(CurrentStateNode.LegalEnemiesActions):
-                raise Exception("Parallel goes wrong!")
-            cacheMemory = [CurrentStateNode.NoveltyTestSuccessorsV1(0), CurrentStateNode.NoveltyTestSuccessorsV1(1)]
-            CurrentStateNode.getSuccessorNovel(cacheMemory)
-        else:
-            raise Exception("The novelTest of this node should be False!")
-
-        CurrentInfo = []
-        for Actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
-            if SuccStateNode.novel:                
-                CurrentInfo.append( ( SuccStateNode, Actions ) )
-
-        if len( CurrentInfo ) == 0:
-            print "change novel test"
+        NovelSuccActionStateNodeList = CurrentStateNode.FullExpandFunc() 
+        if len( NovelSuccActionStateNodeList ) == 0:
+            print "All children StateNode of the chosed StateNode is not novel"
             CurrentStateNode.novel = False
             return
-         
+        #print "Prepare Begin"
+        print len(NovelSuccActionStateNodeList)
+        TopKNovelSuccStateNodeList = [] 
+        #i = 0
+        t1 = time.time()
+        for SuccStateNode, actions in NovelSuccActionStateNodeList:
+            #i += 1
+            #print i,"begin",actions
+            TopKNovelSuccStateNodeList.extend( self.TopKSuccStateNodeList( SuccStateNode, [ actions, ] ) )
+            #print i,"finish"
+        t2 = time.time()
+        print t2 - t1 
+        #print "Prepare Finish" 
         #print "The number of branch is:", len(CurrentInfo)
 
         ### Parallel Begin
-        if len(CurrentInfo) > 2:
-            #print CurrentInfo
-            #self.ChildParallelAgent.P2()
-            ActionSeriesLists = self.ChildParallelAgent.P1( CurrentInfo )
-            ### test parallel
-            for ActionSeriesList in ActionSeriesLists:
-                for ActionSeries in ActionSeriesList:
-                    EndStateNode = CurrentStateNode.update( ActionSeries )
-                    self.BackPropagate(EndStateNode)
+        if len( TopKNovelSuccStateNodeList ) > 200:
+            t1 = time.time()
+            print len(TopKNovelSuccStateNodeList) 
+            CurrentInfo = []
+            for SuccStateNode, ActionList in TopKNovelSuccStateNodeList:
+                CurrentInfo.append( ( SuccStateNode.GameState, ActionList ) )
+            ActionSeriesList = self.ChildParallelAgent.P1( CurrentInfo )
+            t2 = time.time()
+            print t2 - t1  
+            #for ActionSeriesList in ActionSeriesLists:
+            for ActionSeries in ActionSeriesList:
+                EndStateNode = CurrentStateNode.update( ActionSeries )
+                self.BackPropagate(EndStateNode)
         else:
-            for info in CurrentInfo:
-                _, _, EndStateNodeList = self.PlayOut2( info )
-                for EndStateNode in EndStateNodeList: 
-                    self.BackPropagate( EndStateNode )
+            for info in TopKNovelSuccStateNodeList:
+                _, EndStateNode = self.PlayOut3( info )
+                #for EndStateNode in EndStateNodeList: 
+                self.BackPropagate( EndStateNode )
 
-    def PlayOut2( self, CurrentStateInfo ): 
-
+    def PlayOut3( self, CurrentStateInfo ): 
+        self.n += 1       
+ 
         CurrentStateNode, Action = CurrentStateInfo
-        time1 = time.time()
-        #print Action, "playout begin!"       
-        n1 = SimulateAgentV1(self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState,
-                             self.getMazeDistance)
-        a1s = n1.chooseAction(CurrentStateNode.GameState, 2)
-        n2 = SimulateAgentV1(self.allies[1], self.allies, self.enemies, CurrentStateNode.GameState,
-                             self.getMazeDistance)
-        a2s = n2.chooseAction(CurrentStateNode.GameState, 2)
-        a12s = list(itertools.product(a1s, a2s))
-
-        if len(a12s) > 3:
-            a12s = a12s[:1]
-        m1 = SimulateAgentV1(self.enemies[0], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance)
-        b1s = m1.chooseAction(CurrentStateNode.GameState, 2)
-        m2 = SimulateAgentV1(self.enemies[1], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance)            
-        b2s = m2.chooseAction(CurrentStateNode.GameState, 2)
-        b12s = list(itertools.product(b1s, b2s))
-        if len(b12s) > 3:
-            b12s = b12s[:1]
-        actions = tuple(itertools.product(a12s, b12s))
-
+        #time1 = time.time()
         n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
         n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
         m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance )
         m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance )
-       
-        CurrentNodeList = []
-        for i in range(len(actions)):
-            iters = 0
-            #print CurrentStateNode.LegalActions
-            #print actions[i]
-            CopyCurrentStateNode = CurrentStateNode.ChooseSuccNode(actions[i])
+        
+        iters = 0
            
-            while iters < (self.ROLLOUT_DEPTH - 1):
+        while iters < ( self.ROLLOUT_DEPTH - len( Action ) ):
 
-                a1 = n1.chooseAction( CopyCurrentStateNode.GameState )
-                a2 = n2.chooseAction( CopyCurrentStateNode.GameState )
+            a1 = n1.chooseAction( CurrentStateNode.GameState )
+            a2 = n2.chooseAction( CurrentStateNode.GameState )
 
-                b1 = m1.chooseAction( CopyCurrentStateNode.GameState )
-                b2 = m2.chooseAction( CopyCurrentStateNode.GameState )
+            b1 = m1.chooseAction( CurrentStateNode.GameState )
+            b2 = m2.chooseAction( CurrentStateNode.GameState )
 
-                CopyCurrentStateNode = CopyCurrentStateNode.ChooseSuccNode(((a1, a2), (b1, b2)))
+            CurrentStateNode = CurrentStateNode.ChooseSuccNode(((a1, a2), (b1, b2)))
 
-                iters += 1
-            CurrentNodeList.append(CopyCurrentStateNode)
+            iters += 1
 
-        time2 = time.time()
+        #time2 = time.time()
         #print Action, time2 - time1
-        return Action, CurrentStateNode, CurrentNodeList
+        return Action, CurrentStateNode
 
     def BackPropagate( self, endNode):
         """

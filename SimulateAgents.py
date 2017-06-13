@@ -10,6 +10,7 @@ from pathos import multiprocessing as mp
 import sys
 import numpy as np
 import multiprocessing 
+from Helper import Distancer
 
 class SimulateAgent:
     """
@@ -160,6 +161,7 @@ class SimulateAgent:
                 'eats-capsules': 10.0, '#-of-dangerous-ghosts-1-step-away': -20, 'eats-ghost': 1.0,
                 '#-of-harmless-ghosts-1-step-away': 0.1, 'stopped': -5, 'eats-food': 1}
 
+### the following subclass would be abandoned in New RollOut Method ? Yep
 class SimulateAgentV1( SimulateAgent ):
 
     def chooseAction(self, GameState, nums=None):
@@ -176,12 +178,8 @@ class SimulateAgentV1( SimulateAgent ):
                 TopAction.append( SortActionValues[i][0] )
             except:
                 break
-
-        if self.red:
-            foodLeft = self.GameState.getBlueFood().asList()
-        else:
-            foodLeft = self.GameState.getRedFood().asList()
-
+        
+        foodLeft = self.getFood()
         if foodLeft <= 2:
             bestDist = 9999
             for action in actions:
