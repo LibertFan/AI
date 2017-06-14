@@ -57,10 +57,10 @@ class StateNode( BasicNode ):
             self.Bound = self.StateParent.Bound
             CurrentGameState = self.StateParent.GameState
             for index, action in self.LastActions.items():
-		try:
+                try:
                     CurrentGameState = CurrentGameState.generateSuccessor( index, action )
                 except:
-		    print index, action, StateParent.GameState.getAgentState( index ).getPosition()
+                    print index, action, StateParent.GameState.getAgentState( index ).getPosition()
                     CurrentStateNode = StateParent
                     while CurrentStateNode is not None:
                         print CurrentStateNode.IndexPositions[ index ], CurrentStateNode.GameState.getAgentState( index ).getPosition()
@@ -115,7 +115,8 @@ class StateNode( BasicNode ):
             if SuccAlliesActionsNode.novel:
                 for EnemiesAction in self.LegalEnemiesActions:
                     SuccEnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( EnemiesAction )
-                    if SuccEnemiesActionNode.novel:   
+                    if SuccEnemiesActionNode.novel:
+                        print 'novel action', (AlliesAction,EnemiesAction)
                         SuccStateNode = self.SuccStateNodeDict.get((AlliesAction,EnemiesAction))
                         if SuccStateNode.novel:
                             score = SuccStateNode.totalValue/float(SuccStateNode.nVisit)
@@ -128,7 +129,8 @@ class StateNode( BasicNode ):
 
         if BestAlliesAction is None:
             raise Exception( "Error in getBestAction, check the attribution of 'novel' " )
-        
+
+        print "BestAction",BestAlliesAction
         return BestAlliesAction
 
     """
@@ -229,7 +231,6 @@ class StateNode( BasicNode ):
                         self.SuccStateNodeDict[actionKeys] = ReplaceNode(eachStateSucc.depth)
                 '''
                 #self = ReplaceNode(self.depth)
-                print self.IndexPositions
                 self.novel = False
                 return None
             else:    
@@ -459,16 +460,22 @@ class StateNode( BasicNode ):
             if len(succ_atoms_tuples[4]) - len(parent_atoms_tuples[4]) == 0:
                 if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[parent_allies[0]]) == 0:
                     succ.novel = False
-                    succ.unnovelCause = [0]
+                    if len(succ_atoms_tuples[succ.allies[1]]-parent_atoms_tuples[parent_allies[1]]) == 0:
+                        succ.unnovelCause = [0,1]
+                    else:
+                        succ.unnovelCause = [0]
                     #print 1
                     continue
                 else:
                     if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[parent_allies[1]]) == 0:
-                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[0]]) == 0 or \
-                                        len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
+                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[0]]) == 0:
                             succ.novel = False
                             succ.unnovelCause = [0,1]
                             #print 2
+                            continue
+                        elif len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
+                            succ.novel = False
+                            succ.unnovelCause = [1]
                             continue
                     else:
                         if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:

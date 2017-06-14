@@ -176,6 +176,7 @@ class MCTSCaptureAgent(CaptureAgent):
             return None   
 
     def chooseAction( self, GameState):
+        print "self.index",self.index
         self.n = 0
         print "="* 25, "new process", "="*25
         start = time.time()
@@ -237,13 +238,11 @@ class MCTSCaptureAgent(CaptureAgent):
     def Select( self ):
 
         currentNode = self.rootNode
-        print currentNode.novel
         i = 0
         while True:
             if not currentNode.isFullExpand():
                 return currentNode
             else:
-                print i
                 currentNode = currentNode.UCB1ChooseSuccNode()
                 if currentNode is None:
                     #raise Exception( "No StateNode in tree is novel!")
@@ -254,7 +253,6 @@ class MCTSCaptureAgent(CaptureAgent):
         FirstStateNode = backNode
         NovelSuccStateNodeList = FirstStateNode.FullExpandFunc()
 
-        print 'all unovel',len(NovelSuccStateNodeList) == 0
         while(len(NovelSuccStateNodeList) == 0):
             alliesUnnovelNum = 0
             for actionNode in FirstStateNode.AlliesSuccActionsNodeDict.values():
@@ -267,13 +265,15 @@ class MCTSCaptureAgent(CaptureAgent):
                 WhichActionNodeDict = FirstStateNode.EnemiesSuccActionsNodeDict
                 WhichTeam = 1  # enemies
             '''Observe that all unnovel owing to which agent'''
+            #print "whichTeam",WhichTeam
             cause = set([0, 1])
-            for eachActionNode in WhichActionNodeDict.values():
+            for actionkey,eachActionNode in WhichActionNodeDict.items():
+                #print actionkey,eachActionNode.unnovelCause
                 cause = cause & set(eachActionNode.unnovelCause)
             parentStateNode = FirstStateNode.StateParent
             if parentStateNode is None:
                 return
-            print "cause",cause
+            #print "cause",cause
             if cause == {0}:
                 if WhichTeam == 0:
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
@@ -332,7 +332,7 @@ class MCTSCaptureAgent(CaptureAgent):
                         if pairActions[1][1] == action:
                             pairSateteNode.novel = False
                     '''
-            else:
+            elif cause == set([0,1]):
                 if WhichTeam == 0:
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
                     X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[0]]
@@ -387,21 +387,49 @@ class MCTSCaptureAgent(CaptureAgent):
                         if pairActions[1][1] == action2:
                             pairSateteNode.novel = False
                     '''
+            elif cause == set([]):
+                if WhichTeam == 0:
+                    parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
+                    X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[0]]
+                    vector0 = (X - parentX, Y - parentY)
+                    action0 = Actions.vectorToDirection(vector0)
+                    parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.allies[1]]
+                    X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.allies[1]]
+                    vector2 = (X2 - parentX2, Y2 - parentY2)
+                    action2 = Actions.vectorToDirection(vector2)
+                    for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
+                        if eachActions == (action0, action2):
+                            eachActionsNode.novel = False
+                            eachActionsNode.unnovelCause = [0,1]
+                else:
+                    parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[0]]
+                    X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[0]]
+                    vector0 = (X - parentX, Y - parentY)
+                    action0 = Actions.vectorToDirection(vector0)
+                    parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.enemies[1]]
+                    X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.enemies[1]]
+                    vector2 = (X2 - parentX2, Y2 - parentY2)
+                    action2 = Actions.vectorToDirection(vector2)
+                    for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
+                        if eachActions == (action0, action2):
+                            eachActionsNode.novel = False
+                            eachActionsNode.unnovelCause = [0, 1]
+
 
             if parentStateNode == self.rootNode:
                 print  "back to root"
             #FirstStateNode.novel = False
             for actionKey,eachStateSucc in parentStateNode.SuccStateNodeDict.items():
                 if eachStateSucc.novel:
-                    print "child of root",eachStateSucc.IndexPositions
                     if eachStateSucc.AlliesActionParent.novel is False or eachStateSucc.EnemiesActionParent.novel is False:
                         # self.SuccStateNodeDict[actionKeys] = ReplaceNode(eachStateSucc.depth)
-                        print "true to false"
+                        #print "true to false"
                         eachStateSucc.novel = False
 
 
             FirstStateNode = parentStateNode
             NovelSuccStateNodeList = FirstStateNode.FullExpandFunc()
+        #print "*"*100
 
         return FirstStateNode
 
@@ -419,7 +447,7 @@ class MCTSCaptureAgent(CaptureAgent):
         else: #BackStateNode.depth == UCB1_depth+1
             SortedSuccStateNodes, LeftNum = BackStateNode.getSortedSuccStateNodes( self.M, PreActions )
             CandidataFTSSNL.extend( SortedSuccStateNodes )
-            print 'CandidataFTSSNL',len(CandidataFTSSNL)
+            #print 'CandidataFTSSNL',len(CandidataFTSSNL)
         
         j = 0
         while( len(CandidataFTSSNL) > 0 and len( CandidataFTSSNL ) < self.M ):
@@ -461,7 +489,7 @@ class MCTSCaptureAgent(CaptureAgent):
         
     def ParallelGenerateSuccNode(self, CurrentStateNode):
         NovelSuccActionStateNodeList = CurrentStateNode.FullExpandFunc()
-        print "NovelSuccActionStateNodeList",NovelSuccActionStateNodeList
+        #print "NovelSuccActionStateNodeList",NovelSuccActionStateNodeList
         if len( NovelSuccActionStateNodeList ) == 0:
             print "All children StateNode of the chosed StateNode is not novel"
             # save memory waste computation
@@ -469,7 +497,6 @@ class MCTSCaptureAgent(CaptureAgent):
             self.Back(CurrentStateNode)
             return
         #print "Prepare Begin"
-        print len(NovelSuccActionStateNodeList)
         MNovelSuccStateNodeList = []
         #i = 0
         t1 = time.time()
@@ -477,14 +504,14 @@ class MCTSCaptureAgent(CaptureAgent):
             #i += 1
             #print i,"begin",actions
             if SuccStateNode.novel:
-                print "SuccStateNode",SuccStateNode.IndexPositions
+                #print "SuccStateNode",SuccStateNode.IndexPositions
                 topKList = self.TopKSuccStateNodeList( SuccStateNode, [ actions, ] )
                 if topKList is None:
                     return
                 MNovelSuccStateNodeList.extend( topKList )
             #print i,"finish"
         t2 = time.time()
-        print t2 - t1
+        #print t2 - t1
         #print "Prepare Finish" 
         #print "The number of branch is:", len(CurrentInfo)
 
