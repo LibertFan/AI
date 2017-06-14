@@ -26,7 +26,6 @@ import random, time, util, sys
 from game import Directions
 import game
 from util import nearestPoint
-
 #################
 # Team creation #
 #################
@@ -47,6 +46,8 @@ def createTeam(firstIndex, secondIndex, isRed,
   any extra arguments, so you should make sure that the default
   behavior is what you want for the nightly contest.
   """
+  print "firstIndex",firstIndex
+  print "secondIndex",secondIndex
   return [eval(first)(firstIndex), eval(second)(secondIndex)]
 
 ##########

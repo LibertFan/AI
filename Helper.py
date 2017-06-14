@@ -202,6 +202,7 @@ class ParallelAgent:
          
         return ActionSeriesLists
 
+
 class SimulateAgent:
     """
     In BaselineTeam, the agents are divided into Defensive Agent and Offensive Agent, there we shoul allocate an "Defensive" or "Offensive" 

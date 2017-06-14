@@ -38,9 +38,9 @@ class BasicNode:
         features[4] = []
         for j, position in enumerate(gameState.data.capsules):
             features[4].append(('capsule' + str(j), position))
-        food = gameState.data.food.asList()
+        food = list(set(gameState.data.layout.food.asList())-set(gameState.data.food.asList()))
         for position in food:
-            features[4].append(('food', position))
+            features[4].append(('eatfood', position))
         return features
 
     def generateTuples(self, character=0):

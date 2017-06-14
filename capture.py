@@ -481,8 +481,7 @@ class AgentRules:
             print "x"*50 
             agentState = state.data.agentStates[ agentIndex ] 
             print agentIndex, action, legal, agentState.configuration.getPosition()
-            1 / 0 
-            #raise Exception("Illegal action " + str(action))
+            raise Exception("Illegal action " + str(action))
 
         # Update Configuration
         agentState = state.data.agentStates[agentIndex]
@@ -835,9 +834,6 @@ def readCommand(argv):
                       help=default('How many episodes are training (suppresses output)'), default=0)
     parser.add_option('-c', '--catchExceptions', action='store_true', default=False,
                       help='Catch exceptions and enforce time limits')
-    parser.add_option('-W', "--Weights", type='dict', help='Set weights for parameters in class',
-                      default=({'eats-invader':round(random.random()*10,2),},{'eats-invader':round(random.random()*10,2),}))
-
 
     options, otherjunk = parser.parse_args(argv)
     assert len(otherjunk) == 0, "Unrecognized options: " + str(otherjunk)
@@ -1048,11 +1044,6 @@ def save_score(game):
         print >> f, game.state.data.score
 
 
-def MP( argv ):
-    option = readCommand( argv )
-    return runGames(**option)
-
-
 if __name__ == '__main__':
 
     """
@@ -1063,27 +1054,11 @@ if __name__ == '__main__':
     > python capture.py --help
     """
     import random
-    from pathos import multiprocessing as mp
-    random.seed(10)
+    random.seed(123)
     options = readCommand(sys.argv[1:])  # Get game components based on input
-    p = mp.ProcessPool( 4 )
-    #t1 = time.time()
-                 
-    results = [] 
-    games = [] 
-    for i in range(8):
-        results.append( p.apipe( MP, sys.argv[1:] ) )  
-    for r in results:
-        games.append( r.get() )
-    for v in games:
-        print v[0].state.data.score
-
-
-    """ 
-    print type(options), options
     games = runGames(**options)
+    #games2 = runGames(**options)
 
     save_score(games[0])
-    """
-    # import cProfile
-    # cProfile.run('runGames( **options )', 'profile')
+    print games[0].state.data.score
+    #print games2[0].state.data.score
