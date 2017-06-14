@@ -109,9 +109,6 @@ class StateNode( BasicNode ):
     def getBestActions( self ):
         HighestScore = 0
         BestAlliesAction = None
-        print len(self.LegalAlliesActions), len( self.AlliesSuccActionsNodeDict)
-        print len( self.LegalEnemiesActions), len(self.EnemiesSuccActionsNodeDict)
-        print len(self.LegalActions), len(self.SuccStateNodeDict)
         for AlliesAction in self.LegalAlliesActions:
             SuccAlliesActionsNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
             lowestEnemiesScore = 9999
@@ -138,12 +135,6 @@ class StateNode( BasicNode ):
     isPrune is related to the self.AlliesActionParent and self.OpponentsActionParent, 
     the return value is True or False.
     """
-    def isNovel( self ):
-        if self.AlliesActionParent.novel is False or self.EnemiesActionParent.novel is False:
-            self.novel = False
-        else:
-            self.novel = True
-        return self.novel	       
 
     def isFullExpand( self ):
         if len( self.SuccStateNodeDict.keys() ) != len( self.LegalActions ):
@@ -229,6 +220,16 @@ class StateNode( BasicNode ):
                         ChosedAction = ( AlliesAction, ChosedEnemiesAction )
 
             if ChosedAction is None:
+                ##need to change
+                '''
+                self.novel = False
+                for actionKeys, eachStateSucc in self.StateParent.SuccStateNodeDict.items():
+                    print eachStateSucc == self
+                    if eachStateSucc == self:
+                        self.SuccStateNodeDict[actionKeys] = ReplaceNode(eachStateSucc.depth)
+                '''
+                #self = ReplaceNode(self.depth)
+                print self.IndexPositions
                 self.novel = False
                 return None
             else:    
@@ -258,7 +259,6 @@ class StateNode( BasicNode ):
             ### The format of AlliesActionNode and EnenmiesAcrionNode should be dict instead of list!
             AlliesActions = dict( zip( self.allies, ChosedAlliesAction ) )
             EnemiesActions = dict( zip( self.enemies, ChosedEnemiesAction ) )
-            print type(AlliesActions), type(EnemiesActions), type(self)
             SuccStateNode = StateNode( AlliesActions = AlliesActions, EnemiesActions = EnemiesActions,\
                             AlliesActionNodeParent = AlliesActionNode, EnemiesActionNodeParent = EnemiesActionNode, StateParent = self )
             self.SuccStateNodeDict[ ChosedActions ] = SuccStateNode
@@ -271,20 +271,21 @@ class StateNode( BasicNode ):
     ### return the list of NovelSuccStateNode 
     def FullExpandFunc( self ):
         if not self.novelTest:
-            SuccStateNodeList = []
             for actions in self.LegalActions:
-                SuccStateNdoe = self.ChooseSuccNode( actions )
+                self.ChooseSuccNode( actions )
             cacheMemory = [ self.NoveltyTestSuccessorsV1(0), self.NoveltyTestSuccessorsV1(1)]
             self.getSuccessorNovel( cacheMemory )                  
 
-        NovelSuccActionStateNodeList = [] 
+        NovelSuccActionStateNodeList = []
         for actions, SuccStateNode in self.SuccStateNodeDict.items():
-            if not SuccStateNode.novel:
-                rn = ReplaceNode( SuccStateNode.depth )
-                self.SuccStateNodeDict[ actions ] = rn
+            #if not SuccStateNode.novel:
+                #rn = ReplaceNode( SuccStateNode.depth )
+                #self.SuccStateNodeDict[ actions ] = rn
+                #SuccStateNode.novel = False
                 ### delete an instance of StateNode
-                del SuccStateNode 
-            else:
+                #del SuccStateNode
+            #else:
+            if SuccStateNode.novel:
                 NovelSuccActionStateNodeList.append( ( SuccStateNode, actions ) ) 
 
         return NovelSuccActionStateNodeList           
@@ -305,22 +306,22 @@ class StateNode( BasicNode ):
         ### the following list is None !
         NovelSuccActionStateNodeList = self.getNovelSuccStateNodeList()
         if NovelSuccActionStateNodeList == 0:
-            raise Exception("No Successive Node is Novel in node.py's function getSortedSuccStateNodes ")           
+            raise Exception("No Successive Node is Novel in node.py's function getSortedSuccStateNodes ")
 
-        NovelScoreSuccStateNodeList = [] 
+        NovelScoreSuccStateNodeList = []
         for SuccStateNode, actions in NovelSuccActionStateNodeList:
             AlliesActions, EnemiesActions = actions
             AlliesActionNode = self.AlliesSuccActionsNodeDict[ AlliesActions ]
             EnemiesActionNode = self.EnemiesSuccActionsNodeDict[ EnemiesActions ]                  
             NovelScoreSuccStateNodeList.append( ( actions, SuccStateNode, AlliesActionNode.getLatentScore(), EnemiesActionNode.getLatentScore() ) )
         try:
-            SortedNovelSuccStateNodeList = sorted( NovelScoreSuccStateNodeList, key = lambda x:( x[-2], x[-1] ) )[:K]    
+            SortedNovelSuccStateNodeList = sorted( NovelScoreSuccStateNodeList, key = lambda x:( x[-2], x[-1] ) )[:K]
         except:
             print NovelScoreSuccStateNodeList
             raise Exception
     
         NewNovelSuccActionStateNodeList = []     
-        for actions, SuccStateNode, _, _ in NovelScoreSuccStateNodeList: 
+        for actions, SuccStateNode, _, _ in SortedNovelSuccStateNodeList:
             NewNovelSuccActionStateNodeList.append( ( SuccStateNode, PreActions + [ actions, ] ) )  
         return NewNovelSuccActionStateNodeList, K - len( NewNovelSuccActionStateNodeList )
 
@@ -406,9 +407,13 @@ class StateNode( BasicNode ):
     ### And also update the novel of the SuccStateNodes
     def getSuccessorNovel(self,cacheMemory):
         self.novelTest = True
-        for eachStateSucc in self.SuccStateNodeDict.values():
+        for actionKeys,eachStateSucc in self.SuccStateNodeDict.items():
             eachStateSucc.cacheMemory = cacheMemory
-            eachStateSucc.isNovel()
+            if eachStateSucc.novel:
+                if eachStateSucc.AlliesActionParent.novel is False or eachStateSucc.EnemiesActionParent.novel is False:
+                    #self.SuccStateNodeDict[actionKeys] = ReplaceNode(eachStateSucc.depth)
+                    eachStateSucc.novel = False
+                #del eachStateSucc
 
     def updateCacheMemory(self, allMemory, addMemory):
         for component in range(len(addMemory)):
@@ -442,7 +447,7 @@ class StateNode( BasicNode ):
         p = self
         parent_atoms_tuples = p.cacheMemory[character]
         self.updateCacheMemory(all_memory, parent_atoms_tuples)
-        for succ in ChildrenNone.values():
+        for actionKey,succ in ChildrenNone.items():
             # print succ.allies
             succ_atoms_tuples = succ.generateTuples()
             '''
@@ -454,6 +459,7 @@ class StateNode( BasicNode ):
             if len(succ_atoms_tuples[4]) - len(parent_atoms_tuples[4]) == 0:
                 if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[parent_allies[0]]) == 0:
                     succ.novel = False
+                    succ.unnovelCause = [0]
                     #print 1
                     continue
                 else:
@@ -461,11 +467,13 @@ class StateNode( BasicNode ):
                         if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[0]]) == 0 or \
                                         len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
                             succ.novel = False
+                            succ.unnovelCause = [0,1]
                             #print 2
                             continue
                     else:
                         if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
                             succ.novel = False
+                            succ.unnovelCause = [1]
                             #print 3
                             continue
 
@@ -473,7 +481,7 @@ class StateNode( BasicNode ):
 
 class ActionNode( BasicNode ):
 
-    def __init__(self, allies, enemies, Actions, StateParent):
+    def __init__(self, allies, enemies, Actions, StateParent, cause=[]):
         self.StateParent = StateParent
         self.allies = allies
         self.enemies = enemies
@@ -489,6 +497,13 @@ class ActionNode( BasicNode ):
         self.nVisit = 0
         self.totalValue = 0.0
         self.LatentScore = None
+        self.unnovelCause = cause
+        '''
+        []:for none
+        [0]: agent0's fault
+        [1]: agent1's fault
+        [0,1]: both agent0 and agent1's fault
+        '''
 
     def getLatentScore( self ):
         if self.LatentScore is not None:
@@ -496,7 +511,7 @@ class ActionNode( BasicNode ):
         else:
             LatentScore = 0
             for index, action in zip( self.allies, self.LastActions ):
-                LatentScore += self.getIndexFeatures( self.StateParent.GameState, action, index ) * self.getWeights
+                LatentScore += self.getIndexFeatures( self.StateParent.GameState, action, index ) * self.getWeights()
             self.LatentScore = LatentScore
             return self.LatentScore
 
@@ -514,7 +529,6 @@ class ActionNode( BasicNode ):
 	
     def getIndexFeatures(self, state, action, index):
         state = self.StateParent.GameState
-        action = self.LastActions
         food = self.getFood( state ) 
         foodList = food.asList()
         walls = state.getWalls()

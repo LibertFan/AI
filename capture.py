@@ -1050,14 +1050,14 @@ if __name__ == '__main__':
     See the usage string for more details.
     > python capture.py --help
     """
-    print sys.argv[1:]
+    import random
+    random.seed(123)
     options = readCommand(sys.argv[1:])  # Get game components based on input
-    print options
     games = runGames(**options)
-    games2 = runGames(**options)
+    #games2 = runGames(**options)
 
     save_score(games[0])
     print games[0].state.data.score
-    print games2[0].state.data.score
+    #print games2[0].state.data.score
     # import cProfile
     # cProfile.run('runGames( **options )', 'profile')
