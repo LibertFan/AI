@@ -55,17 +55,45 @@ class StateNode( BasicNode ):
             self.index = self.allies[0]
             self.getDistancer = self.StateParent.getDistancer
             self.Bound = self.StateParent.Bound
+
             CurrentGameState = self.StateParent.GameState
+
+            agentMoveInfo = []
+            for agentIndex in range(4):
+                isAgentPacman = self.LastActions.get( agentIndex ).isPacman
+                agentInfo.append( ( isAgentPacman, agentIndex, self.LastActions.get( agentIndex ) ) ) 
+            agentMoveOrder = sorted( agentMoveInfo, lambda x: ( x[0], x[1] )  )
+            
+            for _, agentIndex, action in agentMoveOrder:
+                try:
+                    CurrentGameState = CurrentGameState.generateSuccessor( agentIndex, action ) 
+                except:
+                    CurrentGameState = CurrentGameState.generateSuccessor( agentIndex, "Stop" )
+
+            """
             for index, action in self.LastActions.items():
                 try:
                     CurrentGameState = CurrentGameState.generateSuccessor( index, action )
-                except:
-                    print index, action, StateParent.GameState.getAgentState( index ).getPosition()
-                    CurrentStateNode = StateParent
+                except:     
+                     
+                    print "Ilegal Index:", index, "Ilegal Action:", action
+                    print "CurrentGameState's LegalAction index:",CurrentGameState.getLegalActions( index )
+                    print "Positions:",
+                    for i in range(4):
+                        print self.StateParent.GameState.getAgentState(i).getPosition(), CurrentGameState.getAgentState( i ).getPosition() 
+                    print "."*50 
+                    print self.allies, self.enemies                    
+  
+                    CurrentStateNode = self.StateParent
+                    print "Parent Condition:",CurrentStateNode.index, CurrentStateNode.LegalIndexActions[ index]
                     while CurrentStateNode is not None:
-                        print CurrentStateNode.IndexPositions[ index ], CurrentStateNode.GameState.getAgentState( index ).getPosition()
-                        CurrentStateNode = CurrentStateNode.StateParent 
-                    raise Exception 
+                        for i in range(4):
+                            print CurrentStateNode.IndexPositions[ i ], CurrentStateNode.GameState.getAgentState( i ).getPosition()
+                        print "*"*50 
+                        CurrentStateNode = CurrentStateNode.StateParent
+                    
+                    raise Exception
+            """
             self.GameState = CurrentGameState
             self.depth = self.StateParent.depth + 1 
         # self.LegalIndexActions is an auxiliary variables that store a dict which key is the agent index 
@@ -97,7 +125,9 @@ class StateNode( BasicNode ):
         self.cacheMemory = [ None, ] * 2
         self.novelTest = False
         self.InProcess = False
-    
+        self.DeathNum = [ None, ] * 4
+
+
     def update( self, ActionSeries ):
         CurrentStateNode = self
         for Action in ActionSeries:
@@ -198,6 +228,7 @@ class StateNode( BasicNode ):
             ChosedAction = None
             for AlliesAction in self.LegalAlliesActions:
                 SuccAlliesActionsNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
+                ### judge the novel attribution of a Action is not appropriate!
                 if SuccAlliesActionsNode.novel:
                     lowestEnemiesScore = 9999                    
                     flag = 0
@@ -213,13 +244,15 @@ class StateNode( BasicNode ):
                                 if score < lowestEnemiesScore:
                                     lowestEnemiesScore = score
                                     ChosedEnemiesAction = EnemiesAction
-                                        
-                    if flag == 0:
-                        SuccAlliesActionsNode.novel = False
-                        continue
-                    elif lowestEnemiesScore > HighestScore:
-                        HighestScore = lowestEnemiesScore
-                        ChosedAction = ( AlliesAction, ChosedEnemiesAction )
+                            else:
+                                raise Exception( "Two novel actions produce an unnovel StateNode!" )
+                                    
+                if flag == 0:
+                    SuccAlliesActionsNode.novel = False
+                    continue
+                elif lowestEnemiesScore > HighestScore:
+                    HighestScore = lowestEnemiesScore
+                    ChosedAction = ( AlliesAction, ChosedEnemiesAction )
 
             if ChosedAction is None:
                 ##need to change
@@ -257,7 +290,8 @@ class StateNode( BasicNode ):
             if EnemiesActionNode is None:
                 EnemiesActionNode = ActionNode( self.enemies, self.allies, ChosedEnemiesAction, self )
                 self.EnemiesSuccActionsNodeDict[ ChosedEnemiesAction ] = EnemiesActionNode 
-            ### The format of AlliesActionNode and EnenmiesAcrionNode should be dict instead of list!
+            ### The format of AlliesActionNode and EnemiesAcrionNode should be dict instead of list!
+            ### What if the same EnemiesActionNode ?  
             AlliesActions = dict( zip( self.allies, ChosedAlliesAction ) )
             EnemiesActions = dict( zip( self.enemies, ChosedEnemiesAction ) )
             SuccStateNode = StateNode( AlliesActions = AlliesActions, EnemiesActions = EnemiesActions,\
