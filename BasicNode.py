@@ -23,6 +23,7 @@ class BasicNode:
         else:
             return self.GameState.getScore() * -1
 
+    '''
     def getNoveltyFeatures( self, character ):
         gameState = self.GameState
         features = [None,]*5
@@ -42,14 +43,22 @@ class BasicNode:
         for position in food:
             features[4].append(('eatfood', position))
         return features
+    '''
 
-    def generateTuples(self, character=0):
-        features_list = self.getNoveltyFeatures(character)
-        atom_tuples = [set(),]*5
+    def getNoveltyFeatures(self, agent):
+        gameState = self.GameState
+        features = [None, ] * 4
+        features[0] = gameState.getAgentState(agent).getPosition()
+        features[1] = gameState.getAgentState(agent).numCarrying + gameState.getAgentState(agent).numReturned#food
+        features[2] = gameState.getAgentState(agent).numCapsules#capsule
+        features[3] = gameState.getAgentState(agent).eatEnemies #eatAgents ###### need to change
+        return features
+
+    def generateTuples(self, agent):
+        features_list = self.getNoveltyFeatures(agent)
+        atom_tuples = [set(),]*4
         for i in range(4):
-            atom_tuples[i] = set(features_list[i])
-        for i in range( 1, 2 ):
-            atom_tuples[4] = atom_tuples[4] | set(itertools.combinations(features_list[4], i))
+            atom_tuples[i] = set([features_list[i]])
         return atom_tuples
 
     '''

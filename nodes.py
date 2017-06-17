@@ -94,7 +94,7 @@ class StateNode( BasicNode ):
         self.C1 = math.sqrt( 2 ) / 10
         self.red = self.GameState.isOnRedTeam( self.allies[0] )
         self.novel = True
-        self.cacheMemory = [ None, ] * 2
+        self.cacheMemory = defaultdict(list)
         self.novelTest = False
         self.InProcess = False
     
@@ -267,6 +267,20 @@ class StateNode( BasicNode ):
             SuccStateNode = self.SuccStateNodeDict.get( ChosedActions )    
         return SuccStateNode
 
+    ### Judge whether near to each other
+    def nearToEnemies(self):
+        nearPairs = []
+        nearAllies = set()
+        nearEnemies = set()
+        for i in self.allies:
+            for j in self.enemies:
+                dis = self.getDistancer(self.IndexPositions[i],self.IndexPositions[j])
+                if dis <= 2:
+                    nearPairs.append((i,j))
+                    nearAllies.add(i)
+                    nearEnemies.add(j)
+        return (nearPairs,nearAllies,nearEnemies)
+
     ### Expand the StateNode fully 
     ### Del those unnovel nodes( replace them with instances of ReplaceNode )
     ### return the list of NovelSuccStateNode 
@@ -274,8 +288,30 @@ class StateNode( BasicNode ):
         if not self.novelTest:
             for actions in self.LegalActions:
                 self.ChooseSuccNode( actions )
-            cacheMemory = [ self.NoveltyTestSuccessorsV1(0), self.NoveltyTestSuccessorsV1(1)]
-            self.getSuccessorNovel( cacheMemory )                  
+            nearResult = self.nearToEnemies()
+            if len(nearResult[1]) == 2 and len(nearResult[2]) == 2:
+                cacheMemory = self.StateParent.cacheMemory
+            elif len(nearResult[1]) == 0 and len(nearResult[2]) == 0:
+                allMemory1 = self.NoveltyTestSuccessorsV1(0)
+                allMemory2 = self.NoveltyTestSuccessorsV1(1)
+                allMemory1.update(allMemory2)
+                cacheMemory = allMemory1
+            elif len(nearResult[1]) == 1 and len(nearResult[2]) == 1:
+                allMemory1 = self.NoveltyTestSuccessorsV1(0, nearResult[0][0][0])
+                allMemory2 = self.NoveltyTestSuccessorsV1(1, nearResult[0][0][1])
+                allMemory1.update(allMemory2)
+                cacheMemory = allMemory1
+            elif len(nearResult[1]) == 1 and len(nearResult[2]) == 2:
+                allMemory1 = self.NoveltyTestSuccessorsV1(0, nearResult[0][0][0])
+                allMemory1.update({1:self.StateParent.cacheMemory[1], 3:self.StateParent.cacheMemory[3]})
+                cacheMemory = allMemory1
+            elif len(nearResult[1]) == 2 and len(nearResult[2]) == 1:
+                allMemory2 = self.NoveltyTestSuccessorsV1(1, nearResult[0][0][1])
+                allMemory2.update({0: self.StateParent.cacheMemory[0], 2: self.StateParent.cacheMemory[2]})
+            else:
+                raise Exception('Not possible condition')
+
+            self.getSuccessorNovel( cacheMemory )  ###need to change
 
         NovelSuccActionStateNodeList = []
         for actions, SuccStateNode in self.SuccStateNodeDict.items():
@@ -417,71 +453,81 @@ class StateNode( BasicNode ):
                 #del eachStateSucc
 
     def updateCacheMemory(self, allMemory, addMemory):
-        for component in range(len(addMemory)):
-            allMemory[component] = allMemory[component] | addMemory[component]
+        for eachKey in addMemory.iterkeys():
+            allMemory[eachKey][0] = allMemory[eachKey][0] | addMemory[eachKey][0]
+            for component in range(1,len(addMemory[eachKey])):
+                allMemory[eachKey][component] = addMemory[eachKey][component]
         return allMemory
 
-    def NoveltyTestSuccessorsV1(self, character):
+    def NoveltyTestSuccessorsV1(self, character, ignore=-1):
         ###character : allies or enemies
         # 0 is allies
         # 1 is enemies
         ########
-        this_atoms_tuples = self.generateTuples(character)
+        if character == 0:
+            ChildrenNone = self.AlliesSuccActionsNodeDict
+            ourTeam = self.allies
+        else:
+            ChildrenNone = self.EnemiesSuccActionsNodeDict
+            ourTeam = self.enemies
+        this_atoms_tuples1 = self.generateTuples(ourTeam[0])
+        this_atoms_tuples2 = self.generateTuples(ourTeam[1])
 
         ### cacheMemory is a list consist of set
         # print self.StateParent
         # print self.cacheMemory[character]
-        # print '*'*80
-        if self.StateParent is None and self.cacheMemory[character] is None:
-            # print 'hello'
-            self.cacheMemory[character] = this_atoms_tuples
+        if self.StateParent is None and self.cacheMemory[ourTeam[0]] == [] and self.cacheMemory[ourTeam[1]] == []:
+            self.cacheMemory[ourTeam[0]] = this_atoms_tuples1
+            self.cacheMemory[ourTeam[1]] = this_atoms_tuples2
 
-        if character == 0:
-            ChildrenNone = self.AlliesSuccActionsNodeDict
-            parent_allies = self.allies
-        else:
-            ChildrenNone = self.EnemiesSuccActionsNodeDict
-            parent_allies = self.enemies
-
-        # print parent_allies
-        all_memory = [set(),]*5
-        p = self
-        parent_atoms_tuples = p.cacheMemory[character]
-        self.updateCacheMemory(all_memory, parent_atoms_tuples)
+        all_memory = {ourTeam[0]:[set(),]*4,ourTeam[1]:[set(),]*4}
+        parent_atoms_tuples = {ourTeam[0]:self.cacheMemory[ourTeam[0]], ourTeam[1]:self.cacheMemory[ourTeam[1]]}
+        #static method
+        all_memory = self.updateCacheMemory(all_memory, parent_atoms_tuples)
         for actionKey,succ in ChildrenNone.items():
             # print succ.allies
-            succ_atoms_tuples = succ.generateTuples()
-            '''
-            print succ_atoms_tuples[succ.allies[0]]
-            print succ_atoms_tuples[succ.allies[1]]
-            print '.....'*20
-            '''
-            self.updateCacheMemory(all_memory,succ_atoms_tuples)
-            if len(succ_atoms_tuples[4]) - len(parent_atoms_tuples[4]) == 0:
-                if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[parent_allies[0]]) == 0:
-                    succ.novel = False
-                    if len(succ_atoms_tuples[succ.allies[1]]-parent_atoms_tuples[parent_allies[1]]) == 0:
-                        succ.unnovelCause = [0,1]
-                    else:
-                        succ.unnovelCause = [0]
-                    #print 1
-                    continue
+            succ_atoms_tuples0 = succ.generateTuples(ourTeam[0])
+            succ_atoms_tuples1 = succ.generateTuples(ourTeam[1])
+            if ignore == -1:
+                all_memory = self.updateCacheMemory(all_memory,{ourTeam[0]:succ_atoms_tuples0, ourTeam[1]:succ_atoms_tuples1})
+                if len(succ_atoms_tuples0[0] - parent_atoms_tuples[ourTeam[0]][0]) == 0:
+                    if succ_atoms_tuples0[1:4] == parent_atoms_tuples[ourTeam[0]][1:4]:
+                        succ.novel = False
+                        if len(succ_atoms_tuples1[0]-parent_atoms_tuples[ourTeam[1]][0]) == 0 and succ_atoms_tuples1[1:4] == parent_atoms_tuples[ourTeam[1]][1:4]:
+                            succ.unnovelCause = [0,1]
+                        else:
+                            succ.unnovelCause = [0]
+                        continue
                 else:
-                    if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[parent_allies[1]]) == 0:
-                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[0]]) == 0:
+                    if len(succ_atoms_tuples0[0] - parent_atoms_tuples[ourTeam[1]][0]) == 0:
+                        if len(succ_atoms_tuples1[0] - parent_atoms_tuples[ourTeam[0]][0]) == 0:
                             succ.novel = False
                             succ.unnovelCause = [0,1]
-                            #print 2
                             continue
-                        elif len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
+                        elif len(succ_atoms_tuples1[0] - parent_atoms_tuples[ourTeam[1]][0]) == 0 and succ_atoms_tuples1[1:4] == parent_atoms_tuples[ourTeam[1]][1:4]:
                             succ.novel = False
                             succ.unnovelCause = [1]
                             continue
                     else:
-                        if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
+                        if len(succ_atoms_tuples1[0] - parent_atoms_tuples[ourTeam[1]][0]) == 0:
+                            if succ_atoms_tuples1[1:4] == parent_atoms_tuples[ourTeam[1]][1:4]:
+                                succ.novel = False
+                                succ.unnovelCause = [1]
+                                continue
+            else:
+                if ignore == ourTeam[0]:
+                    all_memory = self.updateCacheMemory(all_memory, {ourTeam[1]:succ_atoms_tuples1})
+                    if len(succ_atoms_tuples1[0] - parent_atoms_tuples[ourTeam[1]][0]) == 0:
+                        if succ_atoms_tuples1[1:4] == parent_atoms_tuples[ourTeam[1]][1:4]:
                             succ.novel = False
                             succ.unnovelCause = [1]
-                            #print 3
+                            continue
+                elif ignore == ourTeam[1]:
+                    all_memory = self.updateCacheMemory(all_memory, {ourTeam[0]:succ_atoms_tuples0})
+                    if len(succ_atoms_tuples0[0] - parent_atoms_tuples[ourTeam[0]][0]) == 0:
+                        if succ_atoms_tuples0[1:4] == parent_atoms_tuples[ourTeam[0]][1:4]:
+                            succ.novel = False
+                            succ.unnovelCause = [0]
                             continue
 
         return all_memory

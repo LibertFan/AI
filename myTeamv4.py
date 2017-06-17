@@ -489,7 +489,6 @@ class MCTSCaptureAgent(CaptureAgent):
         
     def ParallelGenerateSuccNode(self, CurrentStateNode):
         NovelSuccActionStateNodeList = CurrentStateNode.FullExpandFunc()
-        #print "NovelSuccActionStateNodeList",NovelSuccActionStateNodeList
         if len( NovelSuccActionStateNodeList ) == 0:
             print "All children StateNode of the chosed StateNode is not novel"
             # save memory waste computation
@@ -504,7 +503,6 @@ class MCTSCaptureAgent(CaptureAgent):
             #i += 1
             #print i,"begin",actions
             if SuccStateNode.novel:
-                #print "SuccStateNode",SuccStateNode.IndexPositions
                 topKList = self.TopKSuccStateNodeList( SuccStateNode, [ actions, ] )
                 if topKList is None:
                     return

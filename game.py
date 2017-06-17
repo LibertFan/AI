@@ -129,6 +129,8 @@ class AgentState:
         self.scaredTimer = 0
         self.numCarrying = 0
         self.numReturned = 0
+        self.numCapsules = 0
+        self.eatEnemies = 0
 
     def __str__( self ):
         if self.isPacman:
@@ -150,6 +152,7 @@ class AgentState:
         state.scaredTimer = self.scaredTimer
         state.numCarrying = self.numCarrying
         state.numReturned = self.numReturned
+        self.numCapsules = self.numCapsules
         return state
 
     def getPosition(self):

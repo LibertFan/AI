@@ -372,7 +372,8 @@ class CaptureRules:
     def newGame(self, layout, agents, display, length, muteAgents, catchExceptions):
         initState = GameState()
         initState.initialize(layout, len(agents))
-        starter = random.randint(0, 1)
+        #starter = random.randint(0, 1)
+        starter = 0
         print('%s team starts' % ['Red', 'Blue'][starter])
         game = Game(agents, display, self, startingIndex=starter, muteAgents=muteAgents,
                     catchExceptions=catchExceptions)
@@ -557,6 +558,15 @@ class AgentRules:
         if (position in myCapsules):
             state.data.capsules.remove(position)
             state.data._capsuleEaten = position
+            if isRed:
+                ourTeam = state.getRedTeamIndices()
+            else:
+                ourTeam = state.getBlueTeamIndices()
+            agents = [state.data.agentStates[agentIndex] for agentIndex in ourTeam]
+            for agent in agents:
+                if agent.getPosition() == position:
+                    agent.numCapsules += 1
+                    break  # the above should only be true for one agent...
 
             # Reset all ghosts' scared timers
             if isRed:
@@ -692,6 +702,7 @@ class AgentRules:
                 if ghostPosition == None: continue
                 if manhattanDistance(ghostPosition, agentState.getPosition()) <= COLLISION_TOLERANCE:
                     # award points to the other team for killing Pacmen
+                    otherAgentState.eatEnemies += 1
                     if otherAgentState.scaredTimer <= 0:
                         AgentRules.dumpFoodFromDeath(state, agentState, agentIndex)
 
@@ -718,6 +729,7 @@ class AgentRules:
                 if pacPos == None: continue
                 if manhattanDistance(pacPos, agentState.getPosition()) <= COLLISION_TOLERANCE:
                     # award points to the other team for killing Pacmen
+                    agentState.eatEnemies += 1
                     if agentState.scaredTimer <= 0:
                         AgentRules.dumpFoodFromDeath(state, otherAgentState, agentIndex)
 
