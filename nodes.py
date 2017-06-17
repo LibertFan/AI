@@ -61,7 +61,7 @@ class StateNode( BasicNode ):
             agentMoveInfo = []
             for agentIndex in range(4):
                 isAgentPacman = self.LastActions.get( agentIndex ).isPacman
-                agentInfo.append( ( isAgentPacman, agentIndex, self.LastActions.get( agentIndex ) ) ) 
+                agentMoveInfo.append( ( isAgentPacman, agentIndex, self.LastActions.get( agentIndex ) ) )
             agentMoveOrder = sorted( agentMoveInfo, lambda x: ( x[0], x[1] )  )
             
             for _, agentIndex, action in agentMoveOrder:
