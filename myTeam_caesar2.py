@@ -15,6 +15,7 @@ from game import Directions, Actions
 from util import nearestPoint
 from decimal import Decimal
 
+
 #################
 # Team creation #
 #################
@@ -26,7 +27,7 @@ def createTeam(firstIndex, secondIndex, isRed,
     team, initialized using firstIndex and secondIndex as their agent
     index numbers.  isRed is True if the red team is being created, and
     will be False if the blue team is being created.
-  
+
     As a potentially helpful development aid, this function can take
     additional string-valued keyword arguments ("first" and "second" are
     such arguments in the case of this function), which will come from
@@ -265,9 +266,10 @@ class Caesar(ReflexCaptureAgent):
         return features
 
     def getWeights(self, gameState, action):
-        return {'eats-invader': 5, 'invaders-1-step-away': 0, 'teammateDist': 1.5, 'closest-food': -1,
-                'eats-capsules': 10.0, '#-of-dangerous-ghosts-1-step-away': -20, 'eats-ghost': 1.0,
-                '#-of-harmless-ghosts-1-step-away': 0.1, 'stopped': -5, 'eats-food': 1}
+        return {'teammateDist': 0.670685525269193, 'closest-food': -2.4757255329635885, 'eats-capsules': 9.151090095372206,
+                '#-of-dangerous-ghosts-1-step-away': -5.9359156068251435, 'eats-ghost': 1.6024076564176668,
+                'invaders-1-step-away': 2.2753823928201524,'#-of-harmless-ghosts-1-step-away': -0.15556132085075183, 'stopped': -6.09968075796784,
+                'eats-invader': 7.375147922205873, 'eats-food': 1.4164376623849293}
 
 
 class Caesar1(ReflexCaptureAgent):
@@ -345,9 +347,11 @@ class Caesar1(ReflexCaptureAgent):
         return features
 
     def getWeights(self, gameState, action):
-        return {'eats-invader': 5, 'invaders-1-step-away': 1, 'teammateDist': 1.5, 'closest-food': -1,
-                'eats-capsules': 10.0, '#-of-dangerous-ghosts-1-step-away': -20, 'eats-ghost': 1.0,
-                '#-of-harmless-ghosts-1-step-away': 0.1, 'stopped': -5, 'eats-food': 1}
+        return {'teammateDist': 2.3288358401737907, 'closest-food': -1.0886931940414803,
+                'eats-capsules': 13.477959551487604, '#-of-dangerous-ghosts-1-step-away': -23.049701530623054,
+                'eats-ghost': 0.8669584765237215, 'invaders-1-step-away': 1.516349279877483,
+                '#-of-harmless-ghosts-1-step-away': 3.2681732714016074, 'stopped': -5.403057778510077,
+                'eats-invader': 9.366224198321031, 'eats-food': 0.8724156679043709}
 
 
 class Caesar2(ReflexCaptureAgent):
@@ -359,16 +363,16 @@ class Caesar2(ReflexCaptureAgent):
             self.setWeights = givenWeights
 
     def randomWeights(self):
-        self.setWeights['eats-invader'] = round(random.random()*10,2)
-        self.setWeights['invaders-1-step-away'] = round(random.random()*5,2)
-        self.setWeights['teammateDist'] = round(random.random()*5,2)
-        self.setWeights['closest-food'] = round(-random.random()*5,2)
-        self.setWeights['eats-capsules'] = round(random.random()*20,2)
-        self.setWeights['#-of-dangerous-ghosts-1-step-away'] = round(-random.random()*40,2)
-        self.setWeights['eats-ghost'] = round(random.random()*3,2)
-        self.setWeights['#-of-harmless-ghosts-1-step-away'] = round(random.random(),2)
-        self.setWeights['stopped'] = round(-random.random()*10,2)
-        self.setWeights['eats-food'] = round(random.random()*3,2)
+        self.setWeights['eats-invader'] = round(random.random() * 10, 2)
+        self.setWeights['invaders-1-step-away'] = round(random.random() * 5, 2)
+        self.setWeights['teammateDist'] = round(random.random() * 5, 2)
+        self.setWeights['closest-food'] = round(-random.random() * 5, 2)
+        self.setWeights['eats-capsules'] = round(random.random() * 20, 2)
+        self.setWeights['#-of-dangerous-ghosts-1-step-away'] = round(-random.random() * 40, 2)
+        self.setWeights['eats-ghost'] = round(random.random() * 3, 2)
+        self.setWeights['#-of-harmless-ghosts-1-step-away'] = round(random.random(), 2)
+        self.setWeights['stopped'] = round(-random.random() * 10, 2)
+        self.setWeights['eats-food'] = round(random.random() * 3, 2)
 
     def mybin(self, float, bit=10):
         """ 
@@ -410,7 +414,7 @@ class Caesar2(ReflexCaptureAgent):
             binary = '-' + binary
         return binary
 
-    def mydec(self,binary):
+    def mydec(self, binary):
         """ 
         将二进制数变成十进制数，包括浮点数 
         用法：mydec(binary) 
@@ -530,3 +534,5 @@ class Caesar2(ReflexCaptureAgent):
 
     def getWeights(self, gameState, action):
         return self.setWeights
+
+

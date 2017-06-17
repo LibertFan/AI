@@ -21,6 +21,7 @@
 # For more info, see http://inst.eecs.berkeley.edu/~cs188/sp09/pacman.html
 
 from util import *
+#import capture
 import time, os
 import traceback
 import sys
@@ -727,23 +728,23 @@ class Game:
                 self.rules.process( self.state, self )
             """
             agentActionDict = dict()
-            for agentIndex, action in oneStepActionsList:
-                agentActionDict[ agentIndex ] = action
-            
             agentMoveInfo = []
-            for agentIdnex in range(4):
+            for agentIndex, action in oneStepActionsList:
                 isAgentPacman = self.state.getAgentState( agentIndex ).isPacman
-                agentMoveInfo.append( ( isAgentPacman, agentIndex, agentActionDict[ agentIndex ] ) )
-            agentMoveOrder = sorted( agentMoveInfo, key = lambda x: ( x[0], x[1] ) )     
-            
-            for _, agentIndex, action in agentMoveOrder:
-                try:
-                    self.state = self.state.generateSuccessor( agentIndex, action )
-                    self.rules.process( self.state, self)                       
-                except:
-                    self.state = self.state.generateSuccessor( agentIndex, "Stop" )
-                    self.rules.process( self.state, self)  
-                self.display.update(self.state.data)
+                agentMoveInfo.append( ( isAgentPacman, agentIndex, action ) ) 
+            agentMoveOrder = sorted( agentMoveInfo, key=lambda x:( x[0], x[1] ) )
+
+            deadAgentList = []
+            for index, ( isAgentPacman, agentIndex, action ) in enumerate( agentMoveOrder ):
+                if agentIndex in deadAgentList:
+                    self.state, deadAgents = self.state.generateSuccessor( agentIndex, "Stop", True )
+                    deadAgentList.extend( deadAgents ) 
+                else:    
+                    self.state, deadAgents = self.state.generateSuccessor( agentIndex, action, True )
+                    deadAgentList.extend( deadAgents )
+
+                self.display.update( self.state.data )
+                self.rules.process( self.state, self )
             
         # inform a learning agent of the game result
         for agentIndex, agent in enumerate(self.agents):
