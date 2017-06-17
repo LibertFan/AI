@@ -720,12 +720,34 @@ class Game:
                 agentIndex = ( agentIndex + 1 ) % numAgents
                 if _BOINC_ENABLED:
                     boinc.set_fraction_done(self.getProgress())
-
+            ### The rule for the game:
+            ### Pacman first, if there are many pacmans, they take action according to
+            ### their agentIndex reversely.
+            """
             for agentIndex, action in oneStepActionsList:
                 self.state = self.state.generateSuccessor( agentIndex, action )
+                self.display.update( self.state.data )
+                self.rules.process( self.state, self )
+            """
+            agentActionDict = dict()
+            for agentIndex, action in oneStepActionsList:
+                agentActionDict[ agentIndex ] = action
+            
+            agentMoveInfo = []
+            for agentIdnex in range(4):
+                isAgentPacman = self.state.getAgentState( agentIndex ).isPacman
+                agentMoveInfo.append( ( isAgentPacman, agentIndex, agentActionDict[ agentIndex ] ) )
+            agentMoveOrder = sorted( agentMoveInfo, key = lambda x: ( x[0], x[1] ) )     
+            
+            for _, agentIndex, action in agentMoveOrder:
+                try:
+                    self.state = self.state.generateSuccessor( agentIndex, action )
+                    self.rules.process( self.state, self)                       
+                except:
+                    self.state = self.state.generateSuccessor( agentIndex, "Stop" )
+                    self.rules.process( self.state, self)  
                 self.display.update(self.state.data)
-                self.rules.process(self.state, self)
-
+            
         # inform a learning agent of the game result
         for agentIndex, agent in enumerate(self.agents):
             if "final" in dir( agent ) :

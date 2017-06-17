@@ -479,6 +479,9 @@ class AgentRules:
         """
         legal = AgentRules.getLegalActions(state, agentIndex)
         if action not in legal:
+            print "x"*50 
+            agentState = state.data.agentStates[ agentIndex ] 
+            print agentIndex, action, legal, agentState.configuration.getPosition()
             raise Exception("Illegal action " + str(action))
 
         # Update Configuration
@@ -1071,5 +1074,3 @@ if __name__ == '__main__':
     save_score(games[0])
     print games[0].state.data.score
     #print games2[0].state.data.score
-    # import cProfile
-    # cProfile.run('runGames( **options )', 'profile')
