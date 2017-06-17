@@ -2,7 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6fcc4672-e85a-415d-ab24-6991f0799893" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.myTeamv4.py.swp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.nodes.py.swp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/myTeam_caesar2.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/myTeam_caesar_state.py" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/MCTS.py" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/capture.py" afterPath="$PROJECT_DIR$/capture.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/game.py" afterPath="$PROJECT_DIR$/game.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/myTeam_caesar.py" afterPath="$PROJECT_DIR$/myTeam_caesar.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/myTeamv4.py" afterPath="$PROJECT_DIR$/myTeamv4.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/nodes.py" afterPath="$PROJECT_DIR$/nodes.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/score" afterPath="$PROJECT_DIR$/score" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -20,12 +31,13 @@
       <file leaf-file-name="game.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/game.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-491">
-              <caret line="573" column="20" lean-forward="false" selection-start-line="573" selection-start-column="13" selection-end-line="573" selection-end-column="20" />
+            <state relative-caret-position="-428">
+              <caret line="574" column="20" lean-forward="false" selection-start-line="574" selection-start-column="20" selection-end-line="574" selection-end-column="20" />
               <folding>
-                <element signature="e#20625#21341#0" expanded="false" />
-                <element signature="e#21733#24193#0" expanded="false" />
-                <marker date="1497703250063" expanded="true" signature="20286:25629" ph="..." />
+                <marker date="1497703473965" expanded="true" signature="27210:27598" ph="..." />
+                <marker date="1497703473965" expanded="true" signature="27251:27598" ph="..." />
+                <marker date="1497703473965" expanded="true" signature="27272:27394" ph="..." />
+                <marker date="1497703473965" expanded="true" signature="27433:27598" ph="..." />
               </folding>
             </state>
           </provider>
@@ -47,11 +59,10 @@
         <entry file="file://$PROJECT_DIR$/capture.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="-1016">
-              <caret line="881" column="52" lean-forward="false" selection-start-line="881" selection-start-column="52" selection-end-line="881" selection-end-column="52" />
+              <caret line="891" column="52" lean-forward="false" selection-start-line="891" selection-start-column="52" selection-end-line="891" selection-end-column="52" />
               <folding>
                 <element signature="e#2321#2351#0" expanded="true" />
-                <marker date="1497703250200" expanded="true" signature="16478:17427" ph="..." />
-                <marker date="1497703250200" expanded="true" signature="17234:17427" ph="..." />
+                <marker date="1497703474035" expanded="true" signature="3349:4264" ph="..." />
               </folding>
             </state>
           </provider>
@@ -60,15 +71,10 @@
       <file leaf-file-name="myTeamv4.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/myTeamv4.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1402">
-              <caret line="505" column="0" lean-forward="false" selection-start-line="505" selection-start-column="0" selection-end-line="505" selection-end-column="0" />
+            <state relative-caret-position="-245">
+              <caret line="398" column="38" lean-forward="false" selection-start-line="398" selection-start-column="27" selection-end-line="398" selection-end-column="38" />
               <folding>
                 <element signature="e#649#687#0" expanded="true" />
-                <element signature="e#13569#15290#0" expanded="false" />
-                <element signature="e#15345#18784#0" expanded="false" />
-                <element signature="e#17102#18784#0" expanded="false" />
-                <element signature="e#22916#22949#0" expanded="false" />
-                <element signature="e#22984#23293#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -77,8 +83,8 @@
       <file leaf-file-name="nodes.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nodes.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="21">
-              <caret line="58" column="0" lean-forward="false" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
+            <state relative-caret-position="91">
+              <caret line="566" column="20" lean-forward="false" selection-start-line="566" selection-start-column="20" selection-end-line="566" selection-end-column="20" />
               <folding>
                 <element signature="e#0#38#0" expanded="true" />
               </folding>
@@ -119,8 +125,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>CaptureR</find>
-      <find>observationFunction</find>
       <find>nearestPoint</find>
       <find>CaptureRu</find>
       <find>Agent</find>
@@ -147,8 +151,10 @@
       <find>getSuccessorNovel</find>
       <find>cacheMemory</find>
       <find>updateCacheMemory</find>
-      <find>print</find>
       <find>agentMoveInfo</find>
+      <find>print</find>
+      <find>&lt;&lt;&lt;&lt;</find>
+      <find>Back</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -439,7 +445,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="7" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17851622" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -450,7 +456,7 @@
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32846716" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3680431" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32854578" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.31059247" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -519,8 +525,7 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#2321#2351#0" expanded="true" />
-            <marker date="1497703250200" expanded="true" signature="16478:17427" ph="..." />
-            <marker date="1497703250200" expanded="true" signature="17234:17427" ph="..." />
+            <marker date="1497703474035" expanded="true" signature="3349:4264" ph="..." />
           </folding>
         </state>
       </provider>
@@ -545,8 +550,7 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#2321#2351#0" expanded="true" />
-            <marker date="1497703250200" expanded="true" signature="16478:17427" ph="..." />
-            <marker date="1497703250200" expanded="true" signature="17234:17427" ph="..." />
+            <marker date="1497703474035" expanded="true" signature="3349:4264" ph="..." />
           </folding>
         </state>
       </provider>
@@ -585,8 +589,7 @@
           <caret line="288" column="33" lean-forward="false" selection-start-line="288" selection-start-column="16" selection-end-line="288" selection-end-column="33" />
           <folding>
             <element signature="e#2321#2351#0" expanded="true" />
-            <marker date="1497703250200" expanded="true" signature="16478:17427" ph="..." />
-            <marker date="1497703250200" expanded="true" signature="17234:17427" ph="..." />
+            <marker date="1497703474035" expanded="true" signature="3349:4264" ph="..." />
           </folding>
         </state>
       </provider>
@@ -825,23 +828,23 @@
     <entry file="file://$PROJECT_DIR$/capture.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-1016">
-          <caret line="881" column="52" lean-forward="false" selection-start-line="881" selection-start-column="52" selection-end-line="881" selection-end-column="52" />
+          <caret line="891" column="52" lean-forward="false" selection-start-line="891" selection-start-column="52" selection-end-line="891" selection-end-column="52" />
           <folding>
             <element signature="e#2321#2351#0" expanded="true" />
-            <marker date="1497703250200" expanded="true" signature="16478:17427" ph="..." />
-            <marker date="1497703250200" expanded="true" signature="17234:17427" ph="..." />
+            <marker date="1497703474035" expanded="true" signature="3349:4264" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/game.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-491">
-          <caret line="573" column="20" lean-forward="false" selection-start-line="573" selection-start-column="13" selection-end-line="573" selection-end-column="20" />
+        <state relative-caret-position="-428">
+          <caret line="574" column="20" lean-forward="false" selection-start-line="574" selection-start-column="20" selection-end-line="574" selection-end-column="20" />
           <folding>
-            <element signature="e#20625#21341#0" expanded="false" />
-            <element signature="e#21733#24193#0" expanded="false" />
-            <marker date="1497703250063" expanded="true" signature="20286:25629" ph="..." />
+            <marker date="1497703473965" expanded="true" signature="27210:27598" ph="..." />
+            <marker date="1497703473965" expanded="true" signature="27251:27598" ph="..." />
+            <marker date="1497703473965" expanded="true" signature="27272:27394" ph="..." />
+            <marker date="1497703473965" expanded="true" signature="27433:27598" ph="..." />
           </folding>
         </state>
       </provider>
@@ -858,8 +861,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/nodes.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="21">
-          <caret line="58" column="0" lean-forward="false" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
+        <state relative-caret-position="91">
+          <caret line="566" column="20" lean-forward="false" selection-start-line="566" selection-start-column="20" selection-end-line="566" selection-end-column="20" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
@@ -868,15 +871,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/myTeamv4.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1402">
-          <caret line="505" column="0" lean-forward="false" selection-start-line="505" selection-start-column="0" selection-end-line="505" selection-end-column="0" />
+        <state relative-caret-position="-245">
+          <caret line="398" column="38" lean-forward="false" selection-start-line="398" selection-start-column="27" selection-end-line="398" selection-end-column="38" />
           <folding>
             <element signature="e#649#687#0" expanded="true" />
-            <element signature="e#13569#15290#0" expanded="false" />
-            <element signature="e#15345#18784#0" expanded="false" />
-            <element signature="e#17102#18784#0" expanded="false" />
-            <element signature="e#22916#22949#0" expanded="false" />
-            <element signature="e#22984#23293#0" expanded="false" />
           </folding>
         </state>
       </provider>

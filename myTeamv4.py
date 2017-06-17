@@ -223,7 +223,6 @@ class MCTSCaptureAgent(CaptureAgent):
             AlliesActionNode = self.rootNode.AlliesSuccActionsNodeDict[AlliesActions]
             EnemiesActionNode = self.rootNode.EnemiesSuccActionsNodeDict[EnemiesActions]     
             if SuccStateNode.novel:
-                print "-"*50
                 try:
                     print Actions, SuccStateNode.IndexPositions, SuccStateNode.nVisit, SuccStateNode.totalValue / float(SuccStateNode.nVisit), SuccStateNode.novel
                     print "Allies", AlliesActionNode.nVisit, AlliesActionNode.totalValue / float( AlliesActionNode.nVisit) 
@@ -236,7 +235,6 @@ class MCTSCaptureAgent(CaptureAgent):
         return bestAction
 
     def Select( self ):
-
         currentNode = self.rootNode
         i = 0
         while True:
@@ -426,13 +424,10 @@ class MCTSCaptureAgent(CaptureAgent):
                         #print "true to false"
                         eachStateSucc.novel = False
 
-
             FirstStateNode = parentStateNode
             NovelSuccStateNodeList = FirstStateNode.FullExpandFunc()
-        #print "*"*100
 
         return FirstStateNode
-
 
     def TopKSuccStateNodeList( self, CurrentStateNode, PreActions = [] ):
         CandidataFTSSNL = list()
@@ -537,7 +532,6 @@ class MCTSCaptureAgent(CaptureAgent):
         self.n += 1       
  
         CurrentStateNode, Action = CurrentStateInfo
-        #time1 = time.time()
         n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
         n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
         m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance )

@@ -269,6 +269,14 @@ class Caesar(ReflexCaptureAgent):
                 'eats-capsules': 10.0, '#-of-dangerous-ghosts-1-step-away': -20, 'eats-ghost': 1.0,
                 '#-of-harmless-ghosts-1-step-away': 0.1, 'stopped': -5, 'eats-food': 1}
 
+class QJT( ReflexCaptureAgent ):
+	def getFeature( self, state, actions    ):
+		food = self.getFood( state )
+		
+
+	def getWeights( self, gameState, action ):
+		return {}
+
 
 class Caesar1(ReflexCaptureAgent):
     def getFeatures(self, state, action):
