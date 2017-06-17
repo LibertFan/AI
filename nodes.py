@@ -203,19 +203,9 @@ class StateNode( BasicNode ):
         elif not self.novel:
             ### judge which part of action is unnovel!
             if self.StateParent is None:
-                alliesUnnovelNum = 0
-                for actionNode in self.AlliesSuccActionsNodeDict.values():
-                    if not actionNode.novel:
-                        alliesUnnovelNum += 1
-                if alliesUnnovelNum == len(self.AlliesSuccActionsNodeDict):
-                    self.cacheMemory[0] = None
-
-                enemiesUnnovelNum = 0
-                for actionNode in self.EnemiesSuccActionsNodeDict.values():
-                    if not actionNode.novel:
-                        enemiesUnnovelNum += 1
-                if enemiesUnnovelNum == len(self.EnemiesSuccActionsNodeDict):
-                    self.cacheMemory[1] = None
+		AgentFaultList = self.WhichAgentFault( self, ReturnAgentFault = True )
+		for agent in AgentFaultList:
+		    self.cacheMemory[agent] = None
 
                 self.NovelTest = False
                 self.FullExpandFunc()
@@ -223,20 +213,20 @@ class StateNode( BasicNode ):
 
             raise Exception( "The chosed state node is unnovel in function UCB1ChooseSuccNode")
         else:
-            HighestScore = 0
+            HighestScore = -9999
             ChosedAction = None
             for AlliesAction in self.LegalAlliesActions:
                 SuccAlliesActionsNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
                 if SuccAlliesActionsNode.novel:
                     lowestEnemiesScore = 9999                    
-                    flag = 0
+                    #flag = 0
                     ChosedEnemiesAction = None
                     for EnemiesAction in self.LegalEnemiesActions:
                         SuccEnemiesActionNode = self.EnemiesSuccActionsNodeDict.get( EnemiesAction )
                         if SuccEnemiesActionNode.novel:   
                             SuccStateNode = self.SuccStateNodeDict.get((AlliesAction,EnemiesAction))
                             if SuccStateNode.novel:
-                                flag = 1
+                                #flag = 1
                                 score = SuccStateNode.totalValue / float(SuccStateNode.nVisit) \
                                         + self.C1 * math.sqrt( math.log( self.nVisit ) / SuccStateNode.nVisit )
                                 if score < lowestEnemiesScore:
@@ -253,21 +243,59 @@ class StateNode( BasicNode ):
                         ChosedAction = ( AlliesAction, ChosedEnemiesAction )
 
             if ChosedAction is None:
-                ##need to change
-                '''
-                self.novel = False
-                for actionKeys, eachStateSucc in self.StateParent.SuccStateNodeDict.items():
-                    print eachStateSucc == self
-                    if eachStateSucc == self:
-                        self.SuccStateNodeDict[actionKeys] = ReplaceNode(eachStateSucc.depth)
-                '''
                 #self = ReplaceNode(self.depth)
                 self.novel = False
                 return None
             else:    
                 SuccStateNode = self.SuccStateNodeDict.get( ChosedAction )
                 return SuccStateNode
-    
+ 
+    def WhichAgentFault( self ):
+        WhichActionNodeDictList = []
+        WhichTeamList = []
+
+        alliesUnnovelNum = 0
+        for actionNode in self.AlliesSuccActionsNodeDict.values():
+            if not actionNode.novel:
+                alliesUnnovelNum += 1 
+        if alliesUnnovelNum == len( self.AlliesSuccActionsNodeDict ):
+            WhichActionNodeDictList.append( self.AlliesSuccActionsNodeDict )
+            WhichTeamList.append( 0 )  # allies
+
+        enemiesUnnovelNum = 0
+        for actionNode in self.EnemiesSuccActionsNodeDict.values():
+            if not actionNode.novel:
+                enemiesUnnovelNum += 1
+        if enemiesUnnovelNum == len( self.EnemiesSuccActionsNodeDict ):
+            WhichActionNodeDictList.append( self.EnemiesSuccActionsNodeDict )
+            WhichTeamList.append( 1 )  # allies
+
+        '''Observe that all unnovel owing to which agent'''
+        #print "whichTeam",WhichTeam
+        AgentFaultList = []
+        for WhichTeam, WhichActionDict in zip( WhichTeamList, WhichActionDictList ):
+
+            cause = set([0, 1])
+            for actionkey,eachActionNode in WhichActionNodeDict.items():
+                #print actionkey,eachActionNode.unnovelCause
+                cause = cause & set(eachActionNode.unnovelCause)
+
+            if WhichTeam == 0:
+                if len(cause) == 0:
+                    AgentFaultList.extend( FirstStateNode.allies )
+                else:
+                    for agentIndex in cause:
+                        AgentFaultList.append( FirstStateNode.allies[agentIndex] )						
+            else:
+                if len(cause) == 0:
+                    AgentFaultList.extend( FirstStateNode.enemies )
+                else:
+                    for agentIndex in cause:
+                        AgentFaultList.append( FirstStateNode.enemies[agentIndex] )	
+
+        return AgentFaultList
+
+  
     ### RandChooseSuccNode is used in the course of MCTS's playout      
     def ChooseSuccNode( self, actions = None ):
         if actions is None:
@@ -508,9 +536,12 @@ class StateNode( BasicNode ):
         ### cacheMemory is a list consist of set
         # print self.StateParent
         # print self.cacheMemory[character]
-        if self.StateParent is None and self.cacheMemory[ourTeam[0]] == [] and self.cacheMemory[ourTeam[1]] == []:
-            self.cacheMemory[ourTeam[0]] = this_atoms_tuples1
-            self.cacheMemory[ourTeam[1]] = this_atoms_tuples2
+        if self.StateParent is None:       
+            if len( self.cacheMemory[ourTeam[0]] ) == 0 and len( self.cacheMemory[ourTeam[1]] ) == 0:
+                self.cacheMemory[ourTeam[0]] = this_atoms_tuples1
+                self.cacheMemory[ourTeam[1]] = this_atoms_tuples2 
+            else:
+                self.cacheMemory = self.updateCacheMemory( self.cacheMemory, {ourTeam[0]:this_atoms_tuples1, ourTeam[1]:this_atoms_tuples2})
 
         all_memory = {ourTeam[0]:[set(),]*4,ourTeam[1]:[set(),]*4}
         parent_atoms_tuples = {ourTeam[0]:self.cacheMemory[ourTeam[0]], ourTeam[1]:self.cacheMemory[ourTeam[1]]}
