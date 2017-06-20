@@ -238,7 +238,7 @@ class StateNode( BasicNode ):
 
                                 raise Exception( "Two novel actions produce an unnovel StateNode!" )
                                     
-                    if lowestEnemiesScore > HighestScore:
+                    if lowestEnemiesScore != 9999 and lowestEnemiesScore > HighestScore:
                         HighestScore = lowestEnemiesScore
                         ChosedAction = ( AlliesAction, ChosedEnemiesAction )
 
