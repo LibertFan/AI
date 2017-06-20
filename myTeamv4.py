@@ -199,7 +199,9 @@ class MCTSCaptureAgent(CaptureAgent):
                     self.rootNode.novel = True
                     #print self.rootNode.cacheMemory
                     self.rootNode.novelTest = False
-                    self.rootNode.FullExpandFunc() 
+                    self.AlliesSuccActionsNodeDict = dict()
+                    self.EnemiesSuccActionsNodeDict = dict()
+                    self.SuccStateNodeDict = dict()
                     self.novelleaf = 1
                     return self.rootNode
 
@@ -233,7 +235,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 #print node
                 if node is None:
                     print "Invalid Selections"
-                    raise Exception("hahahahahahahahaha")
+                    #raise Exception("hahahahahahahahaha")
                     if node == self.rootNode or id(node) == id(self.rootNode):
                         raise Exception("MCTS/chooseAction: No Node in the tree is novel")
                     continue
