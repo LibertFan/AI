@@ -270,9 +270,9 @@ class Caesar(ReflexCaptureAgent):
                 '#-of-harmless-ghosts-1-step-away': 0.1, 'stopped': -5, 'eats-food': 1}
 
 class QJT( ReflexCaptureAgent ):
-	def getFeature( self, state, actions    ):
+	def getFeature( self, state, actions ):   
 		food = self.getFood( state )
-		
+		6
 
 	def getWeights( self, gameState, action ):
 		return {}
@@ -291,7 +291,7 @@ class Caesar1(ReflexCaptureAgent):
         teammates = [state.getAgentState(i).getPosition() for i in self.getTeam(state)]
         opponents = [state.getAgentState(i) for i in self.getOpponents(state)]
         chasers = [a for a in opponents if not (a.isPacman) and a.getPosition() != None]
-        prey = [a for a in opponents if a.isPacman and a.getPosition() != None]
+        prey = [a f   or a in opponents if a.isPacman and a.getPosition() != None]
 
         features = util.Counter()
         if action == Directions.STOP:
