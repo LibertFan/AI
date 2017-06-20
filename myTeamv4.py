@@ -195,9 +195,11 @@ class MCTSCaptureAgent(CaptureAgent):
                     print "UnNovelAgentList", UnNovelAgentList
                     self.rootNode.cacheMemory = self.LastRootNode.cacheMemory
                     for agentIndex in UnNovelAgentList:
-                        self.rootNode.cacheMemory[ agentIndex ] = None
+                        self.rootNode.cacheMemory[ agentIndex ] = list()
                     self.rootNode.novel = True
                     #print self.rootNode.cacheMemory
+                    self.rootNode.novelTest = False
+                    self.rootNode.FullExpandFunc() 
                     self.novelleaf = 1
                     return self.rootNode
 
@@ -231,6 +233,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 #print node
                 if node is None:
                     print "Invalid Selections"
+                    raise Exception("hahahahahahahahaha")
                     if node == self.rootNode or id(node) == id(self.rootNode):
                         raise Exception("MCTS/chooseAction: No Node in the tree is novel")
                     continue
@@ -492,7 +495,12 @@ class MCTSCaptureAgent(CaptureAgent):
             try:
                 print "iteration within back begin!"
                 print "try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
-	        FirstStateNode, NovelSuccStateNodeList = self.WhichAgentFault( FirstStateNode )
+                result = self.WhichAgentFault( FirstStateNode )
+                if result is None:
+                    return None
+                else:
+                    FirstStateNode, NovelSuccStateNodeList = result
+                    
             except:
                 print "except, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
                 raise Exception
