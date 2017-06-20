@@ -239,7 +239,7 @@ class StateNode( BasicNode ):
 
                                 raise Exception( "Two novel actions produce an unnovel StateNode!" )
                                     
-                    if lowestEnemiesScore > HighestScore:
+                    if lowestEnemiesScore != 9999 and lowestEnemiesScore > HighestScore:
                         HighestScore = lowestEnemiesScore
                         ChosedAction = ( AlliesAction, ChosedEnemiesAction )
 
@@ -296,16 +296,16 @@ class StateNode( BasicNode ):
 
             if WhichTeam == 0:
                 if len(cause) == 0:
-                    AgentFaultList.extend( FirstStateNode.allies )
+                    AgentFaultList.extend( self.allies )
                 else:
                     for agentIndex in cause:
-                        AgentFaultList.append( FirstStateNode.allies[agentIndex] )						
+                        AgentFaultList.append( self.allies[agentIndex] )						
             else:
                 if len(cause) == 0:
-                    AgentFaultList.extend( FirstStateNode.enemies )
+                    AgentFaultList.extend( self.enemies )
                 else:
                     for agentIndex in cause:
-                        AgentFaultList.append( FirstStateNode.enemies[agentIndex] )	
+                        AgentFaultList.append( self.enemies[agentIndex] )	
 
         return AgentFaultList
 
