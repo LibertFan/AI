@@ -208,7 +208,9 @@ class StateNode( BasicNode ):
                 for agent in AgentFaultList:
                     self.cacheMemory[agent] = list()
                 self.NovelTest = False
-                self.FullExpandFunc()
+                self.novel = True
+                self.FullExpandFunc() 
+
                 return self
 
             raise Exception( "The chosed state node is unnovel in function UCB1ChooseSuccNode")
