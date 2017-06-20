@@ -504,6 +504,7 @@ class StateNode( BasicNode ):
             ourTeam = self.enemies
         this_atoms_tuples1 = self.generateTuples(ourTeam[0])
         this_atoms_tuples2 = self.generateTuples(ourTeam[1])
+        print this_atoms_tuples1
 
         ### cacheMemory is a list consist of set
         # print self.StateParent
