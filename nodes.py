@@ -204,8 +204,9 @@ class StateNode( BasicNode ):
             ### judge which part of action is unnovel!
             if self.StateParent is None:
 		AgentFaultList = self.WhichAgentFault()
+                print "UCB1, AgentFaultList", AgentFaultList 
 		for agent in AgentFaultList:
-		    self.cacheMemory[agent] = None
+		    self.cacheMemory[agent] = list()
 
                 self.NovelTest = False
                 self.FullExpandFunc()
@@ -244,10 +245,23 @@ class StateNode( BasicNode ):
 
             if ChosedAction is None:
                 #self = ReplaceNode(self.depth)
+                if self.StateParent is None:
+                    print "This StateNode is RootNode"
+                raise Exception("UCB1 return None!") 
                 self.novel = False
                 return None
             else:    
                 SuccStateNode = self.SuccStateNodeDict.get( ChosedAction )
+                if SuccStateNode is None:
+                    print "all legal actions",self.LegalIndexActions
+                    print "all succ state nodes",self.SuccStateNodeDict
+                    print "chosed action",ChosedAction
+                    currentStateNode = self
+                    while currentStateNode.StateParent is not None:
+                        print currentStateNode.IndexPositions 
+
+                    raise Exception ("UCB1 Chosed StateNode is None")
+
                 return SuccStateNode
  
     def WhichAgentFault( self ):
@@ -273,7 +287,7 @@ class StateNode( BasicNode ):
         '''Observe that all unnovel owing to which agent'''
         #print "whichTeam",WhichTeam
         AgentFaultList = []
-        for WhichTeam, WhichActionDict in zip( WhichTeamList, WhichActionNodeDictList ):
+        for WhichTeam, WhichActionNodeDict in zip( WhichTeamList, WhichActionNodeDictList ):
 
             cause = set([0, 1])
             for actionkey,eachActionNode in WhichActionNodeDict.items():
@@ -368,6 +382,7 @@ class StateNode( BasicNode ):
             elif len(nearResult[1]) == 2 and len(nearResult[2]) == 1:
                 allMemory2 = self.NoveltyTestSuccessorsV1(1, nearResult[0][0][1])
                 allMemory2.update({0: self.StateParent.cacheMemory[0], 2: self.StateParent.cacheMemory[2]})
+                cacheMemory = allMemory2
             else:
                 raise Exception('Not possible condition')
 
@@ -540,6 +555,12 @@ class StateNode( BasicNode ):
             if len( self.cacheMemory[ourTeam[0]] ) == 0 and len( self.cacheMemory[ourTeam[1]] ) == 0:
                 self.cacheMemory[ourTeam[0]] = this_atoms_tuples1
                 self.cacheMemory[ourTeam[1]] = this_atoms_tuples2 
+            elif len(self.cacheMemory[ourTeam[0]]) == 0:
+                self.cacheMemory[ourTeam[0]] = this_atoms_tuples1
+                self.cacheMemory = self.updateCacheMemory( self.cacheMemory, {ourTeam[1]:this_atoms_tuples2})
+            elif len(self.cacheMemory[ourTeam[1]]) == 0:
+                self.cacheMemory[ourTeam[1]] = this_atoms_tuples2
+                self.cacheMemory = self.updateCacheMemory( self.cacheMemory, {ourTeam[0]:this_atoms_tuples1})
             else:
                 self.cacheMemory = self.updateCacheMemory( self.cacheMemory, {ourTeam[0]:this_atoms_tuples1, ourTeam[1]:this_atoms_tuples2})
 
