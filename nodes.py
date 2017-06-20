@@ -103,8 +103,8 @@ class StateNode( BasicNode ):
         self.novel = True
         self.cacheMemory = defaultdict(list)
         self.novelTest = False
-        self.InProcess = False
-        self.DeathNum = [ None, ] * 4
+        #self.InProcess = False
+        #self.DeathNum = [ None, ] * 4
 
 
     def update( self, ActionSeries ):
@@ -203,7 +203,7 @@ class StateNode( BasicNode ):
         elif not self.novel:
             ### judge which part of action is unnovel!
             if self.StateParent is None:
-		AgentFaultList = self.WhichAgentFault( self, ReturnAgentFault = True )
+		AgentFaultList = self.WhichAgentFault()
 		for agent in AgentFaultList:
 		    self.cacheMemory[agent] = None
 
@@ -273,7 +273,7 @@ class StateNode( BasicNode ):
         '''Observe that all unnovel owing to which agent'''
         #print "whichTeam",WhichTeam
         AgentFaultList = []
-        for WhichTeam, WhichActionDict in zip( WhichTeamList, WhichActionDictList ):
+        for WhichTeam, WhichActionDict in zip( WhichTeamList, WhichActionNodeDictList ):
 
             cause = set([0, 1])
             for actionkey,eachActionNode in WhichActionNodeDict.items():

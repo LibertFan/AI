@@ -168,7 +168,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     print "leaf nodes:",num, "novel leaf nodes:",novelnum,"depth of the search tree:",Depth
                     self.novelleaf = novelnum
 
-                    print self.rootNode.cacheMemory 
+                    #print self.rootNode.cacheMemory 
                     return self.rootNode
 
                 elif SuccStateNode is not None and SuccStateNode.IndexPositions == IndexPositions:
@@ -178,20 +178,27 @@ class MCTSCaptureAgent(CaptureAgent):
                     self.rootNode.EnemiesActionParent = None
                     self.rootNode.StateParent = None
                     self.rootNode.depth = 0
-
+                    
                     AlliesActions, EnemiesActions = Action
                     AlliesActionNode = self.LastRootNode.AlliesSuccActionsNodeDict[ AlliesActions ]
                     EnemiesActionNode = self.LastRootNode.EnemiesSuccActionsNodeDict[ EnemiesActions ]
                     UnNovelAgentList = []
-                    for index in AlliesActionNode.unnovelCause:
+
+                    Causes = AlliesActionNode.unnovelCause
+                    for index in Causes:
                         UnNovelAgentList.append( self.allies[index] )
-                    for index in EnemiesActionNode.unnovelCause:    
+
+                    Causes = EnemiesActionNode.unnovelCause
+                    for index in Causes:    
                         UnNovelAgentList.append( self.enemies[index] ) 
+                   
+                    print "UnNovelAgentList", UnNovelAgentList
                     self.rootNode.cacheMemory = self.LastRootNode.cacheMemory
                     for agentIndex in UnNovelAgentList:
                         self.rootNode.cacheMemory[ agentIndex ] = None
-
-                    print self.rootNode.cacheMemory 
+                    self.rootNode.novel = True
+                    #print self.rootNode.cacheMemory
+                    self.novelleaf = 1
                     return self.rootNode
 
             self.leaf = None
@@ -207,10 +214,11 @@ class MCTSCaptureAgent(CaptureAgent):
         if self.rootNode is None:
             print "The Last Trees is no use!"
             self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
-            self.leaf is None
+            self.novelleaf = None
                
         else:
-            print "The Last Tree is in use!" 
+            print "The Last Tree is in use!"
+
         print "=" * 50
         print "Start Position",self.rootNode.IndexPositions
         print "=" * 50  
@@ -220,13 +228,13 @@ class MCTSCaptureAgent(CaptureAgent):
         if self.novelleaf is None or self.novelleaf < 2000:  
             while( iters < 40 and running_time < 60 ):
                 node = self.Select()  ######UCB1 appear Unnovel node
-                print node
+                #print node
                 if node is None:
                     print "Invalid Selections"
                     if node == self.rootNode or id(node) == id(self.rootNode):
                         raise Exception("MCTS/chooseAction: No Node in the tree is novel")
                     continue
-                print "iters",iters, "select node position:", node.IndexPositions,               
+                print "iters",iters, "select node position:", node.IndexPositions            
                 self.ParallelGenerateSuccNode( node )
                 end = time.time()
                 running_time = end - start
@@ -269,8 +277,11 @@ class MCTSCaptureAgent(CaptureAgent):
                     #raise Exception( "No StateNode in tree is novel!")
                     return None
             i += 1
+            if i > 100:
+                print i
 
-    def WhichAgentFault( self, FirstStateNode, ReturnAgentFault = False ):
+    def WhichAgentFault( self, FirstStateNode ):
+
         WhichActionNodeDictList = []
         WhichTeamList = []
 
@@ -291,7 +302,6 @@ class MCTSCaptureAgent(CaptureAgent):
             WhichTeamList.append( 1 )  # allies
 
             '''Observe that all unnovel owing to which agent'''
-            #print "whichTeam",WhichTeam
 
         AgentFaultList = []
         for WhichTeam, WhichActionNodeDict in zip( WhichTeamList, WhichActionNodeDictList ):
@@ -471,17 +481,21 @@ class MCTSCaptureAgent(CaptureAgent):
         FirstStateNode = parentStateNode
         NovelSuccStateNodeList = FirstStateNode.FullExpandFunc()
 
-        if not ReturnAgentFault:
-	    return FirstStateNode, NovelSuccStateNodeList
-	else:
-	    return AgentFaultList
+        print "FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
+	return FirstStateNode, NovelSuccStateNodeList
 
     def Back(self, backNode):
         FirstStateNode = backNode
         NovelSuccStateNodeList = FirstStateNode.FullExpandFunc()
 
         while(len(NovelSuccStateNodeList) == 0):
-	    FirstStateNode, NovelSuccStateNodeList = self.WhichAgentFault( FirstStateNode )
+            try:
+                print "iteration within back begin!"
+                print "try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
+	        FirstStateNode, NovelSuccStateNodeList = self.WhichAgentFault( FirstStateNode )
+            except:
+                print "except, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
+                raise Exception
 
         return FirstStateNode
 
@@ -495,30 +509,22 @@ class MCTSCaptureAgent(CaptureAgent):
             return
         elif BackStateNode.depth == UCB1_depth:
             return CandidataFTSSNL
-        else: #BackStateNode.depth == UCB1_depth+1
+        else:
             SortedSuccStateNodes, LeftNum = BackStateNode.getSortedSuccStateNodes( self.M, PreActions )
             CandidataFTSSNL.extend( SortedSuccStateNodes )
-            #print 'CandidataFTSSNL',len(CandidataFTSSNL)
         
         j = 0
         while( len(CandidataFTSSNL) > 0 and len( CandidataFTSSNL ) < self.M ):
-            #print CandidataFTSSNL
-            #print j
             FirstStateNode, PreActions = CandidataFTSSNL.pop()
             LeftNum += 1
             First_depth = FirstStateNode.depth
             BackFirstStateNode = self.Back(FirstStateNode)
             if BackFirstStateNode.depth == First_depth:
-                #print 'a'
                 SortedSuccStateNodes, LeftNum = FirstStateNode.getSortedSuccStateNodes(LeftNum, PreActions)
-                #print 'SortedSuccStateNodes',len(SortedSuccStateNodes)
                 CandidataFTSSNL.extend(SortedSuccStateNodes)
-                #print "now",len(CandidataFTSSNL)
             elif BackFirstStateNode.depth < UCB1_depth:
-                #print 'b'
                 return
             else:
-                #print 'c'
                 i = 0
                 while(i < len(CandidataFTSSNL)):
                     if not CandidataFTSSNL[i][0].novel:
@@ -526,16 +532,11 @@ class MCTSCaptureAgent(CaptureAgent):
                         LeftNum += 1
                         i -= 1
                     i += 1
-                #######to do:
-
             j += 1  
         if len(CandidataFTSSNL) == 0:
-            #save memory waste computation
             CurrentStateNode.novel = False
             return []
         else:
-            #print "here"*20
-            #print len(CandidataFTSSNL[-self.M:])
             return CandidataFTSSNL[-self.M:]
         
     def ParallelGenerateSuccNode(self, CurrentStateNode):

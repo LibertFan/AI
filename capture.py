@@ -887,7 +887,7 @@ def readCommand(argv):
     args['redTeamName'] = options.red_name
     args['blueTeamName'] = options.blue_name
 
-    if options.fixRandomSeed: random.seed('cs188')
+    #if options.fixRandomSeed: random.seed('cs188')
 
     # Special case: recorded games don't use the runGames method or args structure
     if options.replay != None:
@@ -1065,7 +1065,6 @@ def save_score(game):
     with open('score', 'w') as f:
         print >> f, game.state.data.score
 
-
 if __name__ == '__main__':
 
     """
@@ -1076,7 +1075,7 @@ if __name__ == '__main__':
     > python capture.py --help
     """
     import random
-    random.seed(123)
+    #random.seed(123)
     options = readCommand(sys.argv[1:])  # Get game components based on input
     games = runGames(**options)
     #games2 = runGames(**options)

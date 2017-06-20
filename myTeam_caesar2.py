@@ -37,13 +37,13 @@ def createTeam(firstIndex, secondIndex, isRed,
     behavior is what you want for the nightly contest.
     """
     if firstIndex < 2:
-        first = 'Caesar'
+        first = 'Caesarv3'
     elif firstIndex < 4:
-        first = 'Caesar1'
+        first = 'Caesarv4'
     if secondIndex < 2:
-        second = 'Caesar'
+        second = 'Caesarv3'
     else:
-        second = 'Caesar1'
+        second = 'Caesarv4'
     print first
     print second
     return [eval(first)(firstIndex), eval(second)(secondIndex)]
@@ -60,8 +60,10 @@ class ReflexCaptureAgent(CaptureAgent):
 
     def registerInitialState(self, gameState):
         self.start = gameState.getAgentPosition(self.index)
-        print "self.index", self.index
+        #print "self.index", self.index
         CaptureAgent.registerInitialState(self, gameState)
+        print self.index, self.getWeights( gameState, "Stop")
+
 
     def chooseAction(self, gameState):
         """
@@ -191,7 +193,7 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
         return {'numInvaders': -1000, 'onDefense': 100, 'invaderDistance': -10, 'stop': -100, 'reverse': -2}
 
 
-class Caesar(ReflexCaptureAgent):
+class Caesarv3(ReflexCaptureAgent):
     def getFeatures(self, state, action):
         food = self.getFood(state)
         foodList = food.asList()
@@ -266,13 +268,14 @@ class Caesar(ReflexCaptureAgent):
         return features
 
     def getWeights(self, gameState, action):
-        return {'teammateDist': 0.670685525269193, 'closest-food': -2.4757255329635885, 'eats-capsules': 9.151090095372206,
-                '#-of-dangerous-ghosts-1-step-away': -5.9359156068251435, 'eats-ghost': 1.6024076564176668,
-                'invaders-1-step-away': 2.2753823928201524,'#-of-harmless-ghosts-1-step-away': -0.15556132085075183, 'stopped': -6.09968075796784,
-                'eats-invader': 7.375147922205873, 'eats-food': 1.4164376623849293}
+        return {'teammateDist': -1.6395824002102957, 'closest-food': -3.4973081509764254, 'eats-capsules': 7.238652234996785,
+                '#-of-dangerous-ghosts-1-step-away': -39.61086104504979, 'eats-ghost': -10.593381278815142,
+                'invaders-1-step-away': 7.989671624181696, '#-of-harmless-ghosts-1-step-away': 11.180878459598198,
+                'stopped': -5.258450995314007, 'eats-invader': 10.822719669376905, 'eats-food': 5.9309125137902114}
 
 
-class Caesar1(ReflexCaptureAgent):
+
+class Caesarv4(ReflexCaptureAgent):
     def getFeatures(self, state, action):
         food = self.getFood(state)
         foodList = food.asList()
@@ -347,14 +350,13 @@ class Caesar1(ReflexCaptureAgent):
         return features
 
     def getWeights(self, gameState, action):
-        return {'teammateDist': 2.3288358401737907, 'closest-food': -1.0886931940414803,
-                'eats-capsules': 13.477959551487604, '#-of-dangerous-ghosts-1-step-away': -23.049701530623054,
-                'eats-ghost': 0.8669584765237215, 'invaders-1-step-away': 1.516349279877483,
-                '#-of-harmless-ghosts-1-step-away': 3.2681732714016074, 'stopped': -5.403057778510077,
-                'eats-invader': 9.366224198321031, 'eats-food': 0.8724156679043709}
+        return  {'teammateDist': -0.7739904026405786, 'closest-food': -0.3810123824558789,
+                 'eats-capsules': 21.648755947859833, '#-of-dangerous-ghosts-1-step-away': 1.5588921806538147,
+                 'eats-ghost': 5.533733315411954, 'invaders-1-step-away': 0.15723651886364845,
+                 '#-of-harmless-ghosts-1-step-away': -5.050793272474184, 'stopped': -8.872050962861328,
+                 'eats-invader': 7.023539875082848, 'eats-food': 5.914893900312887}
 
-
-class Caesar2(ReflexCaptureAgent):
+class eaesar2(ReflexCaptureAgent):
     def registerInitialState(self, origin, givenWeights):
         if origin is True:
             self.setWeights = {}
