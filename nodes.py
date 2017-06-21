@@ -248,7 +248,7 @@ class StateNode( BasicNode ):
                 #self = ReplaceNode(self.depth)
                 if self.StateParent is None:
                     print "This StateNode is RootNode"
-                raise Exception("UCB1 return None!") 
+                raise Exception("UCB1 return None!")
                 self.novel = False
                 return None
             else:    
@@ -548,7 +548,6 @@ class StateNode( BasicNode ):
             ourTeam = self.enemies
         this_atoms_tuples1 = self.generateTuples(ourTeam[0])
         this_atoms_tuples2 = self.generateTuples(ourTeam[1])
-        print this_atoms_tuples1
 
         ### cacheMemory is a list consist of set
         # print self.StateParent

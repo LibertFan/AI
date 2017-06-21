@@ -475,6 +475,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     for agentIndex in cause:
                         AgentFaultList.append( FirstStateNode.enemies[agentIndex] )					
 
+            print "AgentFaultList",AgentFaultList
         if parentStateNode.StateParent is None:
             print  "back to root"
         #FirstStateNode.novel = False
@@ -486,7 +487,7 @@ class MCTSCaptureAgent(CaptureAgent):
         FirstStateNode = parentStateNode
         NovelSuccStateNodeList = FirstStateNode.FullExpandFunc()
 
-        print "FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
+        print "FirstStateNode", FirstStateNode.IndexPositions, "NovelSuccStateNodeList", NovelSuccStateNodeList
 	return FirstStateNode, NovelSuccStateNodeList
 
     def Back(self, backNode):
