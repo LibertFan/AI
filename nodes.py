@@ -116,7 +116,7 @@ class StateNode( BasicNode ):
     ### How to set the best action ?
     ###
     def getBestActions( self ):
-        HighestScore = 0
+        HighestScore = -9999
         BestAlliesAction = None
         for AlliesAction in self.LegalAlliesActions:
             SuccAlliesActionsNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
@@ -132,7 +132,7 @@ class StateNode( BasicNode ):
                             if score < lowestEnemiesScore:
                                 lowestEnemiesScore = score
 
-                if lowestEnemiesScore > HighestScore:
+                if lowestEnemiesScore != 9999 and lowestEnemiesScore > HighestScore:
                     HighestScore = lowestEnemiesScore
                     BestAlliesAction = AlliesAction
 
@@ -203,6 +203,14 @@ class StateNode( BasicNode ):
         elif not self.novel:
             ### judge which part of action is unnovel!
             if self.StateParent is None:
+                print self.cacheMemory
+                #for action, SuccActionNode in self.AlliesSuccActionsNodeDict.items():
+                #   print action, SuccActionN
+
+
+                for actions, SuccStateNode in self.SuccStateNodeDict.items():
+                    print actions, SuccStateNode.IndexPositions
+
 		AgentFaultList = self.WhichAgentFault()
                 print "UCB1, AgentFaultList", AgentFaultList 
 		for agent in AgentFaultList:
@@ -210,7 +218,9 @@ class StateNode( BasicNode ):
 
                 self.NovelTest = False
                 self.novel = True
-                self.FullExpandFunc() 
+                self.AlliesSuccActionsNodeDict = dict()
+                self.EnemiesSuccActionsNodeDict = dict()
+                self.SuccStateNodeDict = dict()
 
                 return self
 
@@ -247,9 +257,9 @@ class StateNode( BasicNode ):
 
             if ChosedAction is None:
                 #self = ReplaceNode(self.depth)
-                if self.StateParent is None:
-                    print "This StateNode is RootNode"
-                raise Exception("UCB1 return None!") 
+                #if self.StateParent is None:
+                #    print "This StateNode is RootNode"
+                #raise Exception("UCB1 return None!") 
                 self.novel = False
                 return None
             else:    

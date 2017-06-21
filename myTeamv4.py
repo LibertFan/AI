@@ -126,7 +126,7 @@ class MCTSCaptureAgent(CaptureAgent):
             print "LastRootNode is None"
             self.leaf = None
             self.novelleaf = None
-            return None
+            self.rootNode = None
         else:
             IndexPositions = dict()
             for index in self.allies + self.enemies:
@@ -167,9 +167,9 @@ class MCTSCaptureAgent(CaptureAgent):
                     print "The Last Tree:"
                     print "leaf nodes:",num, "novel leaf nodes:",novelnum,"depth of the search tree:",Depth
                     self.novelleaf = novelnum
-
+                    return 
                     #print self.rootNode.cacheMemory 
-                    return self.rootNode
+                    #return self.rootNode
 
                 elif SuccStateNode is not None and SuccStateNode.IndexPositions == IndexPositions:
 
@@ -197,24 +197,28 @@ class MCTSCaptureAgent(CaptureAgent):
                     for agentIndex in UnNovelAgentList:
                         self.rootNode.cacheMemory[ agentIndex ] = list()
                     self.rootNode.novel = True
-                    #print self.rootNode.cacheMemory
+                    #self.rootNode.FullExpandFunc()
+                    print "="*25, "reset cachyMemory of the rootNode","="*25
+                    print self.rootNode.cacheMemory
                     self.rootNode.novelTest = False
-                    self.AlliesSuccActionsNodeDict = dict()
-                    self.EnemiesSuccActionsNodeDict = dict()
-                    self.SuccStateNodeDict = dict()
+                    self.rootNode.AlliesSuccActionsNodeDict = dict()
+                    self.rootNode.EnemiesSuccActionsNodeDict = dict()
+                    self.rootNode.SuccStateNodeDict = dict()
                     self.novelleaf = 1
-                    return self.rootNode
-
+                    return 
+                    #return self.rootNode
+                
+            self.rootNode = None
             self.leaf = None
             self.novelleaf = None   
-            return None   
+            return
 
     def chooseAction( self, GameState):
         print "self.index",self.index
         self.n = 0
         print "="* 25, "new process", "="*25
         start = time.time()
-        self.rootNode = self.TreeReuse( GameState )
+        self.TreeReuse( GameState )
         if self.rootNode is None:
             print "The Last Trees is no use!"
             self.rootNode = StateNode(self.allies, self.enemies, GameState,  getDistancer = self.getMazeDistance)
@@ -228,14 +232,17 @@ class MCTSCaptureAgent(CaptureAgent):
         print "=" * 50  
 
         iters = 0
+        invalid_iters = 0
         running_time = 0.0
         if self.novelleaf is None or self.novelleaf < 2000:  
             while( iters < 40 and running_time < 60 ):
                 node = self.Select()  ######UCB1 appear Unnovel node
-                #print node
+                print "iters:", iters, node
                 if node is None:
+                    invalid_iters += 1
+                    if invalid_iters > 100:
+                        raise Exception( "Too much invalid iters " )
                     print "Invalid Selections"
-                    #raise Exception("hahahahahahahahaha")
                     if node == self.rootNode or id(node) == id(self.rootNode):
                         raise Exception("MCTS/chooseAction: No Node in the tree is novel")
                     continue
@@ -244,6 +251,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 end = time.time()
                 running_time = end - start
                 iters += 1
+                print "-" * 50
              
         print "iters", iters  
         self.LastRootNode = self.rootNode
@@ -282,8 +290,9 @@ class MCTSCaptureAgent(CaptureAgent):
                     #raise Exception( "No StateNode in tree is novel!")
                     return None
             i += 1
-            if i > 100:
-                print i
+            if i > 200:                 
+                print "myTeamv4 Select UCB1 take too much turns!"
+                raise Exception 
 
     def WhichAgentFault( self, FirstStateNode ):
 
