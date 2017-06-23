@@ -210,11 +210,12 @@ class StateNode( BasicNode ):
                 for actions, SuccStateNode in self.SuccStateNodeDict.items():
                     print actions, SuccStateNode.IndexPositions
 
+
                 AgentFaultList = self.WhichAgentFault()
                 print "UCB1, AgentFaultList", AgentFaultList
                 for agent in AgentFaultList:
                     self.cacheMemory[agent] = list()
-
+                print "UCB1, refresh cacheMemory", self.cacheMemory
                 self.NovelTest = False
                 self.novel = True
                 self.AlliesSuccActionsNodeDict = dict()
