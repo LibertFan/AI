@@ -188,15 +188,17 @@ class MCTSCaptureAgent(CaptureAgent):
                     for index in Causes:
                         UnNovelAlliesAgentList.append( self.allies[index] )
                     if len( UnNovelAlliesAgentList) > 0:
+                        print "UnNovelAlliesAgentList", UnNovelAlliesAgentList
                         raise Exception( "Tree Reuse, allies agent take unnovel actions " )
-
+ 
+                    UnNovelEnemiesAgentList = []
                     Causes = EnemiesActionNode.unnovelCause
                     for index in Causes:    
-                        UnNovelAgentList.append( self.enemies[index] ) 
-                   
-                    print "UnNovelAgentList", UnNovelAgentList
+                        UnNovelEnemiesAgentList.append( self.enemies[index] )                    
+                    print "UnNovelEnemiesAgentList", UnNovelEnemiesAgentList
+
                     self.rootNode.cacheMemory = self.LastRootNode.cacheMemory
-                    for agentIndex in UnNovelAgentList:
+                    for agentIndex in UnNovelEnemiesAgentList:
                         self.rootNode.cacheMemory[ agentIndex ] = list()
                     self.rootNode.novel = True
                     #self.rootNode.FullExpandFunc()
@@ -328,8 +330,6 @@ class MCTSCaptureAgent(CaptureAgent):
                 cause = cause & set(eachActionNode.unnovelCause)
 
             parentStateNode = FirstStateNode.StateParent
-            if parentStateNode is None:
-                return
             #print "cause",cause
             
             if cause == {0}:
@@ -473,21 +473,6 @@ class MCTSCaptureAgent(CaptureAgent):
                             eachActionsNode.novel = False
                             eachActionsNode.unnovelCause = [0, 1]
 
-            if WhichTeam == 0:
-                if len(cause) == 0:
-                    AgentFaultList.extend( FirstStateNode.allies )
-                else:
-                    for agentIndex in cause:
-                        AgentFaultList.append( FirstStateNode.allies[agentIndex] )						
-            else:
-                if len(cause) == 0:
-                    AgentFaultList.extend( FirstStateNode.enemies )
-                else:
-                    for agentIndex in cause:
-                        AgentFaultList.append( FirstStateNode.enemies[agentIndex] )					
-
-        if parentStateNode.StateParent is None:
-            print  "back to root"
         #FirstStateNode.novel = False
         for actionKey,eachStateSucc in parentStateNode.SuccStateNodeDict.items():
             if eachStateSucc.novel:
@@ -497,8 +482,7 @@ class MCTSCaptureAgent(CaptureAgent):
         FirstStateNode = parentStateNode
         NovelSuccStateNodeList = FirstStateNode.FullExpandFunc()
 
-        print "FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
-	return FirstStateNode, NovelSuccStateNodeList
+        return FirstStateNode, NovelSuccStateNodeList
 
     def Back(self, backNode):
         FirstStateNode = backNode
@@ -506,8 +490,13 @@ class MCTSCaptureAgent(CaptureAgent):
 
         while(len(NovelSuccStateNodeList) == 0):
             try:
-                print "myTeamv4 Back: iteration within back begin!"
-                print "myTeamv4 Back: try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
+                if not FirstStateNode.novel:
+                    raise Exception("FirstStateNode should be novel!")
+                print "iteration within back begin!"
+                print "try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
+                if FirstStateNode.StateParent is None:
+                    FirstStateNode.novel = False
+                    return
                 result = self.WhichAgentFault( FirstStateNode )
                 print "myTeamv4 Back: result", result
                 if result is None:
@@ -541,7 +530,9 @@ class MCTSCaptureAgent(CaptureAgent):
             LeftNum += 1
             First_depth = FirstStateNode.depth
             BackFirstStateNode = self.Back(FirstStateNode)
-            if BackFirstStateNode.depth == First_depth:
+            if BackFirstStateNode is None:
+                return
+            elif BackFirstStateNode.depth == First_depth:
                 SortedSuccStateNodes, LeftNum = FirstStateNode.getSortedSuccStateNodes(LeftNum, PreActions)
                 CandidataFTSSNL.extend(SortedSuccStateNodes)
             elif BackFirstStateNode.depth < UCB1_depth:
@@ -566,7 +557,6 @@ class MCTSCaptureAgent(CaptureAgent):
         if len( NovelSuccActionStateNodeList ) == 0:
             print "All children StateNode of the chosed StateNode is not novel"
             # save memory waste computation
-            CurrentStateNode.novel = False
             self.Back(CurrentStateNode)
             return
         #print "Prepare Begin"

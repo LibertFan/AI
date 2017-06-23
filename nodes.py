@@ -207,14 +207,14 @@ class StateNode( BasicNode ):
                 #for action, SuccActionNode in self.AlliesSuccActionsNodeDict.items():
                 #   print action, SuccActionN
 
-
                 for actions, SuccStateNode in self.SuccStateNodeDict.items():
                     print actions, SuccStateNode.IndexPositions
 
-		AgentFaultList = self.WhichAgentFault()
-                print "UCB1, AgentFaultList", AgentFaultList 
-		for agent in AgentFaultList:
-		    self.cacheMemory[agent] = list()
+
+                AgentFaultList = self.WhichAgentFault()
+                print "UCB1, AgentFaultList", AgentFaultList
+                for agent in AgentFaultList:
+                    self.cacheMemory[agent] = list()
                 print "UCB1, refresh cacheMemory", self.cacheMemory
                 self.NovelTest = False
                 self.novel = True
@@ -311,13 +311,13 @@ class StateNode( BasicNode ):
                     AgentFaultList.extend( self.allies )
                 else:
                     for agentIndex in cause:
-                        AgentFaultList.append( self.allies[agentIndex] )						
+                        AgentFaultList.append( self.allies[agentIndex] )
             else:
                 if len(cause) == 0:
                     AgentFaultList.extend( self.enemies )
                 else:
                     for agentIndex in cause:
-                        AgentFaultList.append( self.enemies[agentIndex] )	
+                        AgentFaultList.append( self.enemies[agentIndex] )
 
         return AgentFaultList
   
@@ -567,7 +567,7 @@ class StateNode( BasicNode ):
         # print self.StateParent
         # print self.cacheMemory[character]
         if self.StateParent is None:       
-            if len( self.cacheMemory[ourTeam[0]] ) == 0 and len( self.cacheMemory[ourTeam[1]] ) == 0:
+            if len( self.cacheMemory[ourTeam[0]] ) == 0 or len( self.cacheMemory[ourTeam[1]] ) == 0:
                 self.cacheMemory[ourTeam[0]] = this_atoms_tuples1
                 self.cacheMemory[ourTeam[1]] = this_atoms_tuples2 
             elif len(self.cacheMemory[ourTeam[0]]) == 0:
