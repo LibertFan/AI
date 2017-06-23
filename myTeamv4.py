@@ -199,7 +199,7 @@ class MCTSCaptureAgent(CaptureAgent):
 
                     self.rootNode.cacheMemory = self.LastRootNode.cacheMemory
                     for agentIndex in UnNovelEnemiesAgentList:
-                        self.rootNode.cacheMemory[ agentIndex ] = list()
+                        self.rootNode.cacheMemory[ agentIndex ] = set()
                     self.rootNode.novel = True
                     #self.rootNode.FullExpandFunc()
                     print "="*25, "reset cachyMemory of the rootNode","="*25
@@ -321,7 +321,7 @@ class MCTSCaptureAgent(CaptureAgent):
 
             '''Observe that all unnovel owing to which agent'''
 
-        AgentFaultList = []
+        #print "2"*80
         for WhichTeam, WhichActionNodeDict in zip( WhichTeamList, WhichActionNodeDictList ):
 
             cause = set([0, 1])
@@ -444,7 +444,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
                         if pairActions[1][1] == action2:
                             pairSateteNode.novel = False
-                        '''
+                    '''
             elif cause == set([]):
                 if WhichTeam == 0:
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
@@ -474,11 +474,13 @@ class MCTSCaptureAgent(CaptureAgent):
                             eachActionsNode.unnovelCause = [0, 1]
 
         #FirstStateNode.novel = False
+        #print "3"*80
         for actionKey,eachStateSucc in parentStateNode.SuccStateNodeDict.items():
             if eachStateSucc.novel:
                 if not eachStateSucc.AlliesActionParent.novel or not eachStateSucc.EnemiesActionParent.novel:
                     eachStateSucc.novel = False
 
+        #print "4"*80
         FirstStateNode = parentStateNode
         NovelSuccStateNodeList = FirstStateNode.FullExpandFunc()
 
@@ -497,8 +499,9 @@ class MCTSCaptureAgent(CaptureAgent):
                 if FirstStateNode.StateParent is None:
                     FirstStateNode.novel = False
                     return
+                #print "1"*80
                 result = self.WhichAgentFault( FirstStateNode )
-                print "myTeamv4 Back: result", result
+                #print "myTeamv4 Back: result", result
                 if result is None:
                     return None
                 else:

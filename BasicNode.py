@@ -47,19 +47,29 @@ class BasicNode:
 
     def getNoveltyFeatures(self, agent):
         gameState = self.GameState
-        features = [None, ] * 4
+        features = (None, ) * 4
         features[0] = gameState.getAgentState(agent).getPosition()
         features[1] = gameState.getAgentState(agent).numCarrying + gameState.getAgentState(agent).numReturned#food
         features[2] = gameState.getAgentState(agent).numCapsules#capsule
         features[3] = gameState.getAgentState(agent).eatEnemies #eatAgents ###### need to change
+        #if features[1] != 0 or features[2] != 0 or features[3] != 0:
+        #    print features
         return features
 
     def generateTuples(self, agent):
-        features_list = self.getNoveltyFeatures(agent)
-        atom_tuples = [set(),]*4
-        for i in range(4):
-            atom_tuples[i] = set([features_list[i]])
-        return atom_tuples
+        #features_list = self.getNoveltyFeatures(agent)
+        #atom_tuples = [set(),]*4
+        #for i in range(4):
+        #    atom_tuples[i] = set([features_list[i]])
+        gameState = self.GameState
+        features = list()
+        features.append(gameState.getAgentState(agent).getPosition())
+        features.append(gameState.getAgentState(agent).numCarrying + gameState.getAgentState(agent).numReturned)  # food
+        features.append(gameState.getAgentState(agent).numCapsules)  # capsule
+        features.append(gameState.getAgentState(agent).eatEnemies)  # eatAgents ###### need to change
+        # if features[1] != 0 or features[2] != 0 or features[3] != 0:
+        #    print features
+        return tuple(features)
 
     '''
     def computeNovelty(self, tuples_set, all_tuples_set):

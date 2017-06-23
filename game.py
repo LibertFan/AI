@@ -153,7 +153,8 @@ class AgentState:
         state.scaredTimer = self.scaredTimer
         state.numCarrying = self.numCarrying
         state.numReturned = self.numReturned
-        self.numCapsules = self.numCapsules
+        state.numCapsules = self.numCapsules
+        state.eatEnemies = self.eatEnemies
         return state
 
     def getPosition(self):

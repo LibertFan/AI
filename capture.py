@@ -110,7 +110,6 @@ class GameState:
         AgentRules.applyAction(state, action, agentIndex)
         DeadAgentList = AgentRules.checkDeath(state, agentIndex)
         AgentRules.decrementTimer(state.data.agentStates[agentIndex])
-
         # Book keeping
         state.data._agentMoved = agentIndex
         state.data.score += state.data.scoreChange
@@ -709,8 +708,9 @@ class AgentRules:
                 if ghostPosition == None: continue
                 if manhattanDistance(ghostPosition, agentState.getPosition()) <= COLLISION_TOLERANCE:
                     # award points to the other team for killing Pacmen
-                    otherAgentState.eatEnemies += 1
+
                     if otherAgentState.scaredTimer <= 0:
+                        otherAgentState.eatEnemies += 1
                         AgentRules.dumpFoodFromDeath(state, agentState, agentIndex)
 
                         score = KILL_POINTS
@@ -722,6 +722,7 @@ class AgentRules:
                         agentState.scaredTimer = 0
                         deadAgentList.append( agentIndex )
                     else:
+                        agentState.eatEnemies += 1
                         score = KILL_POINTS
                         if state.isOnRedTeam( agentIndex ):
                             score = -score
@@ -738,8 +739,8 @@ class AgentRules:
                 if pacPos == None: continue
                 if manhattanDistance(pacPos, agentState.getPosition()) <= COLLISION_TOLERANCE:
                     # award points to the other team for killing Pacmen
-                    agentState.eatEnemies += 1
                     if agentState.scaredTimer <= 0:
+                        agentState.eatEnemies += 1
                         AgentRules.dumpFoodFromDeath(state, otherAgentState, agentIndex)
 
                         score = KILL_POINTS
@@ -751,6 +752,7 @@ class AgentRules:
                         otherAgentState.scaredTimer = 0
                         deadAgentList.append( index )
                     else:
+                        otherAgentState.eatEnemies += 1
                         score = KILL_POINTS
                         if state.isOnRedTeam(agentIndex):
                             score = -score
@@ -1075,6 +1077,7 @@ if __name__ == '__main__':
     > python capture.py --help
     """
     import random
+    random.seed(123)
     options = readCommand(sys.argv[1:])  # Get game components based on input
     games = runGames(**options)
 
