@@ -61,7 +61,7 @@ class ReflexCaptureAgent(CaptureAgent):
         self.start = gameState.getAgentPosition(self.index)
         #print "self.index", self.index
         CaptureAgent.registerInitialState(self, gameState) 
-        print self.index, self.getWeights( gameState, "Stop")
+        #print self.index, self.getWeights( gameState, "Stop")
 
 
     def chooseAction(self, gameState):

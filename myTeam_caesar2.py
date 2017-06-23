@@ -36,7 +36,17 @@ def createTeam(firstIndex, secondIndex, isRed,
     any extra arguments, so you should make sure that the default
     behavior is what you want for the nightly contest.
     """
-    if firstIndex < 2:
+    
+    if firstIndex < 2:        
+        first = 'BlueCaesarv1'
+    elif firstIndex < 4:
+        first = 'BlueCaesarv2'
+    if secondIndex < 2:
+        second = 'BlueCaesarv1'
+    else:
+        second = 'BlueCaesarv2'
+    """
+    if firstIndex < 2:        
         first = 'Caesarv3'
     elif firstIndex < 4:
         first = 'Caesarv4'
@@ -44,6 +54,7 @@ def createTeam(firstIndex, secondIndex, isRed,
         second = 'Caesarv3'
     else:
         second = 'Caesarv4'
+    """ 
     print first
     print second
     return [eval(first)(firstIndex), eval(second)(secondIndex)]
@@ -62,7 +73,7 @@ class ReflexCaptureAgent(CaptureAgent):
         self.start = gameState.getAgentPosition(self.index)
         #print "self.index", self.index
         CaptureAgent.registerInitialState(self, gameState)
-        print self.index, self.getWeights( gameState, "Stop")
+        #print self.index, self.getWeights( gameState, "Stop")
 
 
     def chooseAction(self, gameState):
@@ -356,185 +367,24 @@ class Caesarv4(ReflexCaptureAgent):
                  '#-of-harmless-ghosts-1-step-away': -5.050793272474184, 'stopped': -8.872050962861328,
                  'eats-invader': 7.023539875082848, 'eats-food': 5.914893900312887}
 
-class eaesar2(ReflexCaptureAgent):
-    def registerInitialState(self, origin, givenWeights):
-        if origin is True:
-            self.setWeights = {}
-            self.randomWeights()
-        else:
-            self.setWeights = givenWeights
+class BlueCaesarv1( Caesarv3 ):
+    def getWeights( self, gameState, action ):
+        return {'teammateDist': 4.194330087863693, 'closest-food': -4.542780932555895, 'eats-capsules': 4.36699040855961,
+                '#-of-dangerous-ghosts-1-step-away': -1.213524627718394, 'eats-ghost': 1.8779111664875483,
+                'invaders-1-step-away': 0.016256701411800467, '#-of-harmless-ghosts-1-step-away': -2.112397982585541,
+                'stopped': -10.016134801388748, 'eats-invader': 10.672277359871996, 'eats-food': 2.007714754533258}
 
-    def randomWeights(self):
-        self.setWeights['eats-invader'] = round(random.random() * 10, 2)
-        self.setWeights['invaders-1-step-away'] = round(random.random() * 5, 2)
-        self.setWeights['teammateDist'] = round(random.random() * 5, 2)
-        self.setWeights['closest-food'] = round(-random.random() * 5, 2)
-        self.setWeights['eats-capsules'] = round(random.random() * 20, 2)
-        self.setWeights['#-of-dangerous-ghosts-1-step-away'] = round(-random.random() * 40, 2)
-        self.setWeights['eats-ghost'] = round(random.random() * 3, 2)
-        self.setWeights['#-of-harmless-ghosts-1-step-away'] = round(random.random(), 2)
-        self.setWeights['stopped'] = round(-random.random() * 10, 2)
-        self.setWeights['eats-food'] = round(random.random() * 3, 2)
+class BlueCaesarv2( Caesarv4 ):
+    def getWeights( self, gameState, action ):
+        return {'teammateDist': 2.7616129475787803, 'closest-food': -6.34089184938779, 'eats-capsules': 11.224762976653109,
+                '#-of-dangerous-ghosts-1-step-away': -2.8038067666001965, 'eats-ghost': -0.8808169242759187,
+                'invaders-1-step-away': 1.345931798887575, '#-of-harmless-ghosts-1-step-away': 4.1357164671898685, 
+                'stopped': -15.681689977660952, 'eats-invader': 6.263093277373304, 'eats-food': -2.0651675890647927}
 
-    def mybin(self, float, bit=10):
-        """ 
-        这个程序用来将十进制数转化为二进制数,也可以转化浮点数 
-        用法: mybin(float, bit=10) 
-        float是指要转化的十进制数，可以为浮点数 
-        bit是用来指定小数点后面的位数，默认为10位。 
-        函数返回字符串 
-        """
-        negative = 0
-        if float < 0:
-            negative = 1
-            float = -1 * float
-        integer = int(float)  # 整数部分
-        decimal = Decimal(str(float)) - integer  # 小数部分
-        integer_convert = ""  # 转化后的整数部分
-        decimal_convert = ""  # 转化后的小数部分
-        binary = ""  # 最后的二进制数
 
-        if integer == 0:
-            binary = "0"
-        else:
-            while integer != 0:
-                result = int(integer % 2)
-                integer = integer / 2
-                integer_convert = str(result) + integer_convert
-            if decimal == 0:
-                binary = integer_convert
-            else:
-                i = 0
-                while decimal != 0 and i < bit:
-                    result = int(decimal * 2)
-                    decimal = decimal * 2 - result
-                    decimal_convert = decimal_convert + str(result)
-                    i = i + 1
-                binary = integer_convert + '.' + decimal_convert
 
-        if negative == 1:
-            binary = '-' + binary
-        return binary
 
-    def mydec(self, binary):
-        """ 
-        将二进制数变成十进制数，包括浮点数 
-        用法：mydec(binary) 
-        binary是一个字符型二进制数，可以是浮点数 
-        返回一个浮点数或者整数 
-        """
-        negative = 0
-        if binary[0] == '-':
-            negative = 1
-            binary = binary[1:]
-        integer = ""
-        decimal = ""
-        dot = binary.find('.')
-        if dot == -1:
-            integer = binary
-        else:
-            integer = binary[:dot]
-            decimal = binary[dot + 1:]
 
-        cnt1 = integer.__len__()
-        cnt2 = decimal.__len__()
-        if cnt1 != 0:
-            temp = 0
-            index_reverse = range(0, cnt1)
-            for i in index_reverse:
-                temp = temp + int(integer[i]) * (2 ** (cnt1 - i - 1))
-            integer = temp
-        else:
-            integer = 0
-        if cnt2 != 0:
-            temp = 0
-            index = range(1, cnt1 + 1)
-            for i in index:
-                temp = temp + int(decimal[i - 1]) * (2 ** (-1 * i))
-            decimal = temp
-        else:
-            decimal = 0
 
-        result = integer + decimal
-        if negative == 1:
-            result = -1 * result
-
-        return result
-
-    def getFeatures(self, state, action):
-        food = self.getFood(state)
-        foodList = food.asList()
-        walls = state.getWalls()
-        isPacman = self.getSuccessor(state, action).getAgentState(self.index).isPacman
-
-        # Zone of the board agent is primarily responsible for
-        zone = (self.index - self.index % 2) / 2
-
-        teammates = [state.getAgentState(i).getPosition() for i in self.getTeam(state)]
-        opponents = [state.getAgentState(i) for i in self.getOpponents(state)]
-        chasers = [a for a in opponents if not (a.isPacman) and a.getPosition() != None]
-        prey = [a for a in opponents if a.isPacman and a.getPosition() != None]
-
-        features = util.Counter()
-        if action == Directions.STOP:
-            features["stopped"] = 1.0
-        # compute the location of pacman after he takes the action
-        x, y = state.getAgentState(self.index).getPosition()
-        dx, dy = Actions.directionToVector(action)
-        next_x, next_y = int(x + dx), int(y + dy)
-
-        # count the number of ghosts 1-step away
-        for g in chasers:
-            if (next_x, next_y) == g.getPosition():
-                if g.scaredTimer > 0:
-                    features["eats-ghost"] += 1
-                    features["eats-food"] += 2
-                else:
-                    features["#-of-dangerous-ghosts-1-step-away"] = 1
-                    features["#-of-harmless-ghosts-1-step-away"] = 0
-            elif (next_x, next_y) in Actions.getLegalNeighbors(g.getPosition(), walls):
-                if g.scaredTimer > 0:
-                    features["#-of-harmless-ghosts-1-step-away"] += 1
-                elif isPacman:
-                    features["#-of-dangerous-ghosts-1-step-away"] += 1
-                    features["#-of-harmless-ghosts-1-step-away"] = 0
-        if state.getAgentState(self.index).scaredTimer == 0:
-            for g in prey:
-                if (next_x, next_y) == g.getPosition:
-                    features["eats-invader"] = 1
-                elif (next_x, next_y) in Actions.getLegalNeighbors(g.getPosition(), walls):
-                    features["invaders-1-step-away"] += 1
-        else:
-            for g in opponents:
-                if g.getPosition() != None:
-                    if (next_x, next_y) == g.getPosition:
-                        features["eats-invader"] = -10
-                    elif (next_x, next_y) in Actions.getLegalNeighbors(g.getPosition(), walls):
-                        features["invaders-1-step-away"] += -10
-
-        for capsule_x, capsule_y in state.getCapsules():
-            if next_x == capsule_x and next_y == capsule_y and isPacman:
-                features["eats-capsules"] = 1.0
-        if not features["#-of-dangerous-ghosts-1-step-away"]:
-            if food[next_x][next_y]:
-                features["eats-food"] = 1.0
-            if len(foodList) > 0:  # This should always be True,  but better safe than sorry
-                myFood = []
-                for food in foodList:
-                    food_x, food_y = food
-                    if (food_y > zone * walls.height / 3 and food_y < (zone + 1) * walls.height / 3):
-                        myFood.append(food)
-                if len(myFood) == 0:
-                    myFood = foodList
-                myMinDist = min([self.getMazeDistance((next_x, next_y), food) for food in myFood])
-                if myMinDist is not None:
-                    features["closest-food"] = float(myMinDist) / (walls.width * walls.height)
-
-        features.divideAll(10.0)
-
-        return features
-
-    def getWeights(self, gameState, action):
-        return self.setWeights
 
 

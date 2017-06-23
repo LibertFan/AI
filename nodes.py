@@ -320,7 +320,6 @@ class StateNode( BasicNode ):
                         AgentFaultList.append( self.enemies[agentIndex] )	
 
         return AgentFaultList
-
   
     ### RandChooseSuccNode is used in the course of MCTS's playout      
     def ChooseSuccNode( self, actions = None ):
@@ -397,7 +396,7 @@ class StateNode( BasicNode ):
                 cacheMemory = allMemory2
             else:
                 raise Exception('Not possible condition')
-
+            
             self.getSuccessorNovel( cacheMemory )  ###need to change
 
         NovelSuccActionStateNodeList = []
@@ -411,7 +410,11 @@ class StateNode( BasicNode ):
             #else:
             if SuccStateNode.novel:
                 NovelSuccActionStateNodeList.append( ( SuccStateNode, actions ) ) 
-
+        if len(NovelSuccActionStateNodeList) == 0 and self.StateParent is None:
+            print " The rootNode has no SuccStateNode! "
+            print self.IndexPositions
+            print cacheMemory
+         
         return NovelSuccActionStateNodeList           
     
     def getNovelSuccStateNodeList( self ):

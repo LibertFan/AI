@@ -182,11 +182,13 @@ class MCTSCaptureAgent(CaptureAgent):
                     AlliesActions, EnemiesActions = Action
                     AlliesActionNode = self.LastRootNode.AlliesSuccActionsNodeDict[ AlliesActions ]
                     EnemiesActionNode = self.LastRootNode.EnemiesSuccActionsNodeDict[ EnemiesActions ]
-                    UnNovelAgentList = []
 
+                    UnNovelAlliesAgentList = []
                     Causes = AlliesActionNode.unnovelCause
                     for index in Causes:
-                        UnNovelAgentList.append( self.allies[index] )
+                        UnNovelAlliesAgentList.append( self.allies[index] )
+                    if len( UnNovelAlliesAgentList) > 0:
+                        raise Exception( "Tree Reuse, allies agent take unnovel actions " )
 
                     Causes = EnemiesActionNode.unnovelCause
                     for index in Causes:    
@@ -504,9 +506,10 @@ class MCTSCaptureAgent(CaptureAgent):
 
         while(len(NovelSuccStateNodeList) == 0):
             try:
-                print "iteration within back begin!"
-                print "try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
+                print "myTeamv4 Back: iteration within back begin!"
+                print "myTeamv4 Back: try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
                 result = self.WhichAgentFault( FirstStateNode )
+                print "myTeamv4 Back: result", result
                 if result is None:
                     return None
                 else:
