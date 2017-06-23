@@ -182,7 +182,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     AlliesActions, EnemiesActions = Action
                     AlliesActionNode = self.LastRootNode.AlliesSuccActionsNodeDict[ AlliesActions ]
                     EnemiesActionNode = self.LastRootNode.EnemiesSuccActionsNodeDict[ EnemiesActions ]
-
+                 
                     UnNovelAlliesAgentList = []
                     Causes = AlliesActionNode.unnovelCause
                     for index in Causes:
@@ -200,6 +200,10 @@ class MCTSCaptureAgent(CaptureAgent):
                     self.rootNode.cacheMemory = self.LastRootNode.cacheMemory
                     for agentIndex in UnNovelEnemiesAgentList:
                         self.rootNode.cacheMemory[ agentIndex ] = list()
+                    
+                    #UnNovelAgentList = []
+                    #Causes = AlliesActionNode.unnovelCause
+
                     self.rootNode.novel = True
                     #self.rootNode.FullExpandFunc()
                     print "="*25, "reset cachyMemory of the rootNode","="*25
@@ -555,6 +559,21 @@ class MCTSCaptureAgent(CaptureAgent):
     def ParallelGenerateSuccNode(self, CurrentStateNode):
         NovelSuccActionStateNodeList = CurrentStateNode.FullExpandFunc()
         if len( NovelSuccActionStateNodeList ) == 0:
+            if CurrentStateNode.StateParent is None:
+                print "rr" * 30
+                for actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
+                    print actions
+                    print SuccStateNode.IndexPositions
+                    print SuccStateNode.cacheMemory
+                    print "="*50
+                for actionKey,succ in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
+                    print "first enemy features",succ.generateTuples(CurrentStateNode.enemies[0])
+                    print "second enemy features",succ.generateTuples(CurrentStateNode.enemies[1])
+                print "rr" * 30
+            print CurrentStateNode.IndexPositions     
+            print CurrentStateNode.LegalActions 
+            print CurrentStateNode.cacheMemory
+
             print "All children StateNode of the chosed StateNode is not novel"
             # save memory waste computation
             self.Back(CurrentStateNode)

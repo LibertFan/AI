@@ -159,7 +159,7 @@ class StateNode( BasicNode ):
                 if SuccStateNode.novel and SuccStateNode.nVisit == 0:
                     flag = 1
                     break
-            if flag == 1:
+            if len( self.SuccStateNodeDict.keys() ) == 0 or flag == 1:
                 self.FullExpand = False
             else:
                 self.FullExpand = True             
@@ -209,7 +209,6 @@ class StateNode( BasicNode ):
 
                 for actions, SuccStateNode in self.SuccStateNodeDict.items():
                     print actions, SuccStateNode.IndexPositions
-
 
                 AgentFaultList = self.WhichAgentFault()
                 print "UCB1, AgentFaultList", AgentFaultList
@@ -332,7 +331,8 @@ class StateNode( BasicNode ):
         if self.SuccStateNodeDict.get( ChosedActions ) is None:
             ChosedAlliesAction, ChosedEnemiesAction = ChosedActions
             if ChosedAlliesAction is None or ChosedEnemiesAction is None:
-                print ChosedAlliesAction, ChosedEnemiesAction 
+                print ChosedAlliesAction, ChosedEnemiesAction
+                raise Exception( "The ChosedAction for generate successive StateNode is None( AlliesAction or EnemiesAction)  " )
             AlliesActionNode = self.AlliesSuccActionsNodeDict.get( ChosedAlliesAction )            
             if AlliesActionNode is None:
                 AlliesActionNode = ActionNode( self.allies, self.enemies, ChosedAlliesAction, self )
@@ -370,9 +370,11 @@ class StateNode( BasicNode ):
     ### Del those unnovel nodes( replace them with instances of ReplaceNode )
     ### return the list of NovelSuccStateNode 
     def FullExpandFunc( self ):
-        if not self.novelTest:
+        if not self.isFullExpand():
             for actions in self.LegalActions:
                 self.ChooseSuccNode( actions )
+
+        #if not self.novelTest:
             nearResult = self.nearToEnemies()
             if len(nearResult[1]) == 2 and len(nearResult[2]) == 2:
                 cacheMemory = self.StateParent.cacheMemory
@@ -410,10 +412,10 @@ class StateNode( BasicNode ):
             #else:
             if SuccStateNode.novel:
                 NovelSuccActionStateNodeList.append( ( SuccStateNode, actions ) ) 
-        if len(NovelSuccActionStateNodeList) == 0 and self.StateParent is None:
-            print " The rootNode has no SuccStateNode! "
-            print self.IndexPositions
-            print cacheMemory
+        #if len(NovelSuccActionStateNodeList) == 0 and self.StateParent is None:
+        #    print " The rootNode has no SuccStateNode! "
+        #    print self.IndexPositions
+        #    print cacheMemory
          
         return NovelSuccActionStateNodeList           
     
