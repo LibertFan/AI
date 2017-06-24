@@ -267,7 +267,7 @@ class MCTSCaptureAgent(CaptureAgent):
 
         print "=" * 50
         print "Start Position",self.rootNode.IndexPositions
-        print "LegalActions:", self.rootNode.LegalActions
+        #print "LegalActions:", self.rootNode.LegalActions
         print "length of LegalActions:",len( self.rootNode.LegalActions )
         print "=" * 50  
 
@@ -277,7 +277,7 @@ class MCTSCaptureAgent(CaptureAgent):
         if self.novelleaf is None or self.novelleaf < 2000 or not self.rootNode.isFullExpand():
             while( iters < 40 and running_time < 60 ):
                 node = self.Select()  ######UCB1 appear Unnovel node
-                print "iters:", iters, node
+                #print "iters:", iters, node
                 if node is None:
                     invalid_iters += 1
                     if invalid_iters > 100:
@@ -531,8 +531,8 @@ class MCTSCaptureAgent(CaptureAgent):
             try:
                 if not FirstStateNode.novel:
                     raise Exception("FirstStateNode should be novel!")
-                print "iteration within back begin!"
-                print "try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
+                #print "iteration within back begin!"
+                #print "try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
 
                 if FirstStateNode.StateParent is None:
                     FirstStateNode.novel = False
@@ -687,8 +687,8 @@ class MCTSCaptureAgent(CaptureAgent):
         if score == self.getScore( self.rootNode.GameState ):
             LatentScore = endNode.getLatentScore()
             score += LatentScore
-        else:
-            print "Oh My God", score
+        #else:
+        #    print "Oh My God", score
         flag = 0    
         currentNode = endNode
         while currentNode is not None:

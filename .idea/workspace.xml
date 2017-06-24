@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6fcc4672-e85a-415d-ab24-6991f0799893" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/myTeamv4.py" afterPath="$PROJECT_DIR$/myTeamv4.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -42,11 +41,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="myTeamv4.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="myTeamv4.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/myTeamv4.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="149">
-              <caret line="221" column="46" lean-forward="false" selection-start-line="221" selection-start-column="35" selection-end-line="221" selection-end-column="46" />
+            <state relative-caret-position="233">
+              <caret line="371" column="32" lean-forward="true" selection-start-line="371" selection-start-column="32" selection-end-line="371" selection-end-column="32" />
               <folding>
                 <element signature="e#649#687#0" expanded="true" />
               </folding>
@@ -54,11 +53,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="nodes.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="nodes.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/nodes.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="132">
-              <caret line="396" column="25" lean-forward="false" selection-start-line="396" selection-start-column="0" selection-end-line="397" selection-end-column="0" />
+            <state relative-caret-position="149">
+              <caret line="205" column="22" lean-forward="false" selection-start-line="205" selection-start-column="17" selection-end-line="205" selection-end-column="22" />
               <folding>
                 <element signature="e#0#38#0" expanded="true" />
               </folding>
@@ -89,7 +88,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>ActionNode</find>
       <find>FullEx</find>
       <find>FullExpandFu</find>
       <find>numCapsules</find>
@@ -119,6 +117,7 @@
       <find>UCB1ChooseSuccNode</find>
       <find>UCB1</find>
       <find>cacheMemory</find>
+      <find>print</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -410,7 +409,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="7" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17310664" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -796,22 +795,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/nodes.py">
+    <entry file="file://$PROJECT_DIR$/myTeamv4.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="132">
-          <caret line="396" column="25" lean-forward="false" selection-start-line="396" selection-start-column="0" selection-end-line="397" selection-end-column="0" />
+        <state relative-caret-position="233">
+          <caret line="371" column="32" lean-forward="true" selection-start-line="371" selection-start-column="32" selection-end-line="371" selection-end-column="32" />
           <folding>
-            <element signature="e#0#38#0" expanded="true" />
+            <element signature="e#649#687#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/myTeamv4.py">
+    <entry file="file://$PROJECT_DIR$/nodes.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="149">
-          <caret line="221" column="46" lean-forward="false" selection-start-line="221" selection-start-column="35" selection-end-line="221" selection-end-column="46" />
+          <caret line="205" column="22" lean-forward="false" selection-start-line="205" selection-start-column="17" selection-end-line="205" selection-end-column="22" />
           <folding>
-            <element signature="e#649#687#0" expanded="true" />
+            <element signature="e#0#38#0" expanded="true" />
           </folding>
         </state>
       </provider>
