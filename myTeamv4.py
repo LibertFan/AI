@@ -187,9 +187,16 @@ class MCTSCaptureAgent(CaptureAgent):
                     Causes = AlliesActionNode.unnovelCause
                     for index in Causes:
                         UnNovelAlliesAgentList.append( self.allies[index] )
+                    for agentIndex in UnNovelAlliesAgentList:
+                        # self.rootNode.cacheMemory[ agentIndex ] = list()
+                        # UnNovelAgentList = []
+                        # Causes = AlliesActionNode.unnovelCause
+
+                        self.rootNode.cacheMemory[agentIndex] = set()
+
                     if len( UnNovelAlliesAgentList) > 0:
                         print "UnNovelAlliesAgentList", UnNovelAlliesAgentList
-                        raise Exception( "Tree Reuse, allies agent take unnovel actions " )
+                    #   raise Exception( "Tree Reuse, allies agent take unnovel actions " )
  
                     UnNovelEnemiesAgentList = []
                     Causes = EnemiesActionNode.unnovelCause
