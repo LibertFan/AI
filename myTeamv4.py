@@ -608,7 +608,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     print "second enemy features",succ.generateTuples(CurrentStateNode.enemies[1])
                 print "rr" * 30
             print CurrentStateNode.IndexPositions     
-            print CurrentStateNode.LegalActions 
+            #print CurrentStateNode.LegalActions
             #print CurrentStateNode.cacheMemory
 
             print "All children StateNode of the chosed StateNode is not novel"
