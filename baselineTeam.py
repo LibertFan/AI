@@ -69,6 +69,8 @@ class ReflexCaptureAgent(CaptureAgent):
     Picks among the actions with the highest Q(s,a).
     """
     actions = gameState.getLegalActions(self.index)
+    if gameState.getAgentState(0).eatEnemies != 0 or gameState.getAgentState(1).eatEnemies != 0 or gameState.getAgentState(2).eatEnemies != 0 or gameState.getAgentState(3).eatEnemies != 0:
+      raise Exception("hahahahaha")
 
     # You can profile your evaluation time by uncommenting these lines
     # start = time.time()

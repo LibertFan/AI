@@ -110,7 +110,6 @@ class GameState:
         AgentRules.applyAction(state, action, agentIndex)
         DeadAgentList = AgentRules.checkDeath(state, agentIndex)
         AgentRules.decrementTimer(state.data.agentStates[agentIndex])
-
         # Book keeping
         state.data._agentMoved = agentIndex
         state.data.score += state.data.scoreChange
@@ -710,6 +709,7 @@ class AgentRules:
                 if manhattanDistance(ghostPosition, agentState.getPosition()) <= COLLISION_TOLERANCE:
                     # award points to the other team for killing Pacmen
                     if otherAgentState.scaredTimer <= 0:
+                        otherAgentState.eatEnemies += 1
                         AgentRules.dumpFoodFromDeath(state, agentState, agentIndex)
                         otherAgentState.eatEnemies += 1
                         score = KILL_POINTS
@@ -738,7 +738,6 @@ class AgentRules:
                 if pacPos == None: continue
                 if manhattanDistance(pacPos, agentState.getPosition()) <= COLLISION_TOLERANCE:
                     # award points to the other team for killing Pacmen
-                    agentState.eatEnemies += 1
                     if agentState.scaredTimer <= 0:
                         agentState.eatEnemies += 1
                         AgentRules.dumpFoodFromDeath(state, otherAgentState, agentIndex)
@@ -1077,8 +1076,7 @@ if __name__ == '__main__':
     > python capture.py --help
     """
     import random
-    random.seed( 11111 )
-
+    #random.seed( 11111 )
     options = readCommand(sys.argv[1:])  # Get game components based on input
     games = runGames(**options)
 

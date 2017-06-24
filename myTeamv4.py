@@ -165,7 +165,7 @@ class MCTSCaptureAgent(CaptureAgent):
                             for successor in CurrentState.SuccStateNodeDict.values():
                                 CandidateStates.put( successor ) 
                     print "The Last Tree:"
-                    print "leaf nodes:",num, "novel leaf nodes:",novelnum,"depth of the search tree:",Depth
+                    print "leaf nodes:",num, ", novel leaf nodes:",novelnum,", depth of root node", self.rootNode.depth,",depth of the search tree:",Depth
                     self.novelleaf = novelnum
                     return 
                     #print self.rootNode.cacheMemory 
@@ -199,10 +199,11 @@ class MCTSCaptureAgent(CaptureAgent):
 
                     self.rootNode.cacheMemory = self.LastRootNode.cacheMemory
                     for agentIndex in UnNovelEnemiesAgentList:
-                        self.rootNode.cacheMemory[ agentIndex ] = list()
-                    
-                    #UnNovelAgentList = []
-                    #Causes = AlliesActionNode.unnovelCause
+                        #self.rootNode.cacheMemory[ agentIndex ] = list()
+                        #UnNovelAgentList = []
+                        #Causes = AlliesActionNode.unnovelCause
+
+                        self.rootNode.cacheMemory[ agentIndex ] = set()
 
                     self.rootNode.novel = True
                     #self.rootNode.FullExpandFunc()
@@ -325,7 +326,6 @@ class MCTSCaptureAgent(CaptureAgent):
 
             '''Observe that all unnovel owing to which agent'''
 
-        AgentFaultList = []
         for WhichTeam, WhichActionNodeDict in zip( WhichTeamList, WhichActionNodeDictList ):
 
             cause = set([0, 1])
@@ -448,7 +448,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
                         if pairActions[1][1] == action2:
                             pairSateteNode.novel = False
-                        '''
+                    '''
             elif cause == set([]):
                 if WhichTeam == 0:
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
@@ -477,7 +477,6 @@ class MCTSCaptureAgent(CaptureAgent):
                             eachActionsNode.novel = False
                             eachActionsNode.unnovelCause = [0, 1]
 
-        #FirstStateNode.novel = False
         for actionKey,eachStateSucc in parentStateNode.SuccStateNodeDict.items():
             if eachStateSucc.novel:
                 if not eachStateSucc.AlliesActionParent.novel or not eachStateSucc.EnemiesActionParent.novel:
@@ -492,17 +491,20 @@ class MCTSCaptureAgent(CaptureAgent):
         FirstStateNode = backNode
         NovelSuccStateNodeList = FirstStateNode.FullExpandFunc()
 
-        while(len(NovelSuccStateNodeList) == 0):
+        while( len( NovelSuccStateNodeList ) == 0 ):
+            
             try:
                 if not FirstStateNode.novel:
                     raise Exception("FirstStateNode should be novel!")
                 print "iteration within back begin!"
                 print "try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
+
                 if FirstStateNode.StateParent is None:
                     FirstStateNode.novel = False
+                    print "myTeamv4, Bcck: RootNode is unnovel!"
                     return
+
                 result = self.WhichAgentFault( FirstStateNode )
-                print "myTeamv4 Back: result", result
                 if result is None:
                     return None
                 else:
@@ -549,7 +551,8 @@ class MCTSCaptureAgent(CaptureAgent):
                         LeftNum += 1
                         i -= 1
                     i += 1
-            j += 1  
+            j += 1 
+
         if len(CandidataFTSSNL) == 0:
             CurrentStateNode.novel = False
             return []
@@ -578,25 +581,25 @@ class MCTSCaptureAgent(CaptureAgent):
             # save memory waste computation
             self.Back(CurrentStateNode)
             return
-        #print "Prepare Begin"
+        # print "Prepare Begin"
         MNovelSuccStateNodeList = []
-        #i = 0
+        # i = 0
         t1 = time.time()
         for SuccStateNode, actions in NovelSuccActionStateNodeList:
-            #i += 1
-            #print i,"begin",actions
+            # i += 1
+            # print i,"begin",actions
             if SuccStateNode.novel:
                 topKList = self.TopKSuccStateNodeList( SuccStateNode, [ actions, ] )
                 if topKList is None:
                     return
                 MNovelSuccStateNodeList.extend( topKList )
-            #print i,"finish"
+            # print i,"finish"
         t2 = time.time()
-        #print t2 - t1
-        #print "Prepare Finish" 
-        #print "The number of branch is:", len(CurrentInfo)
+        # print t2 - t1
+        # print "Prepare Finish" 
+        # print "The number of branch is:", len(CurrentInfo)
 
-        ### Parallel Begin
+        print "Parallel Begin"
         if len( MNovelSuccStateNodeList ) > 1000:
             t1 = time.time()
             print len(MNovelSuccStateNodeList)
@@ -606,22 +609,23 @@ class MCTSCaptureAgent(CaptureAgent):
             ActionSeriesList = self.ChildParallelAgent.P1( CurrentInfo )
             t2 = time.time()
             print t2 - t1  
-            #for ActionSeriesList in ActionSeriesLists:
+            # for ActionSeriesList in ActionSeriesLists:
             for ActionSeries in ActionSeriesList:
                 EndStateNode = CurrentStateNode.update( ActionSeries )
                 self.BackPropagate(EndStateNode)
         else:
             for info in MNovelSuccStateNodeList:
                 _, EndStateNode = self.PlayOut3( info )
-                #for EndStateNode in EndStateNodeList:
                 self.BackPropagate( EndStateNode )
 
     def PlayOut3( self, CurrentStateInfo ): 
         self.n += 1       
- 
+
         CurrentStateNode, Action = CurrentStateInfo
+
         n1 = SimulateAgent( self.allies[0], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
         n2 = SimulateAgent( self.allies[1], self.allies, self.enemies, CurrentStateNode.GameState, self.getMazeDistance )
+
         m1 = SimulateAgent( self.enemies[0], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance )
         m2 = SimulateAgent( self.enemies[1], self.enemies, self.allies, CurrentStateNode.GameState, self.getMazeDistance )
         
@@ -639,8 +643,6 @@ class MCTSCaptureAgent(CaptureAgent):
 
             iters += 1
 
-        #time2 = time.time()
-        #print Action, time2 - time1
         return Action, CurrentStateNode
 
     def BackPropagate( self, endNode):
