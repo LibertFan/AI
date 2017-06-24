@@ -230,7 +230,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     self.rootNode.novel = True
                     #self.rootNode.FullExpandFunc()
                     print "="*25, "reset cachyMemory of the rootNode","="*25
-                    print self.rootNode.cacheMemory
+                    #print self.rootNode.cacheMemory
                     self.rootNode.novelTest = False
                     self.rootNode.AlliesSuccActionsNodeDict = dict()
                     self.rootNode.EnemiesSuccActionsNodeDict = dict()
@@ -269,7 +269,7 @@ class MCTSCaptureAgent(CaptureAgent):
 
         print "=" * 50
         print "Start Position",self.rootNode.IndexPositions
-        print "LegalActions:", self.rootNode.LegalActions
+        #print "LegalActions:", self.rootNode.LegalActions
         print "length of LegalActions:",len( self.rootNode.LegalActions )
         print "=" * 50  
 
@@ -281,7 +281,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 node = self.Select()  ######UCB1 appear Unnovel node
                 if node == self.rootNode or id(node) == id(self.rootNode):
                     print iters, "this iters choose RootNode"
-                print "iters:", iters, node
+                #print "iters:", iters, node
                 if node is None:
                     invalid_iters += 1
                     if invalid_iters > 100:
@@ -604,7 +604,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 for actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
                     print actions
                     print SuccStateNode.IndexPositions
-                    print SuccStateNode.cacheMemory
+                    #print SuccStateNode.cacheMemory
                     print "="*50
                 for actionKey,succ in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
                     print "first enemy features",succ.generateTuples(CurrentStateNode.enemies[0])
@@ -612,7 +612,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 print "rr" * 30
             print CurrentStateNode.IndexPositions     
             print CurrentStateNode.LegalActions 
-            print CurrentStateNode.cacheMemory
+            #print CurrentStateNode.cacheMemory
 
             print "All children StateNode of the chosed StateNode is not novel"
             # save memory waste computation
@@ -690,8 +690,8 @@ class MCTSCaptureAgent(CaptureAgent):
         if score == self.getScore( self.rootNode.GameState ):
             LatentScore = endNode.getLatentScore()
             score += LatentScore
-        else:
-            print "Oh My God", score
+        #else:
+        #    print "Oh My God", score
         flag = 0    
         currentNode = endNode
         while currentNode is not None:
