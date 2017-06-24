@@ -28,6 +28,11 @@ from nodes import StateNode, ActionNode
 #from SimulateAgents import SimulateAgent, SimulateAgentV1
 from Helper import Distancer, ParallelAgent, SimulateAgent, SimulateAgentV1
 from BasicNode import BasicNode, ReplaceNode
+global StateRootNode
+StateRootNode = None
+global AgentBestAction
+AgentBestAction = None
+
 #import copy_reg
 #import types
 #################
@@ -93,8 +98,8 @@ class MCTSCaptureAgent(CaptureAgent):
     def registerInitialState(self, gameState):
         CaptureAgent.registerInitialState(self, gameState)
         self.allies = self.getTeam( gameState )
-        if self.allies[0] != self.index:
-            self.allies = self.allies[::-1]
+        #if self.allies[0] != self.index:
+        #    self.allies = self.allies[::-1]
         self.enemies = self.getOpponents( gameState )
         print self.allies, self.enemies
         self.MCTS_ITERATION = 10000
@@ -122,7 +127,9 @@ class MCTSCaptureAgent(CaptureAgent):
                                                  self.PositionDictManager, self.getMazeDistance )
 
     def TreeReuse( self, GameState):
-        if self.LastRootNode is None:
+        global StateRootNode
+        if StateRootNode is None:
+        #if self.LastRootNode is None:
             print "LastRootNode is None"
             self.leaf = None
             self.novelleaf = None
@@ -131,8 +138,11 @@ class MCTSCaptureAgent(CaptureAgent):
             IndexPositions = dict()
             for index in self.allies + self.enemies:
                 IndexPositions[ index ] = GameState.getAgentState( index ).getPosition()
-            for Action in self.LastRootNode.LegalActions: 
-                SuccStateNode = self.LastRootNode.SuccStateNodeDict.get( Action )
+
+            for Action in StateRootNode.LegalActions:
+            #for Action in self.LastRootNode.LegalActions: 
+                SuccStateNode = StateRootNode.SuccStateNodeDict.get( Action )
+                #SuccStateNode = self.LastRootNode.SuccStateNodeDict.get( Action )
                 if SuccStateNode is not None and SuccStateNode.novel and SuccStateNode.IndexPositions == IndexPositions:
                     
                     self.rootNode = SuccStateNode
@@ -163,7 +173,8 @@ class MCTSCaptureAgent(CaptureAgent):
                             #    print self.rootNode.IndexPositions
                             #    raise Exception( "nVisit of some StateNode is 0")                           
                             for successor in CurrentState.SuccStateNodeDict.values():
-                                CandidateStates.put( successor ) 
+                                CandidateStates.put( successor )
+
                     print "The Last Tree:"
                     print "leaf nodes:",num, ", novel leaf nodes:",novelnum,", depth of root node", self.rootNode.depth,",depth of the search tree:",Depth
                     self.novelleaf = novelnum
@@ -171,7 +182,10 @@ class MCTSCaptureAgent(CaptureAgent):
                     #print self.rootNode.cacheMemory 
                     #return self.rootNode
 
-                elif SuccStateNode is not None and SuccStateNode.IndexPositions == IndexPositions:
+                elif SuccStateNode is not None and SuccStateNode.IndexPositions == IndexPositions and not SuccStateNode.novel:
+
+                    AlliesActionNode = SuccStateNode.AlliesActionParent
+                    EnemiesActionNode = SuccStateNode.EnemiesActionParent
 
                     self.rootNode = SuccStateNode
                     self.rootNode.AlliesActionParent = None
@@ -179,9 +193,9 @@ class MCTSCaptureAgent(CaptureAgent):
                     self.rootNode.StateParent = None
                     self.rootNode.depth = 0
                     
-                    AlliesActions, EnemiesActions = Action
-                    AlliesActionNode = self.LastRootNode.AlliesSuccActionsNodeDict[ AlliesActions ]
-                    EnemiesActionNode = self.LastRootNode.EnemiesSuccActionsNodeDict[ EnemiesActions ]
+                    #AlliesActions, EnemiesActions = Action
+                    #AlliesActionNode = self.LastRootNode.AlliesSuccActionsNodeDict[ AlliesActions ]
+                    #EnemiesActionNode = self.LastRootNode.EnemiesSuccActionsNodeDict[ EnemiesActions ]
                  
                     UnNovelAlliesAgentList = []
                     Causes = AlliesActionNode.unnovelCause
@@ -197,12 +211,12 @@ class MCTSCaptureAgent(CaptureAgent):
                         UnNovelEnemiesAgentList.append( self.enemies[index] )                    
                     print "UnNovelEnemiesAgentList", UnNovelEnemiesAgentList
 
-                    self.rootNode.cacheMemory = self.LastRootNode.cacheMemory
+                    self.rootNode.cacheMemory = StateRootNode.cacheMemory
+                    #self.rootNode.cacheMemory = self.LastRootNode.cacheMemory
                     for agentIndex in UnNovelEnemiesAgentList:
                         #self.rootNode.cacheMemory[ agentIndex ] = list()
                         #UnNovelAgentList = []
                         #Causes = AlliesActionNode.unnovelCause
-
                         self.rootNode.cacheMemory[ agentIndex ] = set()
 
                     self.rootNode.novel = True
@@ -223,9 +237,17 @@ class MCTSCaptureAgent(CaptureAgent):
             return
 
     def chooseAction( self, GameState):
-        print "self.index",self.index
         self.n = 0
         print "="* 25, "new process", "="*25
+        print "self.index",self.index
+        global AgentBestAction
+        global StateRootNode
+
+        if AgentBestAction is not None:
+            action = AgentBestAction
+            AgentBestAction = None
+            return action
+
         start = time.time()
         self.TreeReuse( GameState )
         if self.rootNode is None:
@@ -238,12 +260,14 @@ class MCTSCaptureAgent(CaptureAgent):
 
         print "=" * 50
         print "Start Position",self.rootNode.IndexPositions
+        print "LegalActions:", self.rootNode.LegalActions
+        print "length of LegalActions:",len( self.rootNode.LegalActions )
         print "=" * 50  
 
         iters = 0
         invalid_iters = 0
         running_time = 0.0
-        if self.novelleaf is None or self.novelleaf < 2000:  
+        if self.novelleaf is None or self.novelleaf < 2000 or not self.rootNode.isFullExpand():  
             while( iters < 40 and running_time < 60 ):
                 node = self.Select()  ######UCB1 appear Unnovel node
                 print "iters:", iters, node
@@ -263,9 +287,13 @@ class MCTSCaptureAgent(CaptureAgent):
                 print "-" * 50
              
         print "iters", iters  
-        self.LastRootNode = self.rootNode
+        #self.LastRootNode = self.rootNode
+        StateRootNode = self.rootNode
         bestActions = self.rootNode.getBestActions()
-        bestAction = bestActions[0]
+
+        bestActionsIndex = self.allies.index( self.index )
+        bestAction = bestActions[bestActionsIndex]
+        AgentBestAction = bestActions[1-bestActionsIndex]
         print "="*50
         print "="*25,"basic condition of this step","="*25
         print "Positions:", self.rootNode.IndexPositions

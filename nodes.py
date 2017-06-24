@@ -44,7 +44,7 @@ class StateNode( BasicNode ):
                 raise Exception( "the function of getDistancer or allies or enemies missing!")
             self.GameState = copy.deepcopy( GameState )
             self.getDistancer = getDistancer
-            self.index = allies[0]
+            #self.index = allies[0]
             self.allies = allies
             self.enemies = enemies
             self.Bound = self.getBound()
@@ -52,7 +52,7 @@ class StateNode( BasicNode ):
         elif GameState is None:
             self.allies = self.StateParent.allies
             self.enemies = self.StateParent.enemies
-            self.index = self.allies[0]
+            #self.index = self.allies[0]
             self.getDistancer = self.StateParent.getDistancer
             self.Bound = self.StateParent.Bound
 
@@ -258,7 +258,7 @@ class StateNode( BasicNode ):
                 #self = ReplaceNode(self.depth)
                 #if self.StateParent is None:
                 #    print "This StateNode is RootNode"
-                #raise Exception("UCB1 return None!") 
+                raise Exception("UCB1 return None!") 
                 self.novel = False
                 return None
             else:    
