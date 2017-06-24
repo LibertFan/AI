@@ -607,6 +607,7 @@ class MCTSCaptureAgent(CaptureAgent):
         if len( NovelSuccActionStateNodeList ) == 0:
             if CurrentStateNode.StateParent is None:
                 print "rr" * 30
+                print "BasicCondition:", self.isFullExpand, self.novelTest, self.novel
                 print "Allies"
                 for actions, ActionNode in CurrentStateNode.AlliesSuccActionsNodeDict.items():
                     causes = ActionNode.unnovelCause

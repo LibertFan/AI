@@ -264,7 +264,7 @@ class StateNode( BasicNode ):
                 #self = ReplaceNode(self.depth)
                 #if self.StateParent is None:
                 #    print "This StateNode is RootNode"
-                print self.IndexPositions
+                print "Basic Condition", self.isFullExpand(), self.novelTest, self.novel, self.IndexPositions
                 print "Allies" 
                 for actions, ActionNode in self.AlliesSuccActionsNodeDict.items():
                     causes = ActionNode.unnovelCause
@@ -275,7 +275,18 @@ class StateNode( BasicNode ):
                     causes = ActionNode.unnovelCause
                     if causes is None or len( causes ) == 0:
                         print actions, ActionNode.unnvoelCause
- 
+                print "Successive State Node"
+                for actions, sn in self.SuccStateNodeDict.items():
+                    if sn.nVisit <= 0:
+                        print "SuccStateNode is not visited!", sn.IndexPositions
+                    if not sn.isFullExpand():
+                        print "SuccStateNode is not FullExpand!", sn.IndexPositions
+                    if not sn.novelTest:
+                        print "SuccStateNode is not novelTest", sn.IndexPositions    
+                    if sn.novel:
+                        print actions, sn.IndexPositions
+                    print "-"*50
+
                 raise Exception("UCB1 return None!") 
                 self.novel = False
                 return None
