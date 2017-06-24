@@ -41,11 +41,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="myTeamv4.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="myTeamv4.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/myTeamv4.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="233">
-              <caret line="371" column="32" lean-forward="true" selection-start-line="371" selection-start-column="32" selection-end-line="371" selection-end-column="32" />
+            <state relative-caret-position="296">
+              <caret line="610" column="40" lean-forward="false" selection-start-line="610" selection-start-column="40" selection-end-line="610" selection-end-column="40" />
               <folding>
                 <element signature="e#649#687#0" expanded="true" />
               </folding>
@@ -53,11 +53,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="nodes.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="nodes.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nodes.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="149">
-              <caret line="205" column="22" lean-forward="false" selection-start-line="205" selection-start-column="17" selection-end-line="205" selection-end-column="22" />
+              <caret line="259" column="26" lean-forward="false" selection-start-line="259" selection-start-column="21" selection-end-line="259" selection-end-column="26" />
               <folding>
                 <element signature="e#0#38#0" expanded="true" />
               </folding>
@@ -88,8 +88,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>FullEx</find>
-      <find>FullExpandFu</find>
       <find>numCapsules</find>
       <find>eatEne</find>
       <find>updateCa</find>
@@ -117,6 +115,8 @@
       <find>UCB1ChooseSuccNode</find>
       <find>UCB1</find>
       <find>cacheMemory</find>
+      <find>novelTest</find>
+      <find>NovelTest</find>
       <find>print</find>
     </findStrings>
   </component>
@@ -409,7 +409,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="7" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17310664" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -795,22 +795,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/myTeamv4.py">
+    <entry file="file://$PROJECT_DIR$/nodes.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="233">
-          <caret line="371" column="32" lean-forward="true" selection-start-line="371" selection-start-column="32" selection-end-line="371" selection-end-column="32" />
+        <state relative-caret-position="149">
+          <caret line="259" column="26" lean-forward="false" selection-start-line="259" selection-start-column="21" selection-end-line="259" selection-end-column="26" />
           <folding>
-            <element signature="e#649#687#0" expanded="true" />
+            <element signature="e#0#38#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/nodes.py">
+    <entry file="file://$PROJECT_DIR$/myTeamv4.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="149">
-          <caret line="205" column="22" lean-forward="false" selection-start-line="205" selection-start-column="17" selection-end-line="205" selection-end-column="22" />
+        <state relative-caret-position="296">
+          <caret line="610" column="40" lean-forward="false" selection-start-line="610" selection-start-column="40" selection-end-line="610" selection-end-column="40" />
           <folding>
-            <element signature="e#0#38#0" expanded="true" />
+            <element signature="e#649#687#0" expanded="true" />
           </folding>
         </state>
       </provider>
