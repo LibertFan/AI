@@ -221,7 +221,7 @@ class StateNode( BasicNode ):
                 for agent in AgentFaultList:
                     self.cacheMemory[agent] = set()
                 print "UCB1, refresh cacheMemory", self.cacheMemory
-                self.NovelTest = False
+                self.novelTest = False
                 self.novel = True
                 self.AlliesSuccActionsNodeDict = dict()
                 self.EnemiesSuccActionsNodeDict = dict()
@@ -264,6 +264,18 @@ class StateNode( BasicNode ):
                 #self = ReplaceNode(self.depth)
                 #if self.StateParent is None:
                 #    print "This StateNode is RootNode"
+                print self.IndexPositions
+                print "Allies" 
+                for actions, ActionNode in self.AlliesSuccActionsNodeDict.items():
+                    causes = ActionNode.unnovelCause
+                    if causes is None or len( causes ) == 0:
+                        print actions, ActionNode.unnovelCause
+                print "Enemies"
+                for actions, ActionNode in self.EnemiesSuccActionsNodeDict.items():
+                    causes = ActionNode.unnovelCause
+                    if causes is None or len( causes ) == 0:
+                        print actions, ActionNode.unnvoelCause
+ 
                 raise Exception("UCB1 return None!") 
                 self.novel = False
                 return None
