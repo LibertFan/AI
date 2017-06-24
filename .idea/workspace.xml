@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6fcc4672-e85a-415d-ab24-6991f0799893" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/myTeamv4.py" afterPath="$PROJECT_DIR$/myTeamv4.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/nodes.py" afterPath="$PROJECT_DIR$/nodes.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -20,7 +22,7 @@
       <file leaf-file-name="game.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/game.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15645">
+            <state relative-caret-position="26">
               <caret line="749" column="47" lean-forward="false" selection-start-line="749" selection-start-column="42" selection-end-line="749" selection-end-column="47" />
               <folding />
             </state>
@@ -41,25 +43,13 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="myTeamv4.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="myTeamv4.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/myTeamv4.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="296">
-              <caret line="610" column="40" lean-forward="false" selection-start-line="610" selection-start-column="40" selection-end-line="610" selection-end-column="40" />
+            <state relative-caret-position="170">
+              <caret line="545" column="34" lean-forward="true" selection-start-line="545" selection-start-column="34" selection-end-line="545" selection-end-column="34" />
               <folding>
                 <element signature="e#649#687#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="nodes.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/nodes.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="149">
-              <caret line="259" column="26" lean-forward="false" selection-start-line="259" selection-start-column="21" selection-end-line="259" selection-end-column="26" />
-              <folding>
-                <element signature="e#0#38#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -68,8 +58,20 @@
       <file leaf-file-name="BasicNode.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/BasicNode.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1302">
-              <caret line="69" column="33" lean-forward="false" selection-start-line="69" selection-start-column="33" selection-end-line="69" selection-end-column="33" />
+            <state relative-caret-position="-13">
+              <caret line="69" column="13" lean-forward="false" selection-start-line="69" selection-start-column="13" selection-end-line="69" selection-end-column="13" />
+              <folding>
+                <element signature="e#0#38#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="nodes.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/nodes.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="191">
+              <caret line="318" column="45" lean-forward="false" selection-start-line="318" selection-start-column="39" selection-end-line="318" selection-end-column="45" />
               <folding>
                 <element signature="e#0#38#0" expanded="true" />
               </folding>
@@ -88,11 +90,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>numCapsules</find>
-      <find>eatEne</find>
-      <find>updateCa</find>
-      <find>update</find>
-      <find>Capture,</find>
       <find>All children StateNode of the chosed StateNode is not novel</find>
       <find>NoveltyTest</find>
       <find>Novelty</find>
@@ -113,11 +110,16 @@
       <find>CaptureRules</find>
       <find>Back</find>
       <find>UCB1ChooseSuccNode</find>
-      <find>UCB1</find>
       <find>cacheMemory</find>
       <find>novelTest</find>
       <find>NovelTest</find>
       <find>print</find>
+      <find>ParallelGenerateSuccNode</find>
+      <find>ChooseSuccNode</find>
+      <find>Full</find>
+      <find>UCB1</find>
+      <find>FullExpandFunc</find>
+      <find>WhichAgentFault</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -142,10 +144,10 @@
         <option value="$PROJECT_DIR$/myTeam_caesar.py" />
         <option value="$PROJECT_DIR$/game.py" />
         <option value="$PROJECT_DIR$/capture.py" />
-        <option value="$PROJECT_DIR$/nodes.py" />
         <option value="$PROJECT_DIR$/baselineTeam.py" />
         <option value="$PROJECT_DIR$/BasicNode.py" />
         <option value="$PROJECT_DIR$/myTeamv4.py" />
+        <option value="$PROJECT_DIR$/nodes.py" />
       </list>
     </option>
   </component>
@@ -186,6 +188,20 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="AI" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="AI" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="AI" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="layouts" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -409,10 +425,9 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
-    <editor active="true" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="7" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17310664" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11746522" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -758,26 +773,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/layouts/defaultCapture.lay">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="231">
-          <caret line="11" column="16" lean-forward="false" selection-start-line="11" selection-start-column="16" selection-end-line="11" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/BasicNode.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1302">
-          <caret line="69" column="33" lean-forward="false" selection-start-line="69" selection-start-column="33" selection-end-line="69" selection-end-column="33" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/game.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15645">
+        <state relative-caret-position="26">
           <caret line="749" column="47" lean-forward="false" selection-start-line="749" selection-start-column="42" selection-end-line="749" selection-end-column="47" />
           <folding />
         </state>
@@ -795,10 +793,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/nodes.py">
+    <entry file="file://$PROJECT_DIR$/layouts/defaultCapture.lay">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="149">
-          <caret line="259" column="26" lean-forward="false" selection-start-line="259" selection-start-column="21" selection-end-line="259" selection-end-column="26" />
+        <state relative-caret-position="273">
+          <caret line="13" column="32" lean-forward="true" selection-start-line="13" selection-start-column="32" selection-end-line="13" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BasicNode.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-13">
+          <caret line="69" column="13" lean-forward="false" selection-start-line="69" selection-start-column="13" selection-end-line="69" selection-end-column="13" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
@@ -807,10 +813,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/myTeamv4.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="296">
-          <caret line="610" column="40" lean-forward="false" selection-start-line="610" selection-start-column="40" selection-end-line="610" selection-end-column="40" />
+        <state relative-caret-position="170">
+          <caret line="545" column="34" lean-forward="true" selection-start-line="545" selection-start-column="34" selection-end-line="545" selection-end-column="34" />
           <folding>
             <element signature="e#649#687#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/nodes.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="191">
+          <caret line="318" column="45" lean-forward="false" selection-start-line="318" selection-start-column="39" selection-end-line="318" selection-end-column="45" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
           </folding>
         </state>
       </provider>

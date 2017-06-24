@@ -221,7 +221,7 @@ class StateNode( BasicNode ):
                 for agent in AgentFaultList:
                     self.cacheMemory[agent] = set()
                 print "UCB1, refresh cacheMemory", self.cacheMemory
-                self.NovelTest = False
+                self.novelTest = False
                 self.novel = True
                 self.AlliesSuccActionsNodeDict = dict()
                 self.EnemiesSuccActionsNodeDict = dict()

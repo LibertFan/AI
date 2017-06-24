@@ -540,7 +540,7 @@ class MCTSCaptureAgent(CaptureAgent):
             try:
                 if not FirstStateNode.novel:
                     raise Exception("FirstStateNode should be novel!")
-                #print "iteration within back begin!"
+                print "iteration within back begin!"
                 #print "try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
 
                 if FirstStateNode.StateParent is None:
