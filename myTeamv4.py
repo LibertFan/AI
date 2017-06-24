@@ -229,7 +229,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     self.rootNode.novel = True
                     #self.rootNode.FullExpandFunc()
                     print "="*25, "reset cachyMemory of the rootNode","="*25
-                    print self.rootNode.cacheMemory
+                    #print self.rootNode.cacheMemory
                     self.rootNode.novelTest = False
                     self.rootNode.AlliesSuccActionsNodeDict = dict()
                     self.rootNode.EnemiesSuccActionsNodeDict = dict()
@@ -601,7 +601,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 for actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
                     print actions
                     print SuccStateNode.IndexPositions
-                    print SuccStateNode.cacheMemory
+                    #print SuccStateNode.cacheMemory
                     print "="*50
                 for actionKey,succ in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
                     print "first enemy features",succ.generateTuples(CurrentStateNode.enemies[0])
@@ -609,7 +609,7 @@ class MCTSCaptureAgent(CaptureAgent):
                 print "rr" * 30
             print CurrentStateNode.IndexPositions     
             print CurrentStateNode.LegalActions 
-            print CurrentStateNode.cacheMemory
+            #print CurrentStateNode.cacheMemory
 
             print "All children StateNode of the chosed StateNode is not novel"
             # save memory waste computation
