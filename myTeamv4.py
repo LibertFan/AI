@@ -608,12 +608,12 @@ class MCTSCaptureAgent(CaptureAgent):
             if CurrentStateNode.StateParent is None:
                 print "rr" * 30
                 print "Allies"
-                for actions, ActionNode in self.AlliesSuccActionsNodeDict.items():
+                for actions, ActionNode in CurrentStateNode.AlliesSuccActionsNodeDict.items():
                     causes = ActionNode.unnovelCause
                     if causes is None or len( causes ) == 0:
                         print actions, ActionNode.unnovelCause
                 print "Enemies"
-                for actions, ActionNode in self.EnemiesSuccActionsNodeDict.items():   
+                for actions, ActionNode in CurrentStateNode.EnemiesSuccActionsNodeDict.items():   
                     causes = ActionNode.unnovelCause
                     if causes is None or len( causes ) == 0:
                         print actions, ActionNode.unnovelCause

@@ -377,7 +377,7 @@ class StateNode( BasicNode ):
     ### Del those unnovel nodes( replace them with instances of ReplaceNode )
     ### return the list of NovelSuccStateNode 
     def FullExpandFunc( self ):
-        if not self.isFullExpand():
+        if not self.isFullExpand() or not self.novelTest:
             for actions in self.LegalActions:
                 self.ChooseSuccNode( actions )
 
