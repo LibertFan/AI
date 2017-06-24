@@ -637,7 +637,7 @@ class MCTSCaptureAgent(CaptureAgent):
         # print "The number of branch is:", len(CurrentInfo)
 
         print "Parallel Begin"
-        if len( MNovelSuccStateNodeList ) > 1000:
+        if len( MNovelSuccStateNodeList ) > 2000:
             t1 = time.time()
             print len(MNovelSuccStateNodeList)
             CurrentInfo = []
