@@ -212,15 +212,24 @@ class StateNode( BasicNode ):
                 #print self.cacheMemory
                 #for action, SuccActionNode in self.AlliesSuccActionsNodeDict.items():
                 #   print action, SuccActionN
+                print "x"*25, " RootNode is UnNovel" ,"x"*25
+                print "Basic Condition", self.isFullExpand(), self.novelTest, self.novel, self.IndexPositions
+                print "Allies" 
+                for actions, ActionNode in self.AlliesSuccActionsNodeDict.items():
+                    causes = ActionNode.unnovelCause
+                    #if causes is None or len( causes ) == 0:
+                    print actions, ActionNode.unnovelCause
+                print "Enemies"
+                for actions, ActionNode in self.EnemiesSuccActionsNodeDict.items():
+                    causes = ActionNode.unnovelCause
+                    #if causes is None or len( causes ) == 0:
+                    print actions, ActionNode.unnvoelCause
 
-                for actions, SuccStateNode in self.SuccStateNodeDict.items():
-                    print actions, SuccStateNode.IndexPositions
 
                 AgentFaultList = self.WhichAgentFault()
                 print "UCB1, AgentFaultList", AgentFaultList
                 for agent in AgentFaultList:
                     self.cacheMemory[agent] = set()
-                print "UCB1, refresh cacheMemory", self.cacheMemory
                 self.novelTest = False
                 self.novel = True
                 self.AlliesSuccActionsNodeDict = dict()
@@ -268,13 +277,13 @@ class StateNode( BasicNode ):
                 print "Allies" 
                 for actions, ActionNode in self.AlliesSuccActionsNodeDict.items():
                     causes = ActionNode.unnovelCause
-                    if causes is None or len( causes ) == 0:
-                        print actions, ActionNode.unnovelCause
+                    #if causes is None or len( causes ) == 0:
+                    print actions, ActionNode.unnovelCause
                 print "Enemies"
                 for actions, ActionNode in self.EnemiesSuccActionsNodeDict.items():
                     causes = ActionNode.unnovelCause
-                    if causes is None or len( causes ) == 0:
-                        print actions, ActionNode.unnvoelCause
+                    #if causes is None or len( causes ) == 0:
+                    print actions, ActionNode.unnvoelCause
                 print "Successive State Node"
                 for actions, sn in self.SuccStateNodeDict.items():
                     if sn.nVisit <= 0:
@@ -285,7 +294,7 @@ class StateNode( BasicNode ):
                         print "SuccStateNode is not novelTest", sn.IndexPositions    
                     if sn.novel:
                         print actions, sn.IndexPositions
-                    print "-"*50
+                    print "x"*50
 
                 raise Exception("UCB1 return None!") 
                 self.novel = False
