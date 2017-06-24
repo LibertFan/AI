@@ -327,6 +327,8 @@ class MCTSCaptureAgent(CaptureAgent):
 		    
         print "=" * 50
         print "=" * 50
+        del self.rootNode
+        gc.collect()
         return bestAction
 
     def Select( self ):
