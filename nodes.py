@@ -64,14 +64,14 @@ class StateNode( BasicNode ):
                 agentMoveInfo.append( ( isAgentPacman, agentIndex, action ) ) 
             agentMoveOrder = sorted( agentMoveInfo, key=lambda x:( x[0], x[1] ) ) 
 
-            deadAgentList = []
+            self.deadAgentList = []
             for index, ( isAgentPacman, agentIndex, action ) in enumerate( agentMoveOrder ):
-                if agentIndex in deadAgentList:
+                if agentIndex in self.deadAgentList:
                     CurrentGameState, deadAgents = CurrentGameState.generateSuccessor( agentIndex, "Stop", True )
-                    deadAgentList.extend( deadAgents ) 
+                    self.deadAgentList.extend( deadAgents )
                 else:    
                     CurrentGameState, deadAgents = CurrentGameState.generateSuccessor( agentIndex, action, True )
-                    deadAgentList.extend( deadAgents )
+                    self.deadAgentList.extend( deadAgents )
 
             self.GameState = CurrentGameState
             self.depth = self.StateParent.depth + 1 
@@ -538,9 +538,11 @@ class StateNode( BasicNode ):
     def getSuccessorNovel(self,cacheMemory):
         self.novelTest = True
         for actionKeys,eachStateSucc in self.SuccStateNodeDict.items():
-            eachStateSucc.cacheMemory = cacheMemory
+            for eachAgent in eachStateSucc.allies + eachStateSucc.enemies:
+                if eachAgent not in eachStateSucc.deadAgentList:
+                    self.updateCacheMemory(eachStateSucc.cacheMemory, {eachAgent: cacheMemory[eachAgent]})
             if eachStateSucc.novel:
-                if eachStateSucc.AlliesActionParent.novel is False or eachStateSucc.EnemiesActionParent.novel is False:
+                if not eachStateSucc.AlliesActionParent.novel or not eachStateSucc.EnemiesActionParent.novel:
                     #self.SuccStateNodeDict[actionKeys] = ReplaceNode(eachStateSucc.depth)
                     eachStateSucc.novel = False
                 #del eachStateSucc
