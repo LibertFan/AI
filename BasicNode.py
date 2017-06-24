@@ -45,6 +45,7 @@ class BasicNode:
         return features
     '''
 
+    '''
     def getNoveltyFeatures(self, agent):
         gameState = self.GameState
         features = (None, ) * 4
@@ -55,6 +56,7 @@ class BasicNode:
         #if features[1] != 0 or features[2] != 0 or features[3] != 0:
         #    print features
         return features
+    '''
 
     def generateTuples(self, agent):
         #features_list = self.getNoveltyFeatures(agent)
@@ -64,7 +66,8 @@ class BasicNode:
         gameState = self.GameState
         features = list()
         features.append(gameState.getAgentState(agent).getPosition())
-        features.append(gameState.getAgentState(agent).numCarrying + gameState.getAgentState(agent).numReturned)  # food
+        features.append(gameState.getAgentState(agent).numCarrying)
+        features.append(gameState.getAgentState(agent).numReturned)  # food
         features.append(gameState.getAgentState(agent).numCapsules)  # capsule
         features.append(gameState.getAgentState(agent).eatEnemies)  # eatAgents ###### need to change
         # if features[1] != 0 or features[2] != 0 or features[3] != 0:

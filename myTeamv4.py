@@ -494,11 +494,8 @@ class MCTSCaptureAgent(CaptureAgent):
         while( len( NovelSuccStateNodeList ) == 0 ):
             
             try:
-                print "1"*80
-                print FirstStateNode.novel
                 if not FirstStateNode.novel:
                     raise Exception("FirstStateNode should be novel!")
-                print "2" * 80
                 print "iteration within back begin!"
                 print "try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
 
@@ -507,7 +504,6 @@ class MCTSCaptureAgent(CaptureAgent):
                     print "myTeamv4, Bcck: RootNode is unnovel!"
                     return
 
-                print "3" * 80
                 result = self.WhichAgentFault( FirstStateNode )
                 if result is None:
                     return None
