@@ -178,6 +178,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     print "The Last Tree:"
                     print "leaf nodes:",num, ", novel leaf nodes:",novelnum,", depth of root node", self.rootNode.depth,",depth of the search tree:",Depth
                     self.novelleaf = novelnum
+                    del StateRootNode
                     return 
                     #print self.rootNode.cacheMemory 
                     #return self.rootNode
@@ -235,6 +236,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     self.rootNode.EnemiesSuccActionsNodeDict = dict()
                     self.rootNode.SuccStateNodeDict = dict()
                     self.novelleaf = 1
+                    del StateRootNode
                     return 
                     #return self.rootNode
                 
@@ -277,14 +279,15 @@ class MCTSCaptureAgent(CaptureAgent):
         if self.novelleaf is None or self.novelleaf < 2000 or not self.rootNode.isFullExpand():
             while( iters < 40 and running_time < 60 ):
                 node = self.Select()  ######UCB1 appear Unnovel node
+                if node == self.rootNode or id(node) == id(self.rootNode):
+                    print iters, "this iters choose RootNode"
                 #print "iters:", iters, node
                 if node is None:
                     invalid_iters += 1
                     if invalid_iters > 100:
                         raise Exception( "Too much invalid iters " )
                     print "Invalid Selections"
-                    if node == self.rootNode or id(node) == id(self.rootNode):
-                        raise Exception("MCTS/chooseAction: No Node in the tree is novel")
+                    print "-" * 50
                     continue
                 print "iters",iters, "select node position:", node.IndexPositions            
                 self.ParallelGenerateSuccNode( node )

@@ -118,6 +118,12 @@ class StateNode( BasicNode ):
     def getBestActions( self ):
         HighestScore = -9999
         BestAlliesAction = None
+        if not self.isFullExpand() or not self.novelTest:
+            print "CurrentStateNode is Novel? ", self.novel
+            print "CurrentStateNode is isFullExoand?:", self.isFullExpand()
+            print "Number of CurrentStateNode's LegalAcitons:", len(self.LegalActions)
+            print "Number of CurrentStateNode's SuccStateNode:", len( self.SuccStateNodeDict )
+            raise Exception("UnFullExapnd Node try to do getBestAction")
         for AlliesAction in self.LegalAlliesActions:
             SuccAlliesActionsNode = self.AlliesSuccActionsNodeDict.get( AlliesAction )
             lowestEnemiesScore = 9999
