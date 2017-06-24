@@ -243,7 +243,7 @@ class MCTSCaptureAgent(CaptureAgent):
         iters = 0
         invalid_iters = 0
         running_time = 0.0
-        if self.novelleaf is None or self.novelleaf < 2000:  
+        if self.novelleaf is None or self.novelleaf < 2000 or not self.rootNode.isFullExpand():
             while( iters < 40 and running_time < 60 ):
                 node = self.Select()  ######UCB1 appear Unnovel node
                 print "iters:", iters, node
@@ -494,8 +494,11 @@ class MCTSCaptureAgent(CaptureAgent):
         while( len( NovelSuccStateNodeList ) == 0 ):
             
             try:
+                print "1"*80
+                print FirstStateNode.novel
                 if not FirstStateNode.novel:
                     raise Exception("FirstStateNode should be novel!")
+                print "2" * 80
                 print "iteration within back begin!"
                 print "try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
 
@@ -504,6 +507,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     print "myTeamv4, Bcck: RootNode is unnovel!"
                     return
 
+                print "3" * 80
                 result = self.WhichAgentFault( FirstStateNode )
                 if result is None:
                     return None
@@ -554,7 +558,6 @@ class MCTSCaptureAgent(CaptureAgent):
             j += 1 
 
         if len(CandidataFTSSNL) == 0:
-            CurrentStateNode.novel = False
             return []
         else:
             return CandidataFTSSNL[-self.M:]
