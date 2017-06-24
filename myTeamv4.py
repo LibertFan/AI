@@ -25,6 +25,8 @@ import sys
 import numpy as np
 import multiprocessing 
 from nodes import StateNode, ActionNode
+import gc
+
 #from SimulateAgents import SimulateAgent, SimulateAgentV1
 from Helper import Distancer, ParallelAgent, SimulateAgent, SimulateAgentV1
 from BasicNode import BasicNode, ReplaceNode
@@ -179,6 +181,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     print "leaf nodes:",num, ", novel leaf nodes:",novelnum,", depth of root node", self.rootNode.depth,",depth of the search tree:",Depth
                     self.novelleaf = novelnum
                     del StateRootNode
+                    gc.collect()
                     return 
                     #print self.rootNode.cacheMemory 
                     #return self.rootNode
@@ -237,6 +240,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     self.rootNode.SuccStateNodeDict = dict()
                     self.novelleaf = 1
                     del StateRootNode
+                    gc.collect()
                     return 
                     #return self.rootNode
                 
