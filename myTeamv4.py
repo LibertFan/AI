@@ -607,14 +607,26 @@ class MCTSCaptureAgent(CaptureAgent):
         if len( NovelSuccActionStateNodeList ) == 0:
             if CurrentStateNode.StateParent is None:
                 print "rr" * 30
-                for actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
-                    print actions
-                    print SuccStateNode.IndexPositions
-                    #print SuccStateNode.cacheMemory
-                    print "="*50
-                for actionKey,succ in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
-                    print "first enemy features",succ.generateTuples(CurrentStateNode.enemies[0])
-                    print "second enemy features",succ.generateTuples(CurrentStateNode.enemies[1])
+                print "BasicCondition:", CurrentStateNode.isFullExpand, CurrentStateNode.novelTest, CurrentStateNode.novel
+                print "Allies"
+                for actions, ActionNode in CurrentStateNode.AlliesSuccActionsNodeDict.items():
+                    causes = ActionNode.unnovelCause
+                    if causes is None or len( causes ) == 0:
+                        print actions, ActionNode.unnovelCause
+                print "Enemies"
+                for actions, ActionNode in CurrentStateNode.EnemiesSuccActionsNodeDict.items():   
+                    causes = ActionNode.unnovelCause
+                    if causes is None or len( causes ) == 0:
+                        print actions, ActionNode.unnovelCause
+
+               # for actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
+               #     print actions
+               #     print SuccStateNode.IndexPositions
+               #     #print SuccStateNode.cacheMemory
+               #     print "="*50
+               # for actionKey,succ in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
+               #     print "first enemy features",succ.generateTuples(CurrentStateNode.enemies[0])
+               #     print "second enemy features",succ.generateTuples(CurrentStateNode.enemies[1])
                 print "rr" * 30
             print CurrentStateNode.IndexPositions     
             #print CurrentStateNode.LegalActions
@@ -643,7 +655,7 @@ class MCTSCaptureAgent(CaptureAgent):
         # print "The number of branch is:", len(CurrentInfo)
 
         print "Parallel Begin"
-        if len( MNovelSuccStateNodeList ) > 1000:
+        if len( MNovelSuccStateNodeList ) > 2000:
             t1 = time.time()
             print len(MNovelSuccStateNodeList)
             CurrentInfo = []
