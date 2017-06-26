@@ -275,7 +275,9 @@ class StateNode( BasicNode ):
                 #if self.StateParent is None:
                 #    print "This StateNode is RootNode"
                 print "Basic Condition", self.isFullExpand(), self.novelTest, self.novel, self.IndexPositions
-                print "Allies" 
+                for agentIndex, context in self.cacheMemory.items():
+                    print "agentIndex:", agentIndex, "cacheMemory:", context
+                print "Allies"
                 for actions, ActionNode in self.AlliesSuccActionsNodeDict.items():
                     causes = ActionNode.unnovelCause
                     #if causes is None or len( causes ) == 0:
@@ -287,14 +289,14 @@ class StateNode( BasicNode ):
                     print actions, ActionNode.unnovelCause
                 print "Successive State Node"
                 for actions, sn in self.SuccStateNodeDict.items():
-                    if sn.nVisit <= 0:
-                        print "SuccStateNode is not visited!", sn.IndexPositions
-                    if not sn.isFullExpand():
-                        print "SuccStateNode is not FullExpand!", sn.IndexPositions
-                    if not sn.novelTest:
-                        print "SuccStateNode is not novelTest", sn.IndexPositions    
-                    if sn.novel:
-                        print actions, sn.IndexPositions
+                    if sn.nVisit > 0:
+                        print "SuccStateNode is visited!", sn.IndexPositions
+                        if not sn.isFullExpand():
+                            print "SuccStateNode is not FullExpand!"
+                        if not sn.novelTest:
+                            print "SuccStateNode is not novelTest"
+                        if sn.novel:
+                            print actions, "SuccNode is novel"
                     print "x"*50
 
                 raise Exception("UCB1 return None!") 
@@ -580,6 +582,8 @@ class StateNode( BasicNode ):
             for eachAgent in eachStateSucc.allies + eachStateSucc.enemies:
                 if eachAgent not in eachStateSucc.deadAgentList:
                     self.updateCacheMemory(eachStateSucc.cacheMemory, {eachAgent: cacheMemory[eachAgent]})
+                else:
+                    self.updateCacheMemory(eachStateSucc.cacheMemory, {eachAgent: set([eachStateSucc.generateTuples(eachAgent)])})
             if eachStateSucc.novel:
                 if not eachStateSucc.AlliesActionParent.novel or not eachStateSucc.EnemiesActionParent.novel:
                     #self.SuccStateNodeDict[actionKeys] = ReplaceNode(eachStateSucc.depth)
