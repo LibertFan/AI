@@ -385,7 +385,13 @@ class MCTSCaptureAgent(CaptureAgent):
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
                     X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[0]]
                     vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
+                    if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action = FourActions[0][0]
+                                break
+                    else:
+                        action = Actions.vectorToDirection(vector)
                     for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
                         if eachActions[0] == action:
                             eachActionsNode.novel = False
@@ -399,7 +405,13 @@ class MCTSCaptureAgent(CaptureAgent):
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[0]]
                     X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[0]]
                     vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
+                    if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action = FourActions[1][0]
+                                break
+                    else:
+                        action = Actions.vectorToDirection(vector)
                     for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
                         if eachActions[0] == action:
                             eachActionsNode.novel = False
@@ -414,7 +426,13 @@ class MCTSCaptureAgent(CaptureAgent):
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[1]]
                     X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[1]]
                     vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
+                    if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action = FourActions[0][1]
+                                break
+                    else:
+                        action = Actions.vectorToDirection(vector)
                     for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
                         if eachActions[1] == action:
                             eachActionsNode.novel = False
@@ -428,7 +446,13 @@ class MCTSCaptureAgent(CaptureAgent):
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[1]]
                     X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[1]]
                     vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
+                    if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action = FourActions[1][1]
+                                break
+                    else:
+                        action = Actions.vectorToDirection(vector)
                     for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
                         if eachActions[1] == action:
                             eachActionsNode.novel = False
@@ -443,11 +467,17 @@ class MCTSCaptureAgent(CaptureAgent):
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
                     X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[0]]
                     vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
+                    if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action = FourActions[0][0]
+                                break
+                    else:
+                        action = Actions.vectorToDirection(vector)
                     for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
                         if eachActions[0] == action:
                             eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0,1]
+                            eachActionsNode.unnovelCause.append(0)
                     '''
                     for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
                         if pairActions[0][0] == action:
@@ -456,11 +486,17 @@ class MCTSCaptureAgent(CaptureAgent):
                     parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.allies[1]]
                     X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.allies[1]]
                     vector2 = (X2 - parentX2, Y2 - parentY2)
-                    action2 = Actions.vectorToDirection(vector2)
+                    if abs(vector2[0]) > 1 or abs(vector2[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action2 = FourActions[0][1]
+                                break
+                    else:
+                        action2 = Actions.vectorToDirection(vector2)
                     for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
                         if eachActions[1] == action2:
                             eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0, 1]
+                            eachActionsNode.unnovelCause.append(1)
                     '''
                     for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
                         if pairActions[0][1] == action2:
@@ -470,11 +506,17 @@ class MCTSCaptureAgent(CaptureAgent):
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[0]]
                     X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[0]]
                     vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
+                    if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action = FourActions[1][0]
+                                break
+                    else:
+                        action = Actions.vectorToDirection(vector)
                     for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
                         if eachActions[0] == action:
                             eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0, 1]
+                            eachActionsNode.unnovelCause.append(0)
                     '''
                     for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
                         if pairActions[1][0] == action:
@@ -483,11 +525,17 @@ class MCTSCaptureAgent(CaptureAgent):
                     parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.enemies[1]]
                     X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.enemies[1]]
                     vector2 = (X2 - parentX2, Y2 - parentY2)
-                    action2 = Actions.vectorToDirection(vector2)
+                    if abs(vector2[0]) > 1 or abs(vector2[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action2 = FourActions[1][1]
+                                break
+                    else:
+                        action2 = Actions.vectorToDirection(vector2)
                     for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
                         if eachActions[1] == action2:
                             eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0, 1]
+                            eachActionsNode.unnovelCause.append(1)
                     '''
                     for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
                         if pairActions[1][1] == action2:
@@ -498,11 +546,23 @@ class MCTSCaptureAgent(CaptureAgent):
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
                     X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[0]]
                     vector0 = (X - parentX, Y - parentY)
-                    action0 = Actions.vectorToDirection(vector0)
+                    if abs(vector0[0]) > 1 or abs(vector0[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action0 = FourActions[0][0]
+                                break
+                    else:
+                        action0 = Actions.vectorToDirection(vector0)
                     parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.allies[1]]
                     X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.allies[1]]
                     vector2 = (X2 - parentX2, Y2 - parentY2)
-                    action2 = Actions.vectorToDirection(vector2)
+                    if abs(vector2[0]) > 1 or abs(vector2[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action2 = FourActions[0][1]
+                                break
+                    else:
+                        action2 = Actions.vectorToDirection(vector2)
                     for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
                         if eachActions == (action0, action2):
                             eachActionsNode.novel = False
@@ -511,11 +571,23 @@ class MCTSCaptureAgent(CaptureAgent):
                     parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[0]]
                     X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[0]]
                     vector0 = (X - parentX, Y - parentY)
-                    action0 = Actions.vectorToDirection(vector0)
+                    if abs(vector0[0]) > 1 or abs(vector0[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action0 = FourActions[1][0]
+                                break
+                    else:
+                        action0 = Actions.vectorToDirection(vector0)
                     parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.enemies[1]]
                     X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.enemies[1]]
                     vector2 = (X2 - parentX2, Y2 - parentY2)
-                    action2 = Actions.vectorToDirection(vector2)
+                    if abs(vector2[0]) > 1 or abs(vector2[1]) > 1:
+                        for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                            if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                action2 = FourActions[1][1]
+                                break
+                    else:
+                        action2 = Actions.vectorToDirection(vector2)
                     for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
                         if eachActions == (action0, action2):
                             eachActionsNode.novel = False
