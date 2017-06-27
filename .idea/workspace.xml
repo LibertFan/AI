@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6fcc4672-e85a-415d-ab24-6991f0799893" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/myTeamv4.py" afterPath="$PROJECT_DIR$/myTeamv4.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/nodes.py" afterPath="$PROJECT_DIR$/nodes.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/score" afterPath="$PROJECT_DIR$/score" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -54,8 +57,8 @@
       <file leaf-file-name="myTeamv4.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/myTeamv4.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="112">
-              <caret line="542" column="21" lean-forward="true" selection-start-line="542" selection-start-column="21" selection-end-line="542" selection-end-column="21" />
+            <state relative-caret-position="193">
+              <caret line="567" column="46" lean-forward="false" selection-start-line="567" selection-start-column="46" selection-end-line="567" selection-end-column="46" />
               <folding>
                 <element signature="e#649#687#0" expanded="true" />
               </folding>
@@ -66,8 +69,8 @@
       <file leaf-file-name="BasicNode.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/BasicNode.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1470">
-              <caret line="70" column="66" lean-forward="false" selection-start-line="70" selection-start-column="55" selection-end-line="70" selection-end-column="66" />
+            <state relative-caret-position="1260">
+              <caret line="60" column="22" lean-forward="false" selection-start-line="60" selection-start-column="8" selection-end-line="60" selection-end-column="22" />
               <folding>
                 <element signature="e#0#38#0" expanded="true" />
               </folding>
@@ -78,8 +81,8 @@
       <file leaf-file-name="nodes.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nodes.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-103">
-              <caret line="124" column="92" lean-forward="false" selection-start-line="124" selection-start-column="75" selection-end-line="124" selection-end-column="92" />
+            <state relative-caret-position="254">
+              <caret line="407" column="36" lean-forward="false" selection-start-line="407" selection-start-column="26" selection-end-line="407" selection-end-column="36" />
               <folding>
                 <element signature="e#0#38#0" expanded="true" />
               </folding>
@@ -98,10 +101,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>UCB1ChooseSuccNode</find>
-      <find>novelTest</find>
-      <find>NovelTest</find>
-      <find>print</find>
       <find>ParallelGenerateSuccNode</find>
       <find>Full</find>
       <find>FullExpandFunc</find>
@@ -118,9 +117,7 @@
       <find>generateSuccessor</find>
       <find>self.dea</find>
       <find>deadA</find>
-      <find>ChooseSuccNode</find>
       <find>cacheMemory</find>
-      <find>Back</find>
       <find>unnovelCause</find>
       <find>UCB1</find>
       <find>vectorToDirection</find>
@@ -128,6 +125,12 @@
       <find>GameState</find>
       <find>WhichA</find>
       <find>SuccStateNodeDict</find>
+      <find>RandChooseLeftActions</find>
+      <find>getBound</find>
+      <find>getIndexFeatures</find>
+      <find>ChooseSuccNode</find>
+      <find>Back</find>
+      <find>getLatentScore</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -433,15 +436,15 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="7" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20015456" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23029366" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32846716" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.0" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11849192" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3806104" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.1059246" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
@@ -818,8 +821,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/BasicNode.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1470">
-          <caret line="70" column="66" lean-forward="false" selection-start-line="70" selection-start-column="55" selection-end-line="70" selection-end-column="66" />
+        <state relative-caret-position="1260">
+          <caret line="60" column="22" lean-forward="false" selection-start-line="60" selection-start-column="8" selection-end-line="60" selection-end-column="22" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
@@ -828,8 +831,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/nodes.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-103">
-          <caret line="124" column="92" lean-forward="false" selection-start-line="124" selection-start-column="75" selection-end-line="124" selection-end-column="92" />
+        <state relative-caret-position="254">
+          <caret line="407" column="36" lean-forward="false" selection-start-line="407" selection-start-column="26" selection-end-line="407" selection-end-column="36" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
@@ -838,8 +841,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/myTeamv4.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="112">
-          <caret line="542" column="21" lean-forward="true" selection-start-line="542" selection-start-column="21" selection-end-line="542" selection-end-column="21" />
+        <state relative-caret-position="193">
+          <caret line="567" column="46" lean-forward="false" selection-start-line="567" selection-start-column="46" selection-end-line="567" selection-end-column="46" />
           <folding>
             <element signature="e#649#687#0" expanded="true" />
           </folding>

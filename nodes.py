@@ -263,8 +263,7 @@ class StateNode( BasicNode ):
                             else:
                                 print self.IndexPositions 
                                 print SuccAlliesActionsNode.LastActions, SuccEnemiesActionNode.LastActions
-
-                                raise Exception( "Two novel actions produce an unnovel StateNode!" )
+                                print "Two novel actions produce an unnovel StateNode!"
                                     
                     if lowestEnemiesScore != 9999 and lowestEnemiesScore > HighestScore:
                         HighestScore = lowestEnemiesScore
