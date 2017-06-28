@@ -470,13 +470,27 @@ class StateNode( BasicNode ):
     def getLatentScore( self ):
         weights = self.getWeights()
         features = self.getFeatures()
-        return ( features * weights - self.Bound[0] ) * 0.5 / ( self.Bound[1] - self.Bound[0] )
+        return ( features * weights - self.Bound[0] ) * 0.1 / ( self.Bound[1] - self.Bound[0] )
 
     def getBound( self ):
         weights = self.getWeights()
         features1 = util.Counter()
+        features2 = util.Counter()
         for index in self.allies:
             features1['onDefense' + str(index)] = 1 
+        features2['successorScore'] = 20
+        features2["ally-pacman-die"] = 2
+        features2["ally-ghost-die"] = 2
+        features1["enemy-pacman-die"] = 2
+        features1["enemy-ghost-die"] = 2
+        features1["eat_food"] = 2
+        features1["eat-capsule"] = 1
+
+        for index in self.allies:
+            weights['onDefense' + str( index )] = 0
+            weights['distanceToFood' + str( index )] = -1
+            weights['invaderDistance' + str( index )] = 0
+
          
         features2 = util.Counter()
         red = self.GameState.isOnRedTeam(self.allies[0])
@@ -494,7 +508,7 @@ class StateNode( BasicNode ):
         features2["numInvaders"] = 2
 
         #return [features2 * weights, features1 * weights]
-        return [ features2 * weights, 0]
+        return [ features2 * weights, features1 * weights]
 
     def getWeights( self ):
         """
@@ -511,11 +525,12 @@ class StateNode( BasicNode ):
         
         The weights for various feature should be reset!
         """
-        weights = {'successorScore': 0, 'numInvaders': 0 }
+        weights = {'successorScore': 0, 'numInvaders': 0,"ally-pacman-die":-20, "ally-ghost-die":-0.5,
+                   "enemy-pacman-die":5,"enemy-ghost-die":1, "eat_food":1.1, "eat-capsule":10 }
 
         for index in self.allies:
             weights['onDefense' + str( index )] = 0
-            weights['distanceToFood' + str( index )] = -2
+            weights['distanceToFood' + str( index )] = -1
             weights['invaderDistance' + str( index )] = 0
 
         return weights
@@ -535,7 +550,31 @@ class StateNode( BasicNode ):
         for index in self.allies:
             myMinDist = min([self.getDistancer( self.IndexPositions[ index ], food) for food in FoodList])
             features["distanceToFood" + str(index)] = float(myMinDist) / (walls.width * walls.height)
+       
+        features["ally-pacman-die"] = 0
+        features["ally-ghost-die"] = 0
+        features["enemy-pacman-die"] = 0
+        features["enemy-ghost-die"]  = 0
+        features["eat_food"] = 0
+        features["eat-capsule"] = 0
 
+        for deadAgent in self.deadAgentList:
+            if deadAgent in self.allies:
+                if self.StateParent.GameState.getAgentState( deadAgent ).isPacman:
+                    features["ally-pacman-die"] += 1
+                else:
+                    features["ally-ghost-die"] += 1
+            if deadAgent in self.enemies:
+                if self.StateParent.GameState.getAgentState( deadAgent ).isPacman:
+                    features["enemy-pacman-die"] += 1
+                else:
+                    features["enemy-ghost-die"] += 1
+        
+        for agentIndex in self.allies:
+            OldAgentState = self.StateParent.GameState.getAgentState( agentIndex )
+            NewAgentState = self.GameState.getAgentState( agentIndex ) 
+            features["eat-food"] += int( NewAgentState.numCarrying - OldAgentState.numCarrying > 0 )
+            features["eat-capsule"] += int( NewAgentState.numCapsules - OldAgentState.numCapsules > 0 )
         return features
     
     ### The following functions are used to compute the novelty of an StateNode
