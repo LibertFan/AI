@@ -399,7 +399,8 @@ class MCTSCaptureAgent(CaptureAgent):
                         for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
                             if eachActions[0] == action:
                                 eachActionsNode.novel = False
-                                eachActionsNode.unnovelCause = [0]
+                                if 0 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(0)
 
                 else:
                     if parentStateNode.enemies[0] in nearResult[2]:
@@ -418,7 +419,8 @@ class MCTSCaptureAgent(CaptureAgent):
                         for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
                             if eachActions[0] == action:
                                 eachActionsNode.novel = False
-                                eachActionsNode.unnovelCause = [0]
+                                if 0 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(0)
 
             elif cause == {1}:
                 if WhichTeam == 0:
@@ -438,7 +440,8 @@ class MCTSCaptureAgent(CaptureAgent):
                         for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
                             if eachActions[1] == action:
                                 eachActionsNode.novel = False
-                                eachActionsNode.unnovelCause = [1]
+                                if 1 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(1)
 
                 else:
                     if parentStateNode.enemies[1] in nearResult[2]:
@@ -457,7 +460,8 @@ class MCTSCaptureAgent(CaptureAgent):
                         for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
                             if eachActions[1] == action:
                                 eachActionsNode.novel = False
-                                eachActionsNode.unnovelCause = [1]
+                                if 1 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(1)
 
             elif cause == set([0,1]):
                 if WhichTeam == 0:
@@ -477,7 +481,8 @@ class MCTSCaptureAgent(CaptureAgent):
                         for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
                             if eachActions[0] == action:
                                 eachActionsNode.novel = False
-                                eachActionsNode.unnovelCause.append(0)
+                                if 0 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(0)
 
                     if parentStateNode.allies[1] in nearResult[1]:
                         FirstStateNode.novel = False
@@ -495,7 +500,8 @@ class MCTSCaptureAgent(CaptureAgent):
                         for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
                             if eachActions[1] == action2:
                                 eachActionsNode.novel = False
-                                eachActionsNode.unnovelCause.append(1)
+                                if 1 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(1)
 
                 else:
                     if parentStateNode.enemies[0] in nearResult[2]:
@@ -514,7 +520,8 @@ class MCTSCaptureAgent(CaptureAgent):
                         for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
                             if eachActions[0] == action:
                                 eachActionsNode.novel = False
-                                eachActionsNode.unnovelCause.append(0)
+                                if 0 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(0)
 
                     if parentStateNode.enemies[1] in nearResult[2]:
                         FirstStateNode.novel = False
@@ -532,7 +539,8 @@ class MCTSCaptureAgent(CaptureAgent):
                         for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
                             if eachActions[1] == action2:
                                 eachActionsNode.novel = False
-                                eachActionsNode.unnovelCause.append(1)
+                                if 1 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(1)
 
             elif cause == set([]):
                 if WhichTeam == 0:
@@ -562,7 +570,10 @@ class MCTSCaptureAgent(CaptureAgent):
                         for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
                             if eachActions == (action0, action2):
                                 eachActionsNode.novel = False
-                                eachActionsNode.unnovelCause = [0,1]
+                                if 0 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(0)
+                                if 1 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(1)
                 else:
                     if parentStateNode.enemies[0] in nearResult[2] or parentStateNode.enemies[1] in nearResult[2]:
                         FirstStateNode.novel = False
@@ -590,7 +601,10 @@ class MCTSCaptureAgent(CaptureAgent):
                         for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
                             if eachActions == (action0, action2):
                                 eachActionsNode.novel = False
-                                eachActionsNode.unnovelCause = [0, 1]
+                                if 0 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(0)
+                                if 1 not in eachActionsNode.unnovelCause:
+                                    eachActionsNode.unnovelCause.append(1)
 
         for actionKey,eachStateSucc in parentStateNode.SuccStateNodeDict.items():
             if eachStateSucc.novel:
