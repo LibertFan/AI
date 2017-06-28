@@ -105,7 +105,7 @@ class MCTSCaptureAgent(CaptureAgent):
         self.enemies = self.getOpponents( gameState )
         print self.allies, self.enemies
         self.MCTS_ITERATION = 10000
-        self.ROLLOUT_DEPTH = 15
+        self.ROLLOUT_DEPTH = 25
         self.LastRootNode = None
         self.M = 4
         self.count = 0 

@@ -504,7 +504,7 @@ class StateNode( BasicNode ):
     def getLatentScore( self ):
         weights = self.getWeights()
         features = self.getFeatures()
-        return ( features * weights - self.Bound[0] ) * 0.1 / ( self.Bound[1] - self.Bound[0] )
+        return ( features * weights - self.Bound[0] ) * 0.5 / ( self.Bound[1] - self.Bound[0] )
 
     def getBound( self ):
         weights = self.getWeights()
