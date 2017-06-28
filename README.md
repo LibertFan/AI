@@ -16,7 +16,7 @@ Our programme is written in python2.
 
 Type 
 
-<p>python capture.py -r myteamv4</p>
+`python capture.py -r myteamv4`
 
 in command line, then you can run our programme.
 
