@@ -1076,7 +1076,7 @@ if __name__ == '__main__':
     > python capture.py --help
     """
     import random
-    random.seed( 111 )
+    random.seed( 123 )
     options = readCommand(sys.argv[1:])  # Get game components based on input
     games = runGames(**options)
 
