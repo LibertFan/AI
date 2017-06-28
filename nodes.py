@@ -212,16 +212,26 @@ class StateNode( BasicNode ):
                 #print self.cacheMemory
                 #for action, SuccActionNode in self.AlliesSuccActionsNodeDict.items():
                 #   print action, SuccActionN
+                print "x"*25, " RootNode is UnNovel" ,"x"*25
+                print "Basic Condition", self.isFullExpand(), self.novelTest, self.novel, self.IndexPositions
+                print "Allies" 
+                for actions, ActionNode in self.AlliesSuccActionsNodeDict.items():
+                    causes = ActionNode.unnovelCause
+                    #if causes is None or len( causes ) == 0:
+                    print actions, ActionNode.unnovelCause
+                print "Enemies"
+                for actions, ActionNode in self.EnemiesSuccActionsNodeDict.items():
+                    causes = ActionNode.unnovelCause
+                    #if causes is None or len( causes ) == 0:
+                    print actions, ActionNode.unnovelCause
 
-                for actions, SuccStateNode in self.SuccStateNodeDict.items():
-                    print actions, SuccStateNode.IndexPositions
 
                 AgentFaultList = self.WhichAgentFault()
                 print "UCB1, AgentFaultList", AgentFaultList
                 for agent in AgentFaultList:
                     self.cacheMemory[agent] = set()
-                print "UCB1, refresh cacheMemory", self.cacheMemory
-                self.NovelTest = False
+
+                self.novelTest = False
                 self.novel = True
                 self.AlliesSuccActionsNodeDict = dict()
                 self.EnemiesSuccActionsNodeDict = dict()
@@ -253,8 +263,7 @@ class StateNode( BasicNode ):
                             else:
                                 print self.IndexPositions 
                                 print SuccAlliesActionsNode.LastActions, SuccEnemiesActionNode.LastActions
-
-                                raise Exception( "Two novel actions produce an unnovel StateNode!" )
+                                print "Two novel actions produce an unnovel StateNode!"
                                     
                     if lowestEnemiesScore != 9999 and lowestEnemiesScore > HighestScore:
                         HighestScore = lowestEnemiesScore
@@ -264,6 +273,31 @@ class StateNode( BasicNode ):
                 #self = ReplaceNode(self.depth)
                 #if self.StateParent is None:
                 #    print "This StateNode is RootNode"
+                print "Basic Condition", self.isFullExpand(), self.novelTest, self.novel, self.IndexPositions
+                for agentIndex, context in self.cacheMemory.items():
+                    print "agentIndex:", agentIndex, "cacheMemory:", context
+                print "Allies"
+                for actions, ActionNode in self.AlliesSuccActionsNodeDict.items():
+                    causes = ActionNode.unnovelCause
+                    #if causes is None or len( causes ) == 0:
+                    print actions, ActionNode.unnovelCause
+                print "Enemies"
+                for actions, ActionNode in self.EnemiesSuccActionsNodeDict.items():
+                    causes = ActionNode.unnovelCause
+                    #if causes is None or len( causes ) == 0:
+                    print actions, ActionNode.unnovelCause
+                print "Successive State Node"
+                for actions, sn in self.SuccStateNodeDict.items():
+                    if sn.nVisit > 0:
+                        print "SuccStateNode is visited!", sn.IndexPositions
+                        if not sn.isFullExpand():
+                            print "SuccStateNode is not FullExpand!"
+                        if not sn.novelTest:
+                            print "SuccStateNode is not novelTest"
+                        if sn.novel:
+                            print actions, "SuccNode is novel"
+                    print "x"*50
+
                 raise Exception("UCB1 return None!") 
                 self.novel = False
                 return None
@@ -377,14 +411,14 @@ class StateNode( BasicNode ):
     ### Del those unnovel nodes( replace them with instances of ReplaceNode )
     ### return the list of NovelSuccStateNode 
     def FullExpandFunc( self ):
-        if not self.isFullExpand():
+        if not self.isFullExpand() or not self.novelTest:
             for actions in self.LegalActions:
                 self.ChooseSuccNode( actions )
 
         #if not self.novelTest:
             nearResult = self.nearToEnemies()
             if len(nearResult[1]) == 2 and len(nearResult[2]) == 2:
-                cacheMemory = self.StateParent.cacheMemory
+                cacheMemory = self.cacheMemory
             elif len(nearResult[1]) == 0 and len(nearResult[2]) == 0:
                 allMemory1 = self.NoveltyTestSuccessorsV1(0)
                 allMemory2 = self.NoveltyTestSuccessorsV1(1)
@@ -397,11 +431,11 @@ class StateNode( BasicNode ):
                 cacheMemory = allMemory1
             elif len(nearResult[1]) == 1 and len(nearResult[2]) == 2:
                 allMemory1 = self.NoveltyTestSuccessorsV1(0, nearResult[0][0][0])
-                allMemory1.update({self.enemies[0]:self.StateParent.cacheMemory[self.enemies[0]], self.enemies[1]:self.StateParent.cacheMemory[self.enemies[1]]})
+                allMemory1.update({self.enemies[0]:self.cacheMemory[self.enemies[0]], self.enemies[1]:self.cacheMemory[self.enemies[1]]})
                 cacheMemory = allMemory1
             elif len(nearResult[1]) == 2 and len(nearResult[2]) == 1:
                 allMemory2 = self.NoveltyTestSuccessorsV1(1, nearResult[0][0][1])
-                allMemory2.update({self.allies[0]: self.StateParent.cacheMemory[self.allies[0]], self.allies[1]: self.StateParent.cacheMemory[self.allies[1]]})
+                allMemory2.update({self.allies[0]: self.cacheMemory[self.allies[0]], self.allies[1]: self.cacheMemory[self.allies[1]]})
                 cacheMemory = allMemory2
             else:
                 raise Exception('Not possible condition')
@@ -470,13 +504,27 @@ class StateNode( BasicNode ):
     def getLatentScore( self ):
         weights = self.getWeights()
         features = self.getFeatures()
-        return ( features * weights - self.Bound[0] ) * 0.5 / ( self.Bound[1] - self.Bound[0] )
+        return ( features * weights - self.Bound[0] ) * 0.1 / ( self.Bound[1] - self.Bound[0] )
 
     def getBound( self ):
         weights = self.getWeights()
         features1 = util.Counter()
+        features2 = util.Counter()
         for index in self.allies:
             features1['onDefense' + str(index)] = 1 
+        features2['successorScore'] = 20
+        features2["ally-pacman-die"] = 2
+        features2["ally-ghost-die"] = 2
+        features1["enemy-pacman-die"] = 2
+        features1["enemy-ghost-die"] = 2
+        features1["eat_food"] = 2
+        features1["eat-capsule"] = 1
+
+        for index in self.allies:
+            weights['onDefense' + str( index )] = 0
+            weights['distanceToFood' + str( index )] = -1
+            weights['invaderDistance' + str( index )] = 0
+
          
         features2 = util.Counter()
         red = self.GameState.isOnRedTeam(self.allies[0])
@@ -494,7 +542,7 @@ class StateNode( BasicNode ):
         features2["numInvaders"] = 2
 
         #return [features2 * weights, features1 * weights]
-        return [ features2 * weights, 0]
+        return [ features2 * weights, features1 * weights]
 
     def getWeights( self ):
         """
@@ -511,11 +559,12 @@ class StateNode( BasicNode ):
         
         The weights for various feature should be reset!
         """
-        weights = {'successorScore': 0, 'numInvaders': 0 }
+        weights = {'successorScore': 0, 'numInvaders': 0,"ally-pacman-die":-20, "ally-ghost-die":-0.5,
+                   "enemy-pacman-die":5,"enemy-ghost-die":1, "eat_food":1.1, "eat-capsule":10 }
 
         for index in self.allies:
             weights['onDefense' + str( index )] = 0
-            weights['distanceToFood' + str( index )] = -2
+            weights['distanceToFood' + str( index )] = -1
             weights['invaderDistance' + str( index )] = 0
 
         return weights
@@ -535,7 +584,31 @@ class StateNode( BasicNode ):
         for index in self.allies:
             myMinDist = min([self.getDistancer( self.IndexPositions[ index ], food) for food in FoodList])
             features["distanceToFood" + str(index)] = float(myMinDist) / (walls.width * walls.height)
+       
+        features["ally-pacman-die"] = 0
+        features["ally-ghost-die"] = 0
+        features["enemy-pacman-die"] = 0
+        features["enemy-ghost-die"]  = 0
+        features["eat_food"] = 0
+        features["eat-capsule"] = 0
 
+        for deadAgent in self.deadAgentList:
+            if deadAgent in self.allies:
+                if self.StateParent.GameState.getAgentState( deadAgent ).isPacman:
+                    features["ally-pacman-die"] += 1
+                else:
+                    features["ally-ghost-die"] += 1
+            if deadAgent in self.enemies:
+                if self.StateParent.GameState.getAgentState( deadAgent ).isPacman:
+                    features["enemy-pacman-die"] += 1
+                else:
+                    features["enemy-ghost-die"] += 1
+        
+        for agentIndex in self.allies:
+            OldAgentState = self.StateParent.GameState.getAgentState( agentIndex )
+            NewAgentState = self.GameState.getAgentState( agentIndex ) 
+            features["eat-food"] += int( NewAgentState.numCarrying - OldAgentState.numCarrying > 0 )
+            features["eat-capsule"] += int( NewAgentState.numCapsules - OldAgentState.numCapsules > 0 )
         return features
     
     ### The following functions are used to compute the novelty of an StateNode
@@ -547,6 +620,8 @@ class StateNode( BasicNode ):
             for eachAgent in eachStateSucc.allies + eachStateSucc.enemies:
                 if eachAgent not in eachStateSucc.deadAgentList:
                     self.updateCacheMemory(eachStateSucc.cacheMemory, {eachAgent: cacheMemory[eachAgent]})
+                else:
+                    self.updateCacheMemory(eachStateSucc.cacheMemory, {eachAgent: set([eachStateSucc.generateTuples(eachAgent)])})
             if eachStateSucc.novel:
                 if not eachStateSucc.AlliesActionParent.novel or not eachStateSucc.EnemiesActionParent.novel:
                     #self.SuccStateNodeDict[actionKeys] = ReplaceNode(eachStateSucc.depth)
@@ -605,48 +680,87 @@ class StateNode( BasicNode ):
             #print "succ_atoms_tuples0, succ_atoms_tuples1",succ_atoms_tuples0, succ_atoms_tuples1
             if ignore == -1:
                 all_memory = self.updateCacheMemory(all_memory,{ourTeam[0]:set([succ_atoms_tuples0]), ourTeam[1]:set([succ_atoms_tuples1])})
-                x = set([succ_atoms_tuples0]) - parent_atoms_tuples[ourTeam[0]]
-                #print set([succ_atoms_tuples0])
-                #print parent_atoms_tuples[ourTeam[0]]
-                #print "x"*20,x
-                if len(x) == 0:
-                    succ.novel = False
-                    parent1_cache_positions = [each[0] for each in parent_atoms_tuples[ourTeam[1]]]
-                    if len(set([succ_atoms_tuples1[0]])-set(parent1_cache_positions)) == 0:
-                        succ.unnovelCause = [0,1]
-                    else:
-                        succ.unnovelCause = [0]
-                    continue
-                else:
-                    parent0_cache_positions = [each[0] for each in parent_atoms_tuples[ourTeam[0]]]
+                ####### agent0
+                if len(set([succ_atoms_tuples0]) - parent_atoms_tuples[ourTeam[0]]) == 0:
+                    succ_reason0 = 3
+                elif succ_atoms_tuples0[1:5] == this_atoms_tuples1[1:5]:
                     parent1_cache_positions = [each[0] for each in parent_atoms_tuples[ourTeam[1]]]
                     if len(set([succ_atoms_tuples0[0]]) - set(parent1_cache_positions)) == 0:
-                        if len(set([succ_atoms_tuples1[0]]) - set(parent0_cache_positions)) == 0:
-                            succ.novel = False
-                            succ.unnovelCause = [0,1]
-                            continue
-                        elif len(set([succ_atoms_tuples1]) - parent_atoms_tuples[ourTeam[1]]) == 0:
-                            succ.novel = False
-                            succ.unnovelCause = [1]
-                            continue
+                        succ_reason0 = 2
                     else:
-                        if len(set([succ_atoms_tuples1]) - parent_atoms_tuples[ourTeam[1]]) == 0:
-                            succ.novel = False
-                            succ.unnovelCause = [1]
-                            continue
+                        succ_reason0 = 1
+                else:
+                    succ_reason0 = 1
+
+                ###### agent1
+                if len(set([succ_atoms_tuples1]) - parent_atoms_tuples[ourTeam[1]]) == 0:
+                    succ_reason1 = 3
+                elif succ_atoms_tuples1[1:5] == this_atoms_tuples2[1:5]:
+                    parent0_cache_positions = [each[0] for each in parent_atoms_tuples[ourTeam[0]]]
+                    if len(set([succ_atoms_tuples1[0]]) - set(parent0_cache_positions)) == 0:
+                        succ_reason1 = 2
+                    else:
+                        succ_reason1 = 1
+                else:
+                    succ_reason1 = 1
+
+                if succ_reason0 == 3 and succ_reason1 == 3:
+                    succ.novel = False
+                    succ.unnovelCause = [0,1]
+                elif succ_reason0 == 2 and succ_reason1 == 3:
+                    succ.novel = False
+                    succ.unnovelCause = [1]
+                elif succ_reason0 == 3 and succ_reason1 == 2:
+                    succ.novel = False
+                    succ.unnovelCause = [0]
+                elif succ_reason0 == 2 and succ_reason1 == 2:
+                    succ.novel = False
+                    succ.unnovelCause = [0,1]
+                elif succ_reason0 == 1 and succ_reason1 == 3:
+                    succ.novel = False
+                    succ.unnovelCause = [1]
+                elif succ_reason0 == 3 and succ_reason1 == 1:
+                    succ.novel = False
+                    succ.unnovelCause = [0]
+
+            elif ignore == ourTeam[0]:
+                all_memory = self.updateCacheMemory(all_memory, {ourTeam[1]:set([succ_atoms_tuples1])})
+                ###### agent1
+                if len(set([succ_atoms_tuples1]) - parent_atoms_tuples[ourTeam[1]]) == 0:
+                    succ_reason1 = 3
+                elif succ_atoms_tuples1[1:5] == this_atoms_tuples2[1:5]:
+                    parent0_cache_positions = [each[0] for each in parent_atoms_tuples[ourTeam[0]]]
+                    if len(set([succ_atoms_tuples1[0]]) - set(parent0_cache_positions)) == 0:
+                        succ_reason1 = 2
+                    else:
+                        succ_reason1 = 1
+                else:
+                    succ_reason1 = 1
+
+                if succ_reason1 == 3:
+                    succ.novel = False
+                    succ.unnovelCause = [1]
+
+            elif ignore == ourTeam[1]:
+                all_memory = self.updateCacheMemory(all_memory, {ourTeam[0]:set([succ_atoms_tuples0])})
+                ####### agent0
+                if len(set([succ_atoms_tuples0]) - parent_atoms_tuples[ourTeam[0]]) == 0:
+                    succ_reason0 = 3
+                elif succ_atoms_tuples0[1:5] == this_atoms_tuples1[1:5]:
+                    parent1_cache_positions = [each[0] for each in parent_atoms_tuples[ourTeam[1]]]
+                    if len(set([succ_atoms_tuples0[0]]) - set(parent1_cache_positions)) == 0:
+                        succ_reason0 = 2
+                    else:
+                        succ_reason0 = 1
+                else:
+                    succ_reason0 = 1
+
+                if succ_reason0 == 3:
+                    succ.novel = False
+                    succ.unnovelCause = [0]
+
             else:
-                if ignore == ourTeam[0]:
-                    all_memory = self.updateCacheMemory(all_memory, {ourTeam[1]:set([succ_atoms_tuples1])})
-                    if len(set([succ_atoms_tuples1]) - parent_atoms_tuples[ourTeam[1]]) == 0:
-                        succ.novel = False
-                        succ.unnovelCause = [1]
-                        continue
-                elif ignore == ourTeam[1]:
-                    all_memory = self.updateCacheMemory(all_memory, {ourTeam[0]:set([succ_atoms_tuples0])})
-                    if len(set([succ_atoms_tuples0]) - parent_atoms_tuples[ourTeam[0]]) == 0:
-                        succ.novel = False
-                        succ.unnovelCause = [0]
-                        continue
+                raise Exception("Wrong ignore when near!")
 
         return all_memory
 

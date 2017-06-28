@@ -25,6 +25,8 @@ import sys
 import numpy as np
 import multiprocessing 
 from nodes import StateNode, ActionNode
+import gc
+
 #from SimulateAgents import SimulateAgent, SimulateAgentV1
 from Helper import Distancer, ParallelAgent, SimulateAgent, SimulateAgentV1
 from BasicNode import BasicNode, ReplaceNode
@@ -179,6 +181,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     print "leaf nodes:",num, ", novel leaf nodes:",novelnum,", depth of root node", self.rootNode.depth,",depth of the search tree:",Depth
                     self.novelleaf = novelnum
                     del StateRootNode
+                    gc.collect()
                     return 
                     #print self.rootNode.cacheMemory 
                     #return self.rootNode
@@ -237,6 +240,7 @@ class MCTSCaptureAgent(CaptureAgent):
                     self.rootNode.SuccStateNodeDict = dict()
                     self.novelleaf = 1
                     del StateRootNode
+                    gc.collect()
                     return 
                     #return self.rootNode
                 
@@ -323,6 +327,8 @@ class MCTSCaptureAgent(CaptureAgent):
 		    
         print "=" * 50
         print "=" * 50
+        del self.rootNode
+        gc.collect()
         return bestAction
 
     def Select( self ):
@@ -372,148 +378,219 @@ class MCTSCaptureAgent(CaptureAgent):
                 cause = cause & set(eachActionNode.unnovelCause)
 
             parentStateNode = FirstStateNode.StateParent
+            nearResult = parentStateNode.nearToEnemies()
             #print "cause",cause
             
             if cause == {0}:
                 if WhichTeam == 0:
-                    parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
-                    X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[0]]
-                    vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
-                    for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
-                        if eachActions[0] == action:
-                            eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0]
-                    '''
-                    for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
-                        if pairActions[0][0] == action:
-                            pairSateteNode.novel = False
-                    '''
+                    if parentStateNode.allies[0] in nearResult[1]:
+                        FirstStateNode.novel = False
+                    else:
+                        parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
+                        X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[0]]
+                        vector = (X - parentX, Y - parentY)
+                        if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action = FourActions[0][0]
+                                    break
+                        else:
+                            action = Actions.vectorToDirection(vector)
+                        for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
+                            if eachActions[0] == action:
+                                eachActionsNode.novel = False
+                                eachActionsNode.unnovelCause = [0]
+
                 else:
-                    parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[0]]
-                    X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[0]]
-                    vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
-                    for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
-                        if eachActions[0] == action:
-                            eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0]
-                    '''
-                    for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
-                        if pairActions[1][0] == action:
-                            pairSateteNode.novel = False
-                    '''
+                    if parentStateNode.enemies[0] in nearResult[2]:
+                        FirstStateNode.novel = False
+                    else:
+                        parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[0]]
+                        X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[0]]
+                        vector = (X - parentX, Y - parentY)
+                        if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action = FourActions[1][0]
+                                    break
+                        else:
+                            action = Actions.vectorToDirection(vector)
+                        for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
+                            if eachActions[0] == action:
+                                eachActionsNode.novel = False
+                                eachActionsNode.unnovelCause = [0]
+
             elif cause == {1}:
                 if WhichTeam == 0:
-                    parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[1]]
-                    X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[1]]
-                    vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
-                    for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
-                        if eachActions[1] == action:
-                            eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [1]
-                    '''
-                    for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
-                        if pairActions[0][1] == action:
-                            pairSateteNode.novel = False
-                    '''
+                    if parentStateNode.allies[1] in nearResult[1]:
+                        FirstStateNode.novel = False
+                    else:
+                        parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[1]]
+                        X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[1]]
+                        vector = (X - parentX, Y - parentY)
+                        if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action = FourActions[0][1]
+                                    break
+                        else:
+                            action = Actions.vectorToDirection(vector)
+                        for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
+                            if eachActions[1] == action:
+                                eachActionsNode.novel = False
+                                eachActionsNode.unnovelCause = [1]
+
                 else:
-                    parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[1]]
-                    X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[1]]
-                    vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
-                    for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
-                        if eachActions[1] == action:
-                            eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [1]
-                    '''
-                    for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
-                        if pairActions[1][1] == action:
-                            pairSateteNode.novel = False
-                    '''
+                    if parentStateNode.enemies[1] in nearResult[2]:
+                        FirstStateNode.novel = False
+                    else:
+                        parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[1]]
+                        X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[1]]
+                        vector = (X - parentX, Y - parentY)
+                        if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action = FourActions[1][1]
+                                    break
+                        else:
+                            action = Actions.vectorToDirection(vector)
+                        for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
+                            if eachActions[1] == action:
+                                eachActionsNode.novel = False
+                                eachActionsNode.unnovelCause = [1]
+
             elif cause == set([0,1]):
                 if WhichTeam == 0:
-                    parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
-                    X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[0]]
-                    vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
-                    for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
-                        if eachActions[0] == action:
-                            eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0,1]
-                    '''
-                    for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
-                        if pairActions[0][0] == action:
-                            pairSateteNode.novel = False
-                    '''
-                    parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.allies[1]]
-                    X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.allies[1]]
-                    vector2 = (X2 - parentX2, Y2 - parentY2)
-                    action2 = Actions.vectorToDirection(vector2)
-                    for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
-                        if eachActions[1] == action2:
-                            eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0, 1]
-                    '''
-                    for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
-                        if pairActions[0][1] == action2:
-                            pairSateteNode.novel = False
-                    '''
+                    if parentStateNode.allies[0] in nearResult[1]:
+                        FirstStateNode.novel = False
+                    else:
+                        parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
+                        X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[0]]
+                        vector = (X - parentX, Y - parentY)
+                        if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action = FourActions[0][0]
+                                    break
+                        else:
+                            action = Actions.vectorToDirection(vector)
+                        for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
+                            if eachActions[0] == action:
+                                eachActionsNode.novel = False
+                                eachActionsNode.unnovelCause.append(0)
+
+                    if parentStateNode.allies[1] in nearResult[1]:
+                        FirstStateNode.novel = False
+                    else:
+                        parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.allies[1]]
+                        X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.allies[1]]
+                        vector2 = (X2 - parentX2, Y2 - parentY2)
+                        if abs(vector2[0]) > 1 or abs(vector2[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action2 = FourActions[0][1]
+                                    break
+                        else:
+                            action2 = Actions.vectorToDirection(vector2)
+                        for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
+                            if eachActions[1] == action2:
+                                eachActionsNode.novel = False
+                                eachActionsNode.unnovelCause.append(1)
+
                 else:
-                    parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[0]]
-                    X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[0]]
-                    vector = (X - parentX, Y - parentY)
-                    action = Actions.vectorToDirection(vector)
-                    for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
-                        if eachActions[0] == action:
-                            eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0, 1]
-                    '''
-                    for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
-                        if pairActions[1][0] == action:
-                            pairSateteNode.novel = False
-                    '''
-                    parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.enemies[1]]
-                    X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.enemies[1]]
-                    vector2 = (X2 - parentX2, Y2 - parentY2)
-                    action2 = Actions.vectorToDirection(vector2)
-                    for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
-                        if eachActions[1] == action2:
-                            eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0, 1]
-                    '''
-                    for pairActions, pairSateteNode in parentStateNode.SuccStateNodeDict.items():
-                        if pairActions[1][1] == action2:
-                            pairSateteNode.novel = False
-                    '''
+                    if parentStateNode.enemies[0] in nearResult[2]:
+                        FirstStateNode.novel = False
+                    else:
+                        parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[0]]
+                        X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[0]]
+                        vector = (X - parentX, Y - parentY)
+                        if abs(vector[0]) > 1 or abs(vector[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action = FourActions[1][0]
+                                    break
+                        else:
+                            action = Actions.vectorToDirection(vector)
+                        for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
+                            if eachActions[0] == action:
+                                eachActionsNode.novel = False
+                                eachActionsNode.unnovelCause.append(0)
+
+                    if parentStateNode.enemies[1] in nearResult[2]:
+                        FirstStateNode.novel = False
+                    else:
+                        parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.enemies[1]]
+                        X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.enemies[1]]
+                        vector2 = (X2 - parentX2, Y2 - parentY2)
+                        if abs(vector2[0]) > 1 or abs(vector2[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action2 = FourActions[1][1]
+                                    break
+                        else:
+                            action2 = Actions.vectorToDirection(vector2)
+                        for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
+                            if eachActions[1] == action2:
+                                eachActionsNode.novel = False
+                                eachActionsNode.unnovelCause.append(1)
+
             elif cause == set([]):
                 if WhichTeam == 0:
-                    parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
-                    X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[0]]
-                    vector0 = (X - parentX, Y - parentY)
-                    action0 = Actions.vectorToDirection(vector0)
-                    parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.allies[1]]
-                    X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.allies[1]]
-                    vector2 = (X2 - parentX2, Y2 - parentY2)
-                    action2 = Actions.vectorToDirection(vector2)
-                    for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
-                        if eachActions == (action0, action2):
-                            eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0,1]
+                    if parentStateNode.allies[0] in nearResult[1] or parentStateNode.allies[1] in nearResult[1]:
+                        FirstStateNode.novel = False
+                    else:
+                        parentX, parentY = parentStateNode.IndexPositions[parentStateNode.allies[0]]
+                        X, Y = FirstStateNode.IndexPositions[FirstStateNode.allies[0]]
+                        vector0 = (X - parentX, Y - parentY)
+                        if abs(vector0[0]) > 1 or abs(vector0[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action0 = FourActions[0][0]
+                                    break
+                        else:
+                            action0 = Actions.vectorToDirection(vector0)
+                        parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.allies[1]]
+                        X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.allies[1]]
+                        vector2 = (X2 - parentX2, Y2 - parentY2)
+                        if abs(vector2[0]) > 1 or abs(vector2[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action2 = FourActions[0][1]
+                                    break
+                        else:
+                            action2 = Actions.vectorToDirection(vector2)
+                        for eachActions, eachActionsNode in parentStateNode.AlliesSuccActionsNodeDict.items():
+                            if eachActions == (action0, action2):
+                                eachActionsNode.novel = False
+                                eachActionsNode.unnovelCause = [0,1]
                 else:
-                    parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[0]]
-                    X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[0]]
-                    vector0 = (X - parentX, Y - parentY)
-                    action0 = Actions.vectorToDirection(vector0)
-                    parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.enemies[1]]
-                    X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.enemies[1]]
-                    vector2 = (X2 - parentX2, Y2 - parentY2)
-                    action2 = Actions.vectorToDirection(vector2)
-                    for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
-                        if eachActions == (action0, action2):
-                            eachActionsNode.novel = False
-                            eachActionsNode.unnovelCause = [0, 1]
+                    if parentStateNode.enemies[0] in nearResult[2] or parentStateNode.enemies[1] in nearResult[2]:
+                        FirstStateNode.novel = False
+                    else:
+                        parentX, parentY = parentStateNode.IndexPositions[parentStateNode.enemies[0]]
+                        X, Y = FirstStateNode.IndexPositions[FirstStateNode.enemies[0]]
+                        vector0 = (X - parentX, Y - parentY)
+                        if abs(vector0[0]) > 1 or abs(vector0[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action0 = FourActions[1][0]
+                                    break
+                        else:
+                            action0 = Actions.vectorToDirection(vector0)
+                        parentX2, parentY2 = parentStateNode.IndexPositions[parentStateNode.enemies[1]]
+                        X2, Y2 = FirstStateNode.IndexPositions[FirstStateNode.enemies[1]]
+                        vector2 = (X2 - parentX2, Y2 - parentY2)
+                        if abs(vector2[0]) > 1 or abs(vector2[1]) > 1:
+                            for FourActions in parentStateNode.SuccStateNodeDict.iterkeys():
+                                if FirstStateNode == parentStateNode.SuccStateNodeDict[FourActions]:
+                                    action2 = FourActions[1][1]
+                                    break
+                        else:
+                            action2 = Actions.vectorToDirection(vector2)
+                        for eachActions, eachActionsNode in parentStateNode.EnemiesSuccActionsNodeDict.items():
+                            if eachActions == (action0, action2):
+                                eachActionsNode.novel = False
+                                eachActionsNode.unnovelCause = [0, 1]
 
         for actionKey,eachStateSucc in parentStateNode.SuccStateNodeDict.items():
             if eachStateSucc.novel:
@@ -534,7 +611,7 @@ class MCTSCaptureAgent(CaptureAgent):
             try:
                 if not FirstStateNode.novel:
                     raise Exception("FirstStateNode should be novel!")
-                #print "iteration within back begin!"
+                print "iteration within back begin!"
                 #print "try, FirstStateNode", FirstStateNode, "NovelSuccStateNodeList", NovelSuccStateNodeList
 
                 if FirstStateNode.StateParent is None:
@@ -601,14 +678,26 @@ class MCTSCaptureAgent(CaptureAgent):
         if len( NovelSuccActionStateNodeList ) == 0:
             if CurrentStateNode.StateParent is None:
                 print "rr" * 30
-                for actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
-                    print actions
-                    print SuccStateNode.IndexPositions
-                    #print SuccStateNode.cacheMemory
-                    print "="*50
-                for actionKey,succ in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
-                    print "first enemy features",succ.generateTuples(CurrentStateNode.enemies[0])
-                    print "second enemy features",succ.generateTuples(CurrentStateNode.enemies[1])
+                print "BasicCondition:", CurrentStateNode.isFullExpand, CurrentStateNode.novelTest, CurrentStateNode.novel
+                print "Allies"
+                for actions, ActionNode in CurrentStateNode.AlliesSuccActionsNodeDict.items():
+                    causes = ActionNode.unnovelCause
+                    if causes is None or len( causes ) == 0:
+                        print actions, ActionNode.unnovelCause
+                print "Enemies"
+                for actions, ActionNode in CurrentStateNode.EnemiesSuccActionsNodeDict.items():   
+                    causes = ActionNode.unnovelCause
+                    if causes is None or len( causes ) == 0:
+                        print actions, ActionNode.unnovelCause
+
+               # for actions, SuccStateNode in CurrentStateNode.SuccStateNodeDict.items():
+               #     print actions
+               #     print SuccStateNode.IndexPositions
+               #     #print SuccStateNode.cacheMemory
+               #     print "="*50
+               # for actionKey,succ in CurrentStateNode.EnemiesSuccActionsNodeDict.items():
+               #     print "first enemy features",succ.generateTuples(CurrentStateNode.enemies[0])
+               #     print "second enemy features",succ.generateTuples(CurrentStateNode.enemies[1])
                 print "rr" * 30
             print CurrentStateNode.IndexPositions     
             #print CurrentStateNode.LegalActions
@@ -637,7 +726,7 @@ class MCTSCaptureAgent(CaptureAgent):
         # print "The number of branch is:", len(CurrentInfo)
 
         print "Parallel Begin"
-        if len( MNovelSuccStateNodeList ) > 1000:
+        if len( MNovelSuccStateNodeList ) > 2000:
             t1 = time.time()
             print len(MNovelSuccStateNodeList)
             CurrentInfo = []
