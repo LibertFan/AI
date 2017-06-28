@@ -582,8 +582,11 @@ class StateNode( BasicNode ):
         walls = self.GameState.getWalls()
         FoodList = self.getFood( self.GameState ).asList()
         for index in self.allies:
-            myMinDist = min([self.getDistancer( self.IndexPositions[ index ], food) for food in FoodList])
-            features["distanceToFood" + str(index)] = float(myMinDist) / (walls.width * walls.height)
+            try:
+                myMinDist = min([self.getDistancer( self.IndexPositions[ index ], food) for food in FoodList])
+                features["distanceToFood" + str(index)] = float(myMinDist) / (walls.width * walls.height)
+            except:
+                pass
        
         features["ally-pacman-die"] = 0
         features["ally-ghost-die"] = 0
