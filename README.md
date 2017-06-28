@@ -14,7 +14,9 @@ Rules of the game has been changed, all agents make decision in the same time.
 ## How to run our programme?
 Our programme is written in python2.
 
-Type "python capture.py -r myTeamv4" in command line, then you can run our programme.
+Type  python capture.py -r myTeamv4
+
+in command line, then you can run our programme.
 
 
 
